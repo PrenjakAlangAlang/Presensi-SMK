@@ -93,10 +93,9 @@ require_once __DIR__ . '/../layouts/header.php';
                     <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Kelas</label>
                     <select id="kelasSelect" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition">
                         <option value="">Pilih Kelas</option>
-                        <option value="1">XI RPL 1 - Pemrograman Web</option>
-                        <option value="2">XI RPL 1 - Basis Data</option>
-                        <option value="3">XI RPL 1 - Matematika</option>
-                        <option value="4">XI RPL 1 - Bahasa Indonesia</option>
+                        <?php foreach($kelas as $k): ?>
+                            <option value="<?php echo $k->id; ?>"><?php echo htmlspecialchars($k->nama_kelas); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
@@ -160,6 +159,13 @@ require_once __DIR__ . '/../layouts/header.php';
 </div>
 
 <script>
+// Mapping kelas_id => whether session active (from server)
+const kelasSesi = <?php
+    $map = [];
+    foreach($kelas as $kk) { $map[$kk->id] = $kk->sesi_aktif ? true : false; }
+    echo json_encode($map);
+?>;
+
 let userLocation = null;
 let schoolLocation = { lat: <?php echo $lokasiSekolah->latitude ?? DEFAULT_LATITUDE; ?>, lng: <?php echo $lokasiSekolah->longitude ?? DEFAULT_LONGITUDE; ?> };
 let map, userMarker, schoolMarker, accuracyCircle;
@@ -363,28 +369,52 @@ function submitPresensiSekolah() {
 function submitPresensiKelas() {
     const kelasSelect = document.getElementById('kelasSelect');
     const selectedKelas = kelasSelect.value;
-    
+
     if (!selectedKelas || !userLocation) {
-        showNotification('error', 'Pilih kelas terlebih dahulu!');
+        showNotification('error', 'Pilih kelas terlebih dahulu dan pastikan lokasi tersedia!');
         return;
     }
-    
+
+    // Check if there's an active session for the selected class
+    if (!kelasSesi[selectedKelas]) {
+        showNotification('error', 'Belum ada sesi presensi aktif untuk kelas ini.');
+        return;
+    }
+
     const btn = document.getElementById('presensiKelasBtn');
     const originalText = btn.innerHTML;
     const kelasName = kelasSelect.options[kelasSelect.selectedIndex].text;
-    
+
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
-    
-    // Simulate API call
-    setTimeout(() => {
-        showNotification('success', `Presensi kelas ${kelasName} berhasil!`);
+
+    // Build form data and POST to server
+    const formData = new FormData();
+    formData.append('kelas_id', selectedKelas);
+    formData.append('latitude', userLocation.lat);
+    formData.append('longitude', userLocation.lng);
+
+    fetch('index.php?action=submit_presensi_kelas', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', `Presensi kelas ${kelasName} berhasil!`);
+            addToPresensiHistory(kelasName, 'Berhasil', new Date().toLocaleTimeString());
+        } else {
+            showNotification('error', data.message || 'Gagal mencatat presensi kelas');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showNotification('error', 'Terjadi kesalahan saat mengirim presensi');
+    })
+    .finally(() => {
         btn.innerHTML = originalText;
         btn.disabled = false;
-        
-        // Add to history
-        addToPresensiHistory(kelasName, 'Berhasil', new Date().toLocaleTimeString());
-    }, 2000);
+    });
 }
 
 // Show notification
@@ -428,16 +458,26 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('kelasSelect').addEventListener('change', function() {
         const selected = this.value;
         const presensiKelasBtn = document.getElementById('presensiKelasBtn');
-        
-        if (selected) {
-            presensiKelasBtn.disabled = !userLocation;
-            document.getElementById('statusKelas').textContent = 'Siap presensi';
-            document.getElementById('statusKelas').className = 'text-green-600';
-        } else {
+
+        if (!selected) {
             presensiKelasBtn.disabled = true;
             document.getElementById('statusKelas').textContent = 'Belum dipilih';
             document.getElementById('statusKelas').className = 'text-yellow-600';
+            return;
         }
+
+        // enable only if location available and session active
+        const sesiAktif = kelasSesi[selected] || false;
+        if (!sesiAktif) {
+            presensiKelasBtn.disabled = true;
+            document.getElementById('statusKelas').textContent = 'Tidak ada sesi aktif';
+            document.getElementById('statusKelas').className = 'text-red-600';
+            return;
+        }
+
+        presensiKelasBtn.disabled = !userLocation;
+        document.getElementById('statusKelas').textContent = userLocation ? 'Siap presensi' : 'Menunggu lokasi';
+        document.getElementById('statusKelas').className = userLocation ? 'text-green-600' : 'text-yellow-600';
     });
 });
 

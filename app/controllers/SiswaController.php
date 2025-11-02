@@ -3,16 +3,19 @@
 require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../models/KelasModel.php';
+require_once __DIR__ . '/../models/PresensiSesiModel.php';
 
 class SiswaController {
     private $presensiModel;
     private $locationModel;
     private $kelasModel;
+    private $presensiSesiModel;
     
     public function __construct() {
         $this->presensiModel = new PresensiModel();
         $this->locationModel = new LocationModel();
         $this->kelasModel = new KelasModel();
+        $this->presensiSesiModel = new PresensiSesiModel();
     }
     
     public function dashboard() {
@@ -27,7 +30,12 @@ class SiswaController {
     public function presensi() {
         $lokasiSekolah = $this->locationModel->getLokasiSekolah();
         $kelas = $this->kelasModel->getAllKelas();
-    require_once __DIR__ . '/../views/siswa/presensi.php';
+        // Attach active session info to each kelas so frontend can enable presensi per kelas
+        foreach ($kelas as $k) {
+            $k->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($k->id);
+        }
+
+        require_once __DIR__ . '/../views/siswa/presensi.php';
     }
     
     public function riwayat() {
@@ -88,6 +96,21 @@ class SiswaController {
                 'status' => $isValid ? 'valid' : 'invalid'
             ];
             
+            // Attach active presensi session id for the kelas
+            $activeSession = $this->presensiSesiModel->getActiveSessionByKelas($kelas_id);
+            if (!$activeSession) {
+                echo json_encode(['success' => false, 'message' => 'Belum ada sesi presensi aktif untuk kelas ini.']);
+                return;
+            }
+
+            // Prevent duplicate presensi for the same session
+            if ($this->presensiModel->hasPresensiInSession($user_id, $activeSession->id)) {
+                echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi ini.']);
+                return;
+            }
+
+            $data['presensi_sesi_id'] = $activeSession->id;
+
             if($this->presensiModel->recordPresensiKelas($data)) {
                 echo json_encode(['success' => true, 'valid' => $isValid]);
             } else {

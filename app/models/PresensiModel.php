@@ -23,16 +23,31 @@ class PresensiModel {
     }
     
     public function recordPresensiKelas($data) {
-        $this->db->query('INSERT INTO presensi_kelas (user_id, kelas_id, latitude, longitude, jarak, status) 
-                         VALUES (:user_id, :kelas_id, :latitude, :longitude, :jarak, :status)');
+        // support presensi_sesi_id if provided (nullable)
+        $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, kelas_id, latitude, longitude, jarak, status, waktu) 
+                         VALUES (:presensi_sesi_id, :user_id, :kelas_id, :latitude, :longitude, :jarak, :status, NOW())');
+        $this->db->bind(':presensi_sesi_id', $data['presensi_sesi_id'] ?? null);
         $this->db->bind(':user_id', $data['user_id']);
         $this->db->bind(':kelas_id', $data['kelas_id']);
         $this->db->bind(':latitude', $data['latitude']);
         $this->db->bind(':longitude', $data['longitude']);
         $this->db->bind(':jarak', $data['jarak']);
         $this->db->bind(':status', $data['status']);
-        
+
         return $this->db->execute();
+    }
+
+    /**
+     * Check whether a user already has a presensi_kelas record for a given presensi_sesi
+     * Returns true if exists, false otherwise
+     */
+    public function hasPresensiInSession($user_id, $presensi_sesi_id) {
+        if (!$presensi_sesi_id) return false;
+        $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND presensi_sesi_id = :sesi_id LIMIT 1');
+        $this->db->bind(':user_id', $user_id);
+        $this->db->bind(':sesi_id', $presensi_sesi_id);
+        $row = $this->db->single();
+        return $row ? true : false;
     }
     
     public function getPresensiSekolahByUser($user_id, $limit = null) {

@@ -26,7 +26,7 @@ require_once __DIR__ . '/../layouts/header.php';
             </span>
         </div>
 
-        <div class="space-y-3 mb-4">
+            <div class="space-y-3 mb-4">
             <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Total Siswa:</span>
                 <span class="font-medium text-gray-800"><?php echo count($kelas->siswa); ?> siswa</span>
@@ -46,20 +46,24 @@ require_once __DIR__ . '/../layouts/header.php';
             <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Presensi Dibuka:</span>
                 <span class="font-medium text-blue-600" id="statusPresensi<?php echo $kelas->id; ?>">
-                    <?php echo isset($_SESSION['kelas_buka_' . $kelas->id]) ? 'Aktif' : 'Tutup'; ?>
+                    <?php echo isset($kelas->sesi_aktif) && $kelas->sesi_aktif ? 'Aktif' : 'Tutup'; ?>
                 </span>
             </div>
         </div>
 
         <div class="flex space-x-2">
-            <button onclick="bukaPresensi(<?php echo $kelas->id; ?>)" 
-                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium">
-                <i class="fas fa-play mr-1"></i>Buka Presensi
-            </button>
-            <button onclick="tutupPresensi(<?php echo $kelas->id; ?>)" 
-                    class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium">
-                <i class="fas fa-stop mr-1"></i>Tutup
-            </button>
+            <?php if (isset($kelas->sesi_aktif) && $kelas->sesi_aktif): ?>
+                <button onclick="tutupPresensi(<?php echo $kelas->id; ?>)" 
+                        class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium">
+                    <i class="fas fa-stop mr-1"></i>Tutup Sesi
+                </button>
+            <?php else: ?>
+                <button onclick="bukaPresensi(<?php echo $kelas->id; ?>)" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium">
+                    <i class="fas fa-play mr-1"></i>Buka Sesi
+                </button>
+            <?php endif; ?>
+
             <button onclick="lihatLaporan(<?php echo $kelas->id; ?>)" 
                     class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium">
                 <i class="fas fa-chart-bar mr-1"></i>Laporan

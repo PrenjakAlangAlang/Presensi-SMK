@@ -3,16 +3,22 @@
 require_once __DIR__ . '/../models/KelasModel.php';
 require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/UserModel.php';
+require_once __DIR__ . '/../models/LaporanModel.php';
+require_once __DIR__ . '/../models/PresensiSesiModel.php';
 
 class GuruController {
     private $kelasModel;
     private $presensiModel;
     private $userModel;
+    private $laporanModel;
+    private $presensiSesiModel;
     
     public function __construct() {
         $this->kelasModel = new KelasModel();
         $this->presensiModel = new PresensiModel();
         $this->userModel = new UserModel();
+        $this->laporanModel = new LaporanModel();
+        $this->presensiSesiModel = new PresensiSesiModel();
     }
     
     public function dashboard() {
@@ -36,6 +42,8 @@ class GuruController {
         foreach($kelasSaya as $kelas) {
             $kelas->siswa = $this->kelasModel->getSiswaInKelas($kelas->id);
             $kelas->presensi_hari_ini = $this->presensiModel->getLaporanPresensiKelas($kelas->id);
+            // Attach sesi aktif info from DB
+            $kelas->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($kelas->id);
         }
         
     require_once __DIR__ . '/../views/guru/kelas.php';
@@ -61,14 +69,20 @@ class GuruController {
             $kelas_id = $_POST['kelas_id'];
             $guru_id = $_SESSION['user_id'];
             
-            // Simpan session untuk kelas yang dibuka
-            $_SESSION['kelas_buka_' . $kelas_id] = [
-                'waktu_buka' => time(),
-                'guru_id' => $guru_id,
-                'status' => 'buka'
-            ];
-            
-            echo json_encode(['success' => true, 'message' => 'Presensi kelas dibuka!']);
+            // Persist session to DB
+            $created = $this->presensiSesiModel->createSession($kelas_id, $guru_id);
+
+            if ($created) {
+                // Also set quick session in PHP session for immediate UI effect
+                $_SESSION['kelas_buka_' . $kelas_id] = [
+                    'waktu_buka' => time(),
+                    'guru_id' => $guru_id,
+                    'status' => 'buka'
+                ];
+                echo json_encode(['success' => true, 'message' => 'Presensi kelas dibuka!']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Gagal membuka sesi presensi']);
+            }
         }
     }
     
@@ -80,18 +94,38 @@ class GuruController {
             
             // Hapus session kelas yang dibuka
             unset($_SESSION['kelas_buka_' . $kelas_id]);
-            
+
+            // Close session in DB
+            $closed = $this->presensiSesiModel->closeSession($kelas_id, $guru_id);
+
             // Simpan laporan kemajuan
-            $this->simpanLaporanKemajuan($kelas_id, $guru_id, $catatan);
-            
-            echo json_encode(['success' => true, 'message' => 'Presensi kelas ditutup!']);
+            $saved = $this->simpanLaporanKemajuan($kelas_id, $guru_id, $catatan);
+
+            if ($closed && $saved) {
+                echo json_encode(['success' => true, 'message' => 'Presensi kelas ditutup!']);
+            } else if ($saved) {
+                echo json_encode(['success' => true, 'message' => 'Presensi kelas ditutup (session DB tidak berubah)']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Gagal menutup sesi atau menyimpan laporan kemajuan']);
+            }
         }
     }
     
     private function simpanLaporanKemajuan($kelas_id, $guru_id, $catatan) {
-        // Implementation untuk menyimpan laporan kemajuan
-        // Ini adalah placeholder - implementasi database sebenarnya
-        return true;
+        // Build data for model
+        $data = [
+            'kelas_id' => $kelas_id,
+            'guru_id' => $guru_id,
+            'catatan' => $catatan
+        ];
+
+        try {
+            $result = $this->laporanModel->saveLaporanKemajuan($data);
+            return $result !== false;
+        } catch (Exception $e) {
+            // Log error if you have a logger, for now return false
+            return false;
+        }
     }
     
     public function getPresensiKelas($kelas_id) {
