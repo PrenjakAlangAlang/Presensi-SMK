@@ -1,0 +1,452 @@
+<?php
+$page_title = "Presensi";
+require_once __DIR__ . '/../layouts/header.php';
+?>
+
+<div class="max-w-6xl mx-auto">
+    <!-- Header Presensi -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Sistem Presensi Digital</h1>
+        <p class="text-gray-600">Presensi berbasis lokasi GPS dengan validasi menggunakan algoritma Haversine</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Presensi Sekolah -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-school text-blue-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">Presensi Sekolah</h2>
+                    <p class="text-gray-600">Presensi kehadiran di sekolah</p>
+                </div>
+            </div>
+            
+            <div id="locationStatus" class="mb-6 p-4 rounded-lg bg-yellow-100 border border-yellow-300">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-map-marker-alt text-yellow-600 text-xl"></i>
+                        <div>
+                            <p class="font-medium text-yellow-800">Mendeteksi lokasi...</p>
+                            <p class="text-yellow-700 text-sm">Pastikan Anda mengizinkan akses lokasi</p>
+                        </div>
+                    </div>
+                    <div id="loadingSpinner" class="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-600"></div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 class="font-medium text-blue-800 mb-3">Informasi Presensi</h4>
+                    <div class="space-y-2 text-sm text-blue-700">
+                        <div class="flex justify-between">
+                            <span>Status Lokasi:</span>
+                            <span id="locationValid" class="font-medium">Memeriksa...</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Jarak dari Sekolah:</span>
+                            <span id="distanceInfo" class="font-medium">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Waktu Sekarang:</span>
+                            <span id="currentTime" class="font-medium"><?php echo date('H:i:s'); ?></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Tanggal:</span>
+                            <span class="font-medium"><?php echo date('d F Y'); ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="presensiSekolahBtn" 
+                        onclick="submitPresensiSekolah()" 
+                        disabled
+                        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg">
+                    <i class="fas fa-fingerprint"></i>
+                    <span>Presensi Sekolah</span>
+                </button>
+
+                <div class="text-center">
+                    <p class="text-sm text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Pastikan Anda berada dalam radius 100 meter dari sekolah
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Presensi Kelas -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chalkboard text-green-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">Presensi Kelas</h2>
+                    <p class="text-gray-600">Presensi kehadiran di kelas</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Kelas</label>
+                    <select id="kelasSelect" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition">
+                        <option value="">Pilih Kelas</option>
+                        <option value="1">XI RPL 1 - Pemrograman Web</option>
+                        <option value="2">XI RPL 1 - Basis Data</option>
+                        <option value="3">XI RPL 1 - Matematika</option>
+                        <option value="4">XI RPL 1 - Bahasa Indonesia</option>
+                    </select>
+                </div>
+
+                <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h4 class="font-medium text-green-800 mb-2">Informasi Kelas</h4>
+                    <div class="text-sm text-green-700 space-y-1">
+                        <div><strong>Guru:</strong> <span id="guruInfo">-</span></div>
+                        <div><strong>Waktu:</strong> <span id="waktuKelas">-</span></div>
+                        <div><strong>Status:</strong> <span id="statusKelas" class="text-yellow-600">Belum dipilih</span></div>
+                    </div>
+                </div>
+
+                <button id="presensiKelasBtn" 
+                        onclick="submitPresensiKelas()" 
+                        disabled
+                        class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allied text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>Presensi Kelas</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Peta Lokasi -->
+    <div class="mt-8 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Peta Lokasi</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2">
+                <div id="map" class="h-96 rounded-lg border border-gray-300"></div>
+            </div>
+            <div class="space-y-4">
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <h4 class="font-medium text-gray-800 mb-2">Legenda Peta</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow"></div>
+                            <span>Posisi Sekolah</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow"></div>
+                            <span>Posisi Anda</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 border-2 border-blue-500 bg-blue-100 rounded-full"></div>
+                            <span>Radius Presensi (100m)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-medium text-blue-800 mb-2">Informasi Sistem</h4>
+                    <div class="text-sm text-blue-700 space-y-2">
+                        <p><strong>Algoritma:</strong> Haversine Formula</p>
+                        <p><strong>Radius:</strong> 100 meter</p>
+                        <p><strong>Teknologi:</strong> GPS + Geotagging</p>
+                        <p><strong>Akurasi:</strong> ± 10 meter</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let userLocation = null;
+let schoolLocation = { lat: <?php echo $lokasiSekolah->latitude ?? DEFAULT_LATITUDE; ?>, lng: <?php echo $lokasiSekolah->longitude ?? DEFAULT_LONGITUDE; ?> };
+let map, userMarker, schoolMarker, accuracyCircle;
+
+// Initialize map
+function initMap() {
+    map = L.map('map').setView([schoolLocation.lat, schoolLocation.lng], 17);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Add school marker
+    schoolMarker = L.marker([schoolLocation.lat, schoolLocation.lng])
+        .addTo(map)
+        .bindPopup(`
+            <div class="text-center">
+                <strong>SMK Negeri 7 Yogyakarta</strong><br>
+                <small>Lokasi Presensi</small>
+            </div>
+        `)
+        .openPopup();
+    
+    // Add circle for radius
+    L.circle([schoolLocation.lat, schoolLocation.lng], {
+        color: 'blue',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.1,
+        radius: 100,
+        weight: 2
+    }).addTo(map).bindPopup('Radius Presensi: 100 meter');
+}
+
+// Get user location
+function getUserLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                };
+                
+                updateLocationStatus();
+                updateMap();
+            },
+            function(error) {
+                document.getElementById('locationStatus').innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        <div>
+                            <p class="font-medium text-red-800">Gagal mendapatkan lokasi</p>
+                            <p class="text-red-700 text-sm">Error: ${error.message}</p>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        document.getElementById('locationStatus').innerHTML = `
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                <div>
+                    <p class="font-medium text-red-800">Browser tidak mendukung geolocation</p>
+                    <p class="text-red-700 text-sm">Gunakan browser modern seperti Chrome atau Firefox</p>
+                </div>
+            </div>
+        `;
+        document.getElementById('loadingSpinner').classList.add('hidden');
+    }
+}
+
+// Update location status
+function updateLocationStatus() {
+    const distance = calculateDistance(
+        userLocation.lat, 
+        userLocation.lng, 
+        schoolLocation.lat, 
+        schoolLocation.lng
+    );
+    
+    const isValid = distance <= 100;
+    const statusElement = document.getElementById('locationStatus');
+    const validElement = document.getElementById('locationValid');
+    const distanceElement = document.getElementById('distanceInfo');
+    const presensiSekolahBtn = document.getElementById('presensiSekolahBtn');
+    const presensiKelasBtn = document.getElementById('presensiKelasBtn');
+    
+    distanceElement.textContent = distance.toFixed(2) + ' meter';
+    document.getElementById('loadingSpinner').classList.add('hidden');
+    
+    if (isValid) {
+        statusElement.className = 'mb-6 p-4 rounded-lg bg-green-100 border border-green-300';
+        statusElement.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                <div>
+                    <p class="font-medium text-green-800">Lokasi valid untuk presensi</p>
+                    <p class="text-green-700 text-sm">Anda berada dalam radius sekolah</p>
+                </div>
+            </div>
+        `;
+        validElement.textContent = 'Valid';
+        validElement.className = 'font-medium text-green-600';
+        presensiSekolahBtn.disabled = false;
+        presensiKelasBtn.disabled = false;
+    } else {
+        statusElement.className = 'mb-6 p-4 rounded-lg bg-red-100 border border-red-300';
+        statusElement.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                <div>
+                    <p class="font-medium text-red-800">Lokasi tidak valid</p>
+                    <p class="text-red-700 text-sm">Anda berada di luar radius sekolah (${distance.toFixed(2)}m)</p>
+                </div>
+            </div>
+        `;
+        validElement.textContent = 'Tidak Valid';
+        validElement.className = 'font-medium text-red-600';
+        presensiSekolahBtn.disabled = true;
+        presensiKelasBtn.disabled = true;
+    }
+}
+
+// Update map with user location
+function updateMap() {
+    if (userMarker) {
+        map.removeLayer(userMarker);
+    }
+    if (accuracyCircle) {
+        map.removeLayer(accuracyCircle);
+    }
+    
+    userMarker = L.marker([userLocation.lat, userLocation.lng])
+        .addTo(map)
+        .bindPopup(`
+            <div class="text-center">
+                <strong>Posisi Anda</strong><br>
+                <small>Akurasi: ±${userLocation.accuracy.toFixed(1)}m</small>
+            </div>
+        `)
+        .openPopup();
+    
+    // Add accuracy circle
+    accuracyCircle = L.circle([userLocation.lat, userLocation.lng], {
+        radius: userLocation.accuracy,
+        color: 'blue',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.1,
+        weight: 1
+    }).addTo(map);
+    
+    // Adjust map view to show both markers
+    const group = new L.featureGroup([schoolMarker, userMarker]);
+    map.fitBounds(group.getBounds().pad(0.1));
+}
+
+// Haversine formula to calculate distance
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // Earth radius in meters
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    return distance;
+}
+
+// Submit presensi sekolah
+function submitPresensiSekolah() {
+    if (!userLocation) return;
+    
+    const btn = document.getElementById('presensiSekolahBtn');
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
+    
+    // Simulate API call
+    setTimeout(() => {
+        showNotification('success', 'Presensi sekolah berhasil dicatat!');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        // Add to history
+        addToPresensiHistory('Sekolah', 'Berhasil', new Date().toLocaleTimeString());
+    }, 2000);
+}
+
+// Submit presensi kelas
+function submitPresensiKelas() {
+    const kelasSelect = document.getElementById('kelasSelect');
+    const selectedKelas = kelasSelect.value;
+    
+    if (!selectedKelas || !userLocation) {
+        showNotification('error', 'Pilih kelas terlebih dahulu!');
+        return;
+    }
+    
+    const btn = document.getElementById('presensiKelasBtn');
+    const originalText = btn.innerHTML;
+    const kelasName = kelasSelect.options[kelasSelect.selectedIndex].text;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
+    
+    // Simulate API call
+    setTimeout(() => {
+        showNotification('success', `Presensi kelas ${kelasName} berhasil!`);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        // Add to history
+        addToPresensiHistory(kelasName, 'Berhasil', new Date().toLocaleTimeString());
+    }, 2000);
+}
+
+// Show notification
+function showNotification(type, message) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transform transition-transform duration-300 ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.innerHTML = `
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Add to presensi history (simulated)
+function addToPresensiHistory(jenis, status, waktu) {
+    // This would typically update a history list
+    console.log(`Presensi ${jenis}: ${status} pada ${waktu}`);
+}
+
+// Update current time
+function updateTime() {
+    document.getElementById('currentTime').textContent = new Date().toLocaleTimeString();
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    getUserLocation();
+    setInterval(updateTime, 1000);
+    
+    // Kelas select change handler
+    document.getElementById('kelasSelect').addEventListener('change', function() {
+        const selected = this.value;
+        const presensiKelasBtn = document.getElementById('presensiKelasBtn');
+        
+        if (selected) {
+            presensiKelasBtn.disabled = !userLocation;
+            document.getElementById('statusKelas').textContent = 'Siap presensi';
+            document.getElementById('statusKelas').className = 'text-green-600';
+        } else {
+            presensiKelasBtn.disabled = true;
+            document.getElementById('statusKelas').textContent = 'Belum dipilih';
+            document.getElementById('statusKelas').className = 'text-yellow-600';
+        }
+    });
+});
+
+// Handle page visibility change
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        getUserLocation(); // Refresh location when page becomes visible
+    }
+});
+</script>
+
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
