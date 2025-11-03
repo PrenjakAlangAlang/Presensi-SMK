@@ -41,6 +41,8 @@ class GuruController {
         // Get siswa for each class
         foreach($kelasSaya as $kelas) {
             $kelas->siswa = $this->kelasModel->getSiswaInKelas($kelas->id);
+            // total siswa (use dedicated method for efficiency)
+            $kelas->total_siswa = $this->kelasModel->getTotalSiswaByKelas($kelas->id);
             $kelas->presensi_hari_ini = $this->presensiModel->getLaporanPresensiKelas($kelas->id);
             // Attach sesi aktif info from DB
             $kelas->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($kelas->id);
@@ -54,10 +56,56 @@ class GuruController {
         $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
         
         $laporan = [];
+        // allow selecting sesi via GET param
+        $requested_sesi = isset($_GET['sesi_id']) ? intval($_GET['sesi_id']) : null;
+
         foreach($kelasSaya as $kelas) {
+            // ensure siswa list and total are available for the view
+            $kelas->siswa = $this->kelasModel->getSiswaInKelas($kelas->id);
+            $kelas->total_siswa = $this->kelasModel->getTotalSiswaByKelas($kelas->id);
+            // sessions for this class
+            $sessions = $this->presensiSesiModel->getSessionsByKelas($kelas->id);
+            $selectedSesi = null;
+            if ($requested_sesi) {
+                // try to find requested sesi in this kelas
+                foreach($sessions as $s) {
+                    if ($s->id == $requested_sesi) {
+                        $selectedSesi = $s;
+                        break;
+                    }
+                }
+            }
+            // default to latest session if none requested
+            if (!$selectedSesi && count($sessions) > 0) {
+                $selectedSesi = $sessions[0];
+            }
+            
+            // fetch presensi for selected sesi if exists, else fall back to today's data
+            if ($selectedSesi) {
+                $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas->id, null, $selectedSesi->id);
+            } else {
+                $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas->id, date('Y-m-d'));
+            }
+
+            // get laporan kemajuan and pick those that match the session timeframe (if any)
+            $allLaporan = $this->laporanModel->getLaporanByKelas($kelas->id);
+            $laporanPerSesi = [];
+            if ($selectedSesi) {
+                $start = $selectedSesi->waktu_buka;
+                $end = $selectedSesi->waktu_tutup ?: date('Y-m-d H:i:s');
+                foreach($allLaporan as $l) {
+                    if (isset($l->created_at) && $l->created_at >= $start && $l->created_at <= $end) {
+                        $laporanPerSesi[] = $l;
+                    }
+                }
+            }
+
             $laporan[$kelas->id] = [
                 'kelas' => $kelas,
-                'presensi' => $this->presensiModel->getLaporanPresensiKelas($kelas->id, date('Y-m-d'))
+                'sessions' => $sessions,
+                'selected_sesi' => $selectedSesi,
+                'presensi' => $presensi,
+                'laporan_kemajuan' => $laporanPerSesi,
             ];
         }
         
@@ -129,7 +177,12 @@ class GuruController {
     }
     
     public function getPresensiKelas($kelas_id) {
-        $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id);
+        $sesi_id = isset($_GET['sesi_id']) ? intval($_GET['sesi_id']) : null;
+        if ($sesi_id) {
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, null, $sesi_id);
+        } else {
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, date('Y-m-d'));
+        }
         echo json_encode($presensi);
     }
     

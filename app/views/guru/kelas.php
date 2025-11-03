@@ -29,7 +29,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <div class="space-y-3 mb-4">
             <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Total Siswa:</span>
-                <span class="font-medium text-gray-800"><?php echo count($kelas->siswa); ?> siswa</span>
+                <span class="font-medium text-gray-800"><?php echo isset($kelas->total_siswa) ? $kelas->total_siswa : count($kelas->siswa); ?> siswa</span>
             </div>
             <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Hadir Hari Ini:</span>

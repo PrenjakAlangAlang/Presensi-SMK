@@ -97,16 +97,39 @@ class PresensiModel {
         return $this->db->single();
     }
     
-    public function getLaporanPresensiKelas($kelas_id, $tanggal = null) {
-        $sql = 'SELECT u.nama, ps.waktu, ps.status, ps.jenis 
-                FROM users u 
-                LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal 
-                WHERE u.id IN (SELECT siswa_id FROM siswa_kelas WHERE kelas_id = :kelas_id) 
-                AND u.role = "siswa"';
-        
+    /**
+     * Get presensi laporan for a kelas.
+     * If $sesi_id provided, returns attendance for that session (left join so students without presensi are included).
+     * Otherwise if $tanggal provided (or default today) returns presensi_kelas for that date.
+     * Returns array of objects with siswa data and presensi fields (status, waktu, jarak, latitude, longitude, presensi_sesi_id)
+     */
+    public function getLaporanPresensiKelas($kelas_id, $tanggal = null, $sesi_id = null) {
+        // Base select — list all siswa in kelas and join any matching presensi_kelas
+        if ($sesi_id) {
+            $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, "kelas" as sumber
+                    FROM users u
+                    LEFT JOIN presensi_kelas pk ON u.id = pk.user_id AND pk.presensi_sesi_id = :sesi_id
+                    WHERE u.id IN (SELECT siswa_id FROM siswa_kelas WHERE kelas_id = :kelas_id)
+                    AND u.role = "siswa"
+                    ORDER BY u.nama';
+            $this->db->query($sql);
+            $this->db->bind(':sesi_id', $sesi_id);
+            $this->db->bind(':kelas_id', $kelas_id);
+            return $this->db->resultSet();
+        }
+
+        // fallback: use date filter on presensi_kelas (today by default)
+        $tanggal = $tanggal ?: date('Y-m-d');
+        $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, "kelas" as sumber
+                FROM users u
+                LEFT JOIN presensi_kelas pk ON u.id = pk.user_id AND DATE(pk.waktu) = :tanggal AND pk.kelas_id = :kelas_id
+                WHERE u.id IN (SELECT siswa_id FROM siswa_kelas WHERE kelas_id = :kelas_id)
+                AND u.role = "siswa"
+                ORDER BY u.nama';
+
         $this->db->query($sql);
+        $this->db->bind(':tanggal', $tanggal);
         $this->db->bind(':kelas_id', $kelas_id);
-        $this->db->bind(':tanggal', $tanggal ?: date('Y-m-d'));
         return $this->db->resultSet();
     }
     

@@ -66,6 +66,17 @@ class KelasModel {
         $this->db->bind(':kelas_id', $kelas_id);
         return $this->db->resultSet();
     }
+
+    /**
+     * Get total number of siswa in a kelas
+     * Returns integer count
+     */
+    public function getTotalSiswaByKelas($kelas_id) {
+        $this->db->query('SELECT COUNT(*) as total FROM siswa_kelas WHERE kelas_id = :kelas_id');
+        $this->db->bind(':kelas_id', $kelas_id);
+        $row = $this->db->single();
+        return $row ? (int)$row->total : 0;
+    }
     
     public function addSiswaToKelas($siswa_id, $kelas_id) {
         $this->db->query('INSERT INTO siswa_kelas (siswa_id, kelas_id) VALUES (:siswa_id, :kelas_id)');

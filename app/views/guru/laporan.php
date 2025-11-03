@@ -5,6 +5,9 @@ require_once __DIR__ . '/../layouts/header.php';
 $kelas_id = $_GET['kelas_id'] ?? null;
 $selected_kelas = null;
 
+// load selected sesi id from GET if present
+$selected_sesi_id = isset($_GET['sesi_id']) ? intval($_GET['sesi_id']) : null;
+
 if ($kelas_id) {
     foreach($kelasSaya as $kelas) {
         if ($kelas->id == $kelas_id) {
@@ -34,13 +37,50 @@ if ($kelas_id) {
 </div>
 
 <?php if($selected_kelas): ?>
+<!-- Sessions selector -->
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Sesi Presensi</h3>
+    <div class="flex flex-wrap gap-3">
+        <?php $sessions = $laporan[$selected_kelas->id]['sessions'] ?? []; ?>
+        <?php if(count($sessions) > 0): ?>
+            <?php foreach($sessions as $s): ?>
+                <?php $active = ($laporan[$selected_kelas->id]['selected_sesi'] && $laporan[$selected_kelas->id]['selected_sesi']->id == $s->id); ?>
+                <a href="index.php?action=guru_laporan&kelas_id=<?php echo $selected_kelas->id; ?>&sesi_id=<?php echo $s->id; ?>" 
+                   class="px-4 py-2 rounded-lg border transition-colors <?php echo $active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'; ?>">
+                    <?php echo date('Y-m-d H:i', strtotime($s->waktu_buka)); ?>
+                    <?php if($s->status == 'open'): ?>
+                        <span class="ml-2 text-xs text-green-600">(Open)</span>
+                    <?php endif; ?>
+                </a>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="text-gray-500">Belum ada sesi presensi untuk kelas ini.</div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- Laporan kemajuan per sesi -->
+<?php $laporan_kemajuan = $laporan[$selected_kelas->id]['laporan_kemajuan'] ?? []; ?>
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Laporan Kemajuan (Sesi)</h3>
+    <?php if(count($laporan_kemajuan) > 0): ?>
+        <?php foreach($laporan_kemajuan as $l): ?>
+            <div class="border p-4 rounded-md mb-3">
+                <div class="text-sm text-gray-500"><?php echo date('Y-m-d H:i', strtotime($l->created_at)); ?></div>
+                <div class="mt-2 text-gray-800"><?php echo nl2br(htmlspecialchars($l->catatan)); ?></div>
+            </div>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <div class="text-gray-500">Belum ada laporan kemajuan khusus untuk sesi ini.</div>
+    <?php endif; ?>
+</div>
 <!-- Statistik Kelas -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
         <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <i class="fas fa-users text-green-600 text-xl"></i>
         </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo count($selected_kelas->siswa ?? []); ?></h3>
+    <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo isset($selected_kelas->total_siswa) ? $selected_kelas->total_siswa : count($selected_kelas->siswa ?? []); ?></h3>
         <p class="text-gray-600 text-sm">Total Siswa</p>
     </div>
 
@@ -280,27 +320,29 @@ function showNotification(type, message) {
 }
 
 // Print styles
+</script>
+<style>
 @media print {
     .no-print {
         display: none !important;
     }
-    
+
     body {
         background: white !important;
     }
-    
+
     .bg-gray-50 {
         background: white !important;
     }
-    
+
     .shadow-sm, .shadow-lg {
         box-shadow: none !important;
     }
-    
+
     .border {
         border: 1px solid #000 !important;
     }
 }
-</script>
+</style>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

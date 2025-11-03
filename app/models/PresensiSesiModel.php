@@ -36,6 +36,24 @@ class PresensiSesiModel {
         $s = $this->getActiveSessionByKelas($kelas_id);
         return $s ? true : false;
     }
+
+    /**
+     * Get all sessions for a kelas ordered by waktu_buka desc
+     */
+    public function getSessionsByKelas($kelas_id) {
+        $this->db->query('SELECT * FROM presensi_sesi WHERE kelas_id = :kelas_id ORDER BY waktu_buka DESC');
+        $this->db->bind(':kelas_id', $kelas_id);
+        return $this->db->resultSet();
+    }
+
+    /**
+     * Get single session by id
+     */
+    public function getSessionById($id) {
+        $this->db->query('SELECT * FROM presensi_sesi WHERE id = :id LIMIT 1');
+        $this->db->bind(':id', $id);
+        return $this->db->single();
+    }
 }
 
 ?>
