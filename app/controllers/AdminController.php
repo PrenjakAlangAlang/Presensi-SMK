@@ -6,18 +6,88 @@ require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/KelasModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../models/PresensiModel.php';
+require_once __DIR__ . '/../models/PresensiSekolahSesiModel.php';
 
 class AdminController {
     private $userModel;
     private $kelasModel;
     private $locationModel;
     private $presensiModel;
+    private $presensiSekolahSesiModel;
     
     public function __construct() {
         $this->userModel = new UserModel();
         $this->kelasModel = new KelasModel();
         $this->locationModel = new LocationModel();
         $this->presensiModel = new PresensiModel();
+        $this->presensiSekolahSesiModel = new PresensiSekolahSesiModel();
+    }
+
+    /**
+     * Admin: halaman manajemen sesi presensi sekolah
+     * Menampilkan daftar sesi (auto dan manual) dan form CRUD sederhana
+     */
+    public function presensiSekolah() {
+        $this->presensiSekolahSesiModel->closeExpiredSessions();
+        $sessions = $this->presensiSekolahSesiModel->getSessions();
+        require_once __DIR__ . '/../views/admin/presensi_sekolah.php';
+    }
+
+    // API: buat sesi presensi sekolah (manual override)
+    public function createPresensiSekolah() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $waktu_buka = $_POST['waktu_buka'];
+            $waktu_tutup = $_POST['waktu_tutup'];
+            $note = $_POST['note'] ?? null;
+            $created_by = $_SESSION['user_id'] ?? null;
+            $id = $this->presensiSekolahSesiModel->createSession($waktu_buka, $waktu_tutup, $created_by, 1, $note);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => (bool)$id, 'id' => $id]);
+            exit;
+        }
+    }
+
+    // API: extend / perpanjang sesi
+    public function extendPresensiSekolah() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $id = $_POST['id'];
+            $new_waktu_tutup = $_POST['waktu_tutup'];
+            $ok = $this->presensiSekolahSesiModel->extendSession($id, $new_waktu_tutup);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => (bool)$ok]);
+            exit;
+        }
+    }
+
+    // API: close session (admin)
+    public function closePresensiSekolah() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $id = $_POST['id'];
+            $ok = $this->presensiSekolahSesiModel->closeSession($id);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => (bool)$ok]);
+            exit;
+        }
+    }
+
+    // API: status sesi sekolah (dipanggil oleh client siswa)
+    public function getPresensiSekolahStatus() {
+        // Pastikan expired sessions ditutup dulu
+        $this->presensiSekolahSesiModel->closeExpiredSessions();
+        $active = $this->presensiSekolahSesiModel->getActiveSession();
+        header('Content-Type: application/json');
+        if ($active) {
+            // jika ada user yang sedang terautentikasi, cek apakah sudah presensi pada sesi ini
+            $already = false;
+            if (isset($_SESSION['user_id'])) {
+                $uid = $_SESSION['user_id'];
+                $already = $this->presensiModel->hasPresensiInSchoolSession($uid, $active->id);
+            }
+            echo json_encode(['active' => true, 'session' => $active, 'already_presenced' => (bool)$already]);
+        } else {
+            echo json_encode(['active' => false, 'already_presenced' => false]);
+        }
+        exit;
     }
     
     public function dashboard() {

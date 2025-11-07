@@ -5,18 +5,21 @@ require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../models/KelasModel.php';
 require_once __DIR__ . '/../models/PresensiSesiModel.php';
+require_once __DIR__ . '/../models/PresensiSekolahSesiModel.php';
 
 class SiswaController {
     private $presensiModel;
     private $locationModel;
     private $kelasModel;
     private $presensiSesiModel;
+    private $presensiSekolahSesiModel;
     
     public function __construct() {
         $this->presensiModel = new PresensiModel();
         $this->locationModel = new LocationModel();
         $this->kelasModel = new KelasModel();
         $this->presensiSesiModel = new PresensiSesiModel();
+        $this->presensiSekolahSesiModel = new PresensiSekolahSesiModel();
     }
     
     public function dashboard() {
@@ -57,11 +60,30 @@ class SiswaController {
             $user_id = $_SESSION['user_id'];
             $latitude = $_POST['latitude'];
             $longitude = $_POST['longitude'];
-            
+            // Pastikan sesi sekolah yang sudah kadaluarsa ditutup
+            $this->presensiSekolahSesiModel->closeExpiredSessions();
+            $activeSession = $this->presensiSekolahSesiModel->getActiveSession();
+
+            if (!$activeSession) {
+                // Tidak ada sesi aktif -> tolak penyimpanan
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Tidak ada sesi presensi sekolah aktif saat ini.']);
+                return;
+            }
+
+            // Cek lokasi dan jarak
             $distance = $this->locationModel->getDistance($latitude, $longitude);
             $isValid = $this->locationModel->validateLocation($latitude, $longitude);
-            
+
+            // Cegah duplikat presensi untuk session yang sama
+            if ($this->presensiModel->hasPresensiInSchoolSession($user_id, $activeSession->id)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi sekolah ini.']);
+                return;
+            }
+
             $data = [
+                'presensi_sekolah_sesi_id' => $activeSession->id,
                 'user_id' => $user_id,
                 'latitude' => $latitude,
                 'longitude' => $longitude,
@@ -69,8 +91,9 @@ class SiswaController {
                 'status' => $isValid ? 'valid' : 'invalid',
                 'jenis' => 'hadir'
             ];
-            
+
             // Simpan presensi dan kembalikan hasil serta apakah lokasi valid
+            header('Content-Type: application/json');
             if($this->presensiModel->recordPresensiSekolah($data)) {
                 echo json_encode(['success' => true, 'valid' => $isValid]);
             } else {

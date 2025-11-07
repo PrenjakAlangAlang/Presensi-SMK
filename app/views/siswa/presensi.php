@@ -169,6 +169,8 @@ const kelasSesi = <?php
 let userLocation = null;
 let schoolLocation = { lat: <?php echo $lokasiSekolah->latitude ?? DEFAULT_LATITUDE; ?>, lng: <?php echo $lokasiSekolah->longitude ?? DEFAULT_LONGITUDE; ?> };
 let map, userMarker, schoolMarker, accuracyCircle;
+let sessionActive = false;
+let sessionAlreadyPresenced = false;
 
 // Initialize map
 function initMap() {
@@ -277,7 +279,12 @@ function updateLocationStatus() {
         `;
         validElement.textContent = 'Valid';
         validElement.className = 'font-medium text-green-600';
-        presensiSekolahBtn.disabled = false;
+        // enable presensi sekolah only if there is an active session and user hasn't presenced yet
+        if (sessionActive && !sessionAlreadyPresenced) {
+            presensiSekolahBtn.disabled = false;
+        } else {
+            presensiSekolahBtn.disabled = true;
+        }
         presensiKelasBtn.disabled = false;
     } else {
         statusElement.className = 'mb-6 p-4 rounded-lg bg-red-100 border border-red-300';
@@ -305,7 +312,7 @@ function updateMap() {
     if (accuracyCircle) {
         map.removeLayer(accuracyCircle);
     }
-    
+
     userMarker = L.marker([userLocation.lat, userLocation.lng])
         .addTo(map)
         .bindPopup(`
@@ -315,7 +322,7 @@ function updateMap() {
             </div>
         `)
         .openPopup();
-    
+
     // Add accuracy circle
     accuracyCircle = L.circle([userLocation.lat, userLocation.lng], {
         radius: userLocation.accuracy,
@@ -324,7 +331,7 @@ function updateMap() {
         fillOpacity: 0.1,
         weight: 1
     }).addTo(map);
-    
+
     // Adjust map view to show both markers
     const group = new L.featureGroup([schoolMarker, userMarker]);
     map.fitBounds(group.getBounds().pad(0.1));
@@ -353,16 +360,35 @@ function submitPresensiSekolah() {
     
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
-    
-    // Simulate API call
-    setTimeout(() => {
-        showNotification('success', 'Presensi sekolah berhasil dicatat!');
+    // Real API call to server
+    const fd = new FormData();
+    fd.append('latitude', userLocation.lat);
+    fd.append('longitude', userLocation.lng);
+
+    fetch('index.php?action=submit_presensi_sekolah', {
+        method: 'POST',
+        body: fd
+    })
+    .then(res => res.json())
+    .then(json => {
+        if (json.success) {
+            showNotification('success', 'Presensi sekolah berhasil dicatat!');
+            addToPresensiHistory('Sekolah', 'Berhasil', new Date().toLocaleTimeString());
+            // mark that current user has presenced for this session to prevent duplicate
+            sessionAlreadyPresenced = true;
+            document.getElementById('presensiSekolahBtn').disabled = true;
+        } else {
+            showNotification('error', json.message || 'Gagal mencatat presensi');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showNotification('error', 'Terjadi kesalahan saat mengirim presensi');
+    })
+    .finally(() => {
         btn.innerHTML = originalText;
         btn.disabled = false;
-        
-        // Add to history
-        addToPresensiHistory('Sekolah', 'Berhasil', new Date().toLocaleTimeString());
-    }, 2000);
+    });
 }
 
 // Submit presensi kelas
@@ -453,6 +479,32 @@ document.addEventListener('DOMContentLoaded', function() {
     initMap();
     getUserLocation();
     setInterval(updateTime, 1000);
+    // Poll server for active school presensi session (auto open/close + admin override)
+    function fetchSchoolSessionStatus() {
+        fetch('index.php?action=get_presensi_sekolah_status')
+            .then(r => r.json())
+            .then(json => {
+                // update global session flags and re-evaluate UI
+                sessionActive = !!json.active;
+                sessionAlreadyPresenced = !!json.already_presenced;
+                if (json.active) {
+                    const session = json.session;
+                    document.getElementById('statusKelas').textContent = 'Sesi Sekolah: ' + (session.is_manual ? 'Manual' : 'Auto');
+                    if (sessionAlreadyPresenced) {
+                        document.getElementById('statusKelas').textContent += ' — Sudah presensi';
+                    }
+                } else {
+                    document.getElementById('statusKelas').textContent = 'Tidak ada sesi sekolah aktif';
+                }
+                // Re-run local validation to enable/disable buttons correctly
+                if (userLocation) updateLocationStatus();
+            })
+            .catch(err => console.error('Failed to fetch session status', err));
+    }
+
+    // initial fetch and poll every 15s
+    fetchSchoolSessionStatus();
+    setInterval(fetchSchoolSessionStatus, 15000);
     
     // Kelas select change handler
     document.getElementById('kelasSelect').addEventListener('change', function() {

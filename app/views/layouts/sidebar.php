@@ -54,6 +54,13 @@ function isActiveMenu($action, $current) {
                     </a>
                 </li>
                 <li>
+                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_presensi_sekolah" 
+                       class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_presensi_sekolah', $current_action); ?>">
+                        <i class="fas fa-fingerprint w-5 text-center"></i>
+                        <span class="font-medium">Presensi Sekolah</span>
+                    </a>
+                </li>
+                <li>
                     <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_users" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_users', $current_action); ?>">
                         <i class="fas fa-users w-5 text-center"></i>

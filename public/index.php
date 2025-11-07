@@ -61,6 +61,36 @@ switch($action) {
         $admin = new AdminController();
         $admin->lokasi();
         break;
+
+    case 'admin_presensi_sekolah':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->presensiSekolah();
+        break;
+
+    case 'admin_create_presensi_sekolah':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->createPresensiSekolah();
+        break;
+
+    case 'admin_extend_presensi_sekolah':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->extendPresensiSekolah();
+        break;
+
+    case 'admin_close_presensi_sekolah':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->closePresensiSekolah();
+        break;
+
+    case 'get_presensi_sekolah_status':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->getPresensiSekolahStatus();
+        break;
         
     case 'admin_laporan':
         require_once '../app/controllers/AdminController.php';
