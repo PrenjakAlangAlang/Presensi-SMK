@@ -108,13 +108,16 @@
             }
         }
 
-        // Auto-hide notifications after 5 seconds
+        // Auto-hide flash notifications (only those with class .js-notification)
+        // Prevents accidental removal of other elements that use bg-*-100 classes
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
-                const notifications = document.querySelectorAll('.bg-green-100, .bg-red-100, .bg-yellow-100');
+                const notifications = document.querySelectorAll('.js-notification');
                 notifications.forEach(notification => {
                     notification.style.opacity = '0';
-                    setTimeout(() => notification.remove(), 300);
+                    setTimeout(() => {
+                        if (notification.parentElement) notification.remove();
+                    }, 300);
                 });
             }, 5000);
         });

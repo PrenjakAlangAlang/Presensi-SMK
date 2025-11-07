@@ -1,5 +1,10 @@
 <?php
 // app/models/PresensiModel.php
+// Model untuk mencatat dan mengambil data presensi
+// - recordPresensiSekolah: mencatat presensi umum
+// - recordPresensiKelas: mencatat presensi per kelas (mendukung sesi)
+// - hasPresensiInSession: mencegah duplikat presensi per sesi
+// - fungsi laporan dan statistik terkait presensi
 require_once 'Database.php';
 
 class PresensiModel {
@@ -85,6 +90,7 @@ class PresensiModel {
     }
     
     public function getStatistikKehadiran($user_id) {
+        // Statistik kehadiran untuk bulan ini (jumlah hadir, izin, sakit, alpha)
         $this->db->query('SELECT 
                          COUNT(*) as total,
                          SUM(CASE WHEN status = "valid" THEN 1 ELSE 0 END) as hadir,

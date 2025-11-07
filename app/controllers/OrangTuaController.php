@@ -1,5 +1,6 @@
 <?php
 // app/controllers/OrangTuaController.php
+// Controller untuk peran orangtua: melihat dashboard anak, detail presensi, dan laporan mingguan
 require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/KelasModel.php';
@@ -22,6 +23,7 @@ class OrangTuaController {
         $anak = $this->userModel->getSiswaByOrangTua($orangtua_id);
         
         $dataAnak = [];
+        // Untuk setiap anak ambil statistik dan beberapa riwayat presensi
         foreach($anak as $siswa) {
             $statistik = $this->presensiModel->getStatistikKehadiran($siswa->id);
             $presensiTerakhir = $this->presensiModel->getPresensiSekolahByUser($siswa->id, 5);
@@ -39,7 +41,7 @@ class OrangTuaController {
     }
     
     public function getDetailAnak($siswa_id) {
-        // Verify that the student belongs to this parent
+        // Verifikasi akses: pastikan siswa adalah anak dari orangtua yang sedang login
         $orangtua_id = $_SESSION['user_id'];
         $anak = $this->userModel->getSiswaByOrangTua($orangtua_id);
         
@@ -56,6 +58,7 @@ class OrangTuaController {
             return;
         }
         
+        // Ambil data presensi, statistik, dan daftar izin untuk siswa yang valid
         $presensi = $this->presensiModel->getPresensiSekolahByUser($siswa_id);
         $statistik = $this->presensiModel->getStatistikKehadiran($siswa_id);
         $izin = $this->presensiModel->getIzinBySiswa($siswa_id);
@@ -85,7 +88,7 @@ class OrangTuaController {
             return;
         }
         
-        // Generate weekly report
+        // Generate laporan mingguan sederhana dan kembalikan sebagai JSON
         $laporan = $this->generateLaporanMingguan($siswa_id);
         echo json_encode($laporan);
     }

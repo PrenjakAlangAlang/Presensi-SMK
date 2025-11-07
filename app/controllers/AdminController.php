@@ -1,5 +1,7 @@
 <?php
 // app/controllers/AdminController.php
+// Controller untuk fitur administratif: manajemen user, kelas, lokasi, dan laporan
+// Menyediakan endpoint untuk view admin dan beberapa API JSON untuk AJAX
 require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/KelasModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
@@ -19,6 +21,7 @@ class AdminController {
     }
     
     public function dashboard() {
+        // Hitung statistik singkat untuk ditampilkan di dashboard admin
         $totalSiswa = count($this->userModel->getUsersByRole('siswa'));
         $totalGuru = count($this->userModel->getUsersByRole('guru'));
         $totalKelas = count($this->kelasModel->getAllKelas());
@@ -27,20 +30,23 @@ class AdminController {
     }
     
     public function users() {
+        // Tampilkan halaman manajemen user
         $users = $this->userModel->getAllUsers();
     require_once __DIR__ . '/../views/admin/users.php';
     }
     
     public function kelas() {
+        // Halaman manajemen kelas (tampilkan list kelas, guru, dll.)
         $kelas = $this->kelasModel->getAllKelas();
         $guru = $this->userModel->getUsersByRole('guru');
         $totalSiswa = count($this->userModel->getUsersByRole('siswa'));
+        $totalGuru = count($this->userModel->getUsersByRole('guru'));
         // expose the model to the view so it can call helper methods
         $kelasModel = $this->kelasModel;
     require_once __DIR__ . '/../views/admin/kelas.php';
     }
 
-    // Create Kelas (from add form)
+    // Create Kelas (dari form tambah)
     public function createKelas() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = [
@@ -50,6 +56,7 @@ class AdminController {
             ];
 
             if($this->kelasModel->createKelas($data)) {
+                // set pesan sukses untuk ditampilkan setelah redirect
                 $_SESSION['success'] = 'Kelas berhasil dibuat!';
             } else {
                 $_SESSION['error'] = 'Gagal membuat kelas!';
@@ -182,11 +189,13 @@ class AdminController {
     }
     
     public function lokasi() {
+        // Halaman pengaturan lokasi sekolah
         $lokasi = $this->locationModel->getLokasiSekolah();
     require_once __DIR__ . '/../views/admin/lokasi.php';
     }
     
     public function laporan() {
+        // Halaman laporan admin (default: laporan kelas id 1)
         $presensi = $this->presensiModel->getLaporanPresensiKelas(1); // Default kelas 1
     require_once __DIR__ . '/../views/admin/laporan.php';
     }

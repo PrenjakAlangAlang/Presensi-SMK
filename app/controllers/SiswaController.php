@@ -1,5 +1,6 @@
 <?php
 // app/controllers/SiswaController.php
+// Controller untuk peran siswa: melihat dashboard, presensi, riwayat, dan mengajukan izin
 require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../models/KelasModel.php';
@@ -69,6 +70,7 @@ class SiswaController {
                 'jenis' => 'hadir'
             ];
             
+            // Simpan presensi dan kembalikan hasil serta apakah lokasi valid
             if($this->presensiModel->recordPresensiSekolah($data)) {
                 echo json_encode(['success' => true, 'valid' => $isValid]);
             } else {
@@ -127,6 +129,7 @@ class SiswaController {
                 'alasan' => $_POST['alasan']
             ];
             
+            // Ajukan izin melalui model, set flash message lalu redirect
             if($this->presensiModel->ajukanIzin($data)) {
                 $_SESSION['success'] = 'Izin berhasil diajukan!';
             } else {

@@ -1,5 +1,7 @@
 <?php
 // app/models/UserModel.php
+// Model untuk operasi CRUD pada tabel users dan relasi terkait
+// Menyediakan fungsi login, daftar user berdasarkan role, dan relasi orangtua/siswa
 require_once __DIR__ . '/Database.php';
 
 class UserModel {
@@ -10,6 +12,7 @@ class UserModel {
     }
     
     public function login($email, $password) {
+        // Cari user dengan email & password yang diberikan
         $this->db->query('SELECT * FROM users WHERE email = :email AND password = :password');
         $this->db->bind(':email', $email);
         $this->db->bind(':password', $password);
@@ -17,6 +20,7 @@ class UserModel {
         $user = $this->db->single();
         
         if($user) {
+            // Simpan data penting ke session untuk penggunaan di controller/view
             $_SESSION['user_id'] = $user->id;
             $_SESSION['user_email'] = $user->email;
             $_SESSION['user_role'] = $user->role;
@@ -27,17 +31,20 @@ class UserModel {
     }
     
     public function getAllUsers() {
+        // Ambil semua user, urutkan menurut role lalu nama
         $this->db->query('SELECT * FROM users ORDER BY role, nama');
         return $this->db->resultSet();
     }
     
     public function getUserById($id) {
+        // Ambil satu user berdasarkan id
         $this->db->query('SELECT * FROM users WHERE id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
     }
     
     public function createUser($data) {
+        // Tambah user baru (password belum di-hash di implementasi ini)
         $this->db->query('INSERT INTO users (nama, email, password, role) VALUES (:nama, :email, :password, :role)');
         $this->db->bind(':nama', $data['nama']);
         $this->db->bind(':email', $data['email']);
@@ -48,6 +55,7 @@ class UserModel {
     }
     
     public function updateUser($data) {
+        // Perbarui data user (nama, email, role)
         $this->db->query('UPDATE users SET nama = :nama, email = :email, role = :role WHERE id = :id');
         $this->db->bind(':id', $data['id']);
         $this->db->bind(':nama', $data['nama']);
@@ -58,18 +66,21 @@ class UserModel {
     }
     
     public function deleteUser($id) {
+        // Hapus user berdasarkan id
         $this->db->query('DELETE FROM users WHERE id = :id');
         $this->db->bind(':id', $id);
         return $this->db->execute();
     }
     
     public function getUsersByRole($role) {
+        // Ambil semua user dengan role tertentu (mis. siswa, guru, admin)
         $this->db->query('SELECT * FROM users WHERE role = :role ORDER BY nama');
         $this->db->bind(':role', $role);
         return $this->db->resultSet();
     }
     
     public function getSiswaByOrangTua($orangtua_id) {
+        // Ambil daftar siswa yang terkait dengan orangtua tertentu
         $this->db->query('SELECT u.* FROM users u 
                          INNER JOIN orangtua_siswa os ON u.id = os.siswa_id 
                          WHERE os.orangtua_id = :orangtua_id');
@@ -78,6 +89,7 @@ class UserModel {
     }
     
     public function getGuruWithKelas() {
+        // Ambil guru beserta info kelas jika ada (left join)
         $this->db->query('SELECT u.*, k.nama_kelas 
                          FROM users u 
                          LEFT JOIN kelas k ON u.id = k.wali_kelas 
@@ -87,12 +99,14 @@ class UserModel {
 
     // Get all siswa (students)
     public function getAllSiswa() {
+        // Ambil semua pengguna yang berperan sebagai siswa
         $this->db->query('SELECT * FROM users WHERE role = "siswa" ORDER BY nama');
         return $this->db->resultSet();
     }
 
     // Get siswa who are not yet assigned to any orangtua
     public function getSiswaWithoutOrangtua() {
+        // Ambil siswa yang belum terhubung ke orangtua manapun
         $this->db->query('SELECT * FROM users WHERE role = "siswa" AND id NOT IN (SELECT siswa_id FROM orangtua_siswa) ORDER BY nama');
         return $this->db->resultSet();
     }
@@ -103,8 +117,9 @@ class UserModel {
         $this->db->bind(':orangtua_id', $orangtua_id);
         $this->db->bind(':siswa_id', $siswa_id);
         $row = $this->db->single();
-        if($row && $row->cnt > 0) return true;
+        if($row && $row->cnt > 0) return true; // sudah ada, anggap sukses
 
+        // Jika belum ada, insert relasi
         $this->db->query('INSERT INTO orangtua_siswa (orangtua_id, siswa_id) VALUES (:orangtua_id, :siswa_id)');
         $this->db->bind(':orangtua_id', $orangtua_id);
         $this->db->bind(':siswa_id', $siswa_id);
@@ -112,6 +127,7 @@ class UserModel {
     }
 
     public function removeSiswaFromOrangtua($siswa_id, $orangtua_id) {
+        // Hapus relasi siswa - orangtua
         $this->db->query('DELETE FROM orangtua_siswa WHERE orangtua_id = :orangtua_id AND siswa_id = :siswa_id');
         $this->db->bind(':orangtua_id', $orangtua_id);
         $this->db->bind(':siswa_id', $siswa_id);

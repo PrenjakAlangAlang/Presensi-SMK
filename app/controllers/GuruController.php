@@ -1,5 +1,6 @@
 <?php
 // app/controllers/GuruController.php
+// Controller untuk peran guru: melihat kelas, membuka/tutup sesi presensi, dan laporan
 require_once __DIR__ . '/../models/KelasModel.php';
 require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/UserModel.php';
@@ -22,6 +23,7 @@ class GuruController {
     }
     
     public function dashboard() {
+        // Dashboard guru: hitung total siswa di semua kelas yang dia asuh
         $guru_id = $_SESSION['user_id'];
         $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
         $totalSiswa = 0;
@@ -39,6 +41,7 @@ class GuruController {
         $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
         
         // Get siswa for each class
+        // Per kelas, lampirkan daftar siswa, total, laporan hari ini, dan info sesi aktif
         foreach($kelasSaya as $kelas) {
             $kelas->siswa = $this->kelasModel->getSiswaInKelas($kelas->id);
             // total siswa (use dedicated method for efficiency)
@@ -59,7 +62,8 @@ class GuruController {
         // allow selecting sesi via GET param
         $requested_sesi = isset($_GET['sesi_id']) ? intval($_GET['sesi_id']) : null;
 
-        foreach($kelasSaya as $kelas) {
+    // Untuk tiap kelas, ambil data siswa, sesi, dan laporan kemajuan terkait sesi
+    foreach($kelasSaya as $kelas) {
             // ensure siswa list and total are available for the view
             $kelas->siswa = $this->kelasModel->getSiswaInKelas($kelas->id);
             $kelas->total_siswa = $this->kelasModel->getTotalSiswaByKelas($kelas->id);
@@ -82,8 +86,10 @@ class GuruController {
             
             // fetch presensi for selected sesi if exists, else fall back to today's data
             if ($selectedSesi) {
+                // Ambil presensi berdasarkan sesi terpilih
                 $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas->id, null, $selectedSesi->id);
             } else {
+                // Ambil presensi hari ini jika tidak ada sesi yang dipilih
                 $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas->id, date('Y-m-d'));
             }
 
@@ -168,6 +174,7 @@ class GuruController {
         ];
 
         try {
+            // Panggil model untuk menyimpan laporan kemajuan, kembalikan boolean sukses/gagal
             $result = $this->laporanModel->saveLaporanKemajuan($data);
             return $result !== false;
         } catch (Exception $e) {

@@ -1,5 +1,7 @@
 <?php
 // app/models/Database.php
+// Wrapper sederhana untuk PDO agar query, bind, execute lebih mudah digunakan
+// Menyediakan helper: query, bind, execute, resultSet, single, rowCount, lastInsertId
 class Database {
     private $host = DB_HOST;
     private $user = DB_USER;
@@ -21,11 +23,13 @@ class Database {
             $this->dbh = new PDO($dsn, $this->user, $this->pass, $options);
         } catch(PDOException $e) {
             $this->error = $e->getMessage();
+            // Tampilkan error koneksi untuk debugging (di environment produksi sebaiknya disimpan ke log)
             echo $this->error;
         }
     }
     
     public function query($sql) {
+        // Siapkan statement SQL
         $this->stmt = $this->dbh->prepare($sql);
     }
     
@@ -45,19 +49,23 @@ class Database {
                     $type = PDO::PARAM_STR;
             }
         }
+        // Bind parameter untuk mencegah SQL injection
         $this->stmt->bindValue($param, $value, $type);
     }
     
     public function execute() {
+        // Jalankan statement yang sudah dipersiapkan
         return $this->stmt->execute();
     }
     
     public function resultSet() {
+        // Kembalikan semua baris sebagai objek
         $this->execute();
         return $this->stmt->fetchAll(PDO::FETCH_OBJ);
     }
     
     public function single() {
+        // Kembalikan satu baris hasil query
         $this->execute();
         return $this->stmt->fetch(PDO::FETCH_OBJ);
     }

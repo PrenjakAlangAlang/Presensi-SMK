@@ -127,7 +127,8 @@ $page_title = $page_title ?? 'Sistem Presensi';
         <main class="flex-1 p-6">
             <!-- Notifications -->
             <?php if(isset($_SESSION['success'])): ?>
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6 animate-fade-in">
+                <!-- Flash message: beri kelas khusus agar JS auto-hide menarget hanya notifikasi -->
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6 animate-fade-in js-notification">
                     <div class="flex items-center">
                         <i class="fas fa-check-circle mr-2"></i>
                         <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
@@ -136,7 +137,8 @@ $page_title = $page_title ?? 'Sistem Presensi';
             <?php endif; ?>
             
             <?php if(isset($_SESSION['error'])): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 animate-fade-in">
+                <!-- Flash message: beri kelas khusus agar JS auto-hide menarget hanya notifikasi -->
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 animate-fade-in js-notification">
                     <div class="flex items-center">
                         <i class="fas fa-exclamation-circle mr-2"></i>
                         <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
@@ -145,7 +147,8 @@ $page_title = $page_title ?? 'Sistem Presensi';
             <?php endif; ?>
             
             <?php if(isset($_SESSION['warning'])): ?>
-                <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6 animate-fade-in">
+                <!-- Flash message: beri kelas khusus agar JS auto-hide menarget hanya notifikasi -->
+                <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6 animate-fade-in js-notification">
                     <div class="flex items-center">
                         <i class="fas fa-exclamation-triangle mr-2"></i>
                         <?php echo $_SESSION['warning']; unset($_SESSION['warning']); ?>

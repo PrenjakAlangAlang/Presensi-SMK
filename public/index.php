@@ -1,5 +1,7 @@
 <?php
+
 // public/index.php
+// Front controller sederhana: load config, cek autentikasi, dan route ke controller sesuai action
 require_once '../config/config.php';
 
 // Routing sederhana
@@ -21,6 +23,7 @@ if (in_array($action, $protectedRoutes) && !isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Routing utama: panggil controller dan method sesuai action
 switch($action) {
     case 'login':
         require_once '../app/controllers/AuthController.php';

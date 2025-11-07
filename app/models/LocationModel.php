@@ -1,5 +1,7 @@
 <?php
 // app/models/LocationModel.php
+// Model untuk menangani lokasi sekolah dan validasi jarak presensi
+// Mengandung fungsi perhitungan jarak (Haversine) dan validasi radius
 require_once 'Database.php';
 
 class LocationModel {
@@ -28,11 +30,13 @@ class LocationModel {
     }
     
     public function getLokasiSekolah() {
+        // Ambil record lokasi sekolah terbaru (dipakai sebagai pusat validasi)
         $this->db->query('SELECT * FROM lokasi_sekolah ORDER BY id DESC LIMIT 1');
         return $this->db->single();
     }
     
     public function updateLokasiSekolah($data) {
+        // Simpan lokasi baru (disimpan sebagai insert sehingga menjaga riwayat perubahan)
         $this->db->query('INSERT INTO lokasi_sekolah (nama_sekolah, latitude, longitude, radius_presensi, updated_by) 
                          VALUES (:nama_sekolah, :latitude, :longitude, :radius_presensi, :updated_by)');
         $this->db->bind(':nama_sekolah', $data['nama_sekolah']);
@@ -45,10 +49,11 @@ class LocationModel {
     }
     
     public function validateLocation($userLat, $userLon) {
+        // Ambil lokasi sekolah terbaru, lalu bandingkan jarak user terhadap radius_presensi
         $lokasiSekolah = $this->getLokasiSekolah();
         
         if(!$lokasiSekolah) {
-            return false;
+            return false; // tidak tersedia lokasi -> tidak valid
         }
         
         $distance = $this->calculateDistance(
@@ -58,10 +63,12 @@ class LocationModel {
             $lokasiSekolah->longitude
         );
         
+        // true jika berada di dalam radius presensi
         return $distance <= $lokasiSekolah->radius_presensi;
     }
     
     public function getDistance($userLat, $userLon) {
+        // Kembalikan jarak (meter) user ke titik pusat lokasi sekolah
         $lokasiSekolah = $this->getLokasiSekolah();
         
         if(!$lokasiSekolah) {
