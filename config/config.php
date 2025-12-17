@@ -7,9 +7,9 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'presensi_smk');
 
-// Use the actual folder name. The workspace folder contains a space ('Presensi SMK'), so
-// encode the space for URLs. Adjust this if you use a virtual host (recommended).
-define('BASE_URL', 'http://localhost/Presensi%20SMK');
+// Base URL of the app. Ensure this matches your folder or vhost.
+// If accessing via http://localhost/Presensi-SMK/, use the dashed folder name:
+define('BASE_URL', 'http://localhost/Presensi-SMK');
 
 // Radius maksimal presensi dalam meter
 define('MAX_RADIUS', 100);
