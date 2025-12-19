@@ -136,6 +136,7 @@ function isActiveMenu($action, $current) {
                         <span class="font-medium">Laporan</span>
                     </a>
                 </li>
+                <!--
                 <li>
                     <a href="#" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1">
@@ -143,7 +144,7 @@ function isActiveMenu($action, $current) {
                         <span class="font-medium">Jadwal Mengajar</span>
                     </a>
                 </li>
-
+            -->
             <?php elseif($user_role == 'siswa'): ?>
                 <!-- Siswa Menu -->
                 <li>

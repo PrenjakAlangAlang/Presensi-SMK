@@ -9,17 +9,38 @@ require_once __DIR__ . '/../layouts/header.php';
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <p class="text-gray-500 text-sm">Total Siswa</p>
-        <h3 class="text-3xl font-bold text-gray-800 mt-2"><?php echo $totalSiswa ?? 0; ?></h3>
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm">Total Siswa</p>
+                <h3 class="text-2xl font-bold text-gray-800 mt-1"><?php echo $totalSiswa ?? '0'; ?></h3>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-users text-blue-600 text-xl"></i>
+            </div>
+        </div>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <p class="text-gray-500 text-sm">Total Guru</p>
-        <h3 class="text-3xl font-bold text-gray-800 mt-2"><?php echo $totalGuru ?? 0; ?></h3>
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm">Total Guru</p>
+                <h3 class="text-2xl font-bold text-gray-800 mt-1"><?php echo $totalGuru ?? '0'; ?></h3>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-chalkboard-teacher text-green-600 text-xl"></i>
+            </div>
+        </div>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <p class="text-gray-500 text-sm">Jumlah Sesi Presensi</p>
-        <h3 class="text-3xl font-bold text-gray-800 mt-2"><?php echo isset($sessions) ? count($sessions) : 0; ?></h3>
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm">Jumlah Sesi Presensi</p>
+                <h3 class="text-2xl font-bold text-gray-800 mt-1"><?php echo isset($sessions) ? count($sessions) : 0; ?></h3>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-chalkboard text-purple-600 text-xl"></i>
+            </div>
+        </div>
     </div>
 </div>
 
