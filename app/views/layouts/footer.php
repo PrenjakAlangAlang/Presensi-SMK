@@ -4,6 +4,7 @@
         <footer class="bg-white border-t border-gray-200 mt-auto">
             <div class="px-6 py-4">
                 <div class="flex flex-col md:flex-row justify-between items-center">
+                    <!--
                     <div class="flex items-center space-x-4 mb-4 md:mb-0">
                         <div class="flex items-center space-x-2 text-sm text-gray-600">
                             <i class="fas fa-shield-alt text-green-500"></i>
@@ -18,15 +19,13 @@
                             <span>Responsif</span>
                         </div>
                     </div>
-                    
+    -->
                     <div class="text-center md:text-right">
                         <p class="text-gray-600 text-sm">
-                            &copy; 2024 SMK Negeri 7 Yogyakarta. 
+                            &copy; 2025 SMK Negeri 7 Yogyakarta. 
                             <span class="font-medium">Sistem Presensi Berbasis Web dengan Geotagging.</span>
                         </p>
-                        <p class="text-gray-500 text-xs mt-1">
-                            Dibangun dengan ❤️ menggunakan PHP, MySQL, dan Tailwind CSS
-                        </p>
+                        
                     </div>
                 </div>
             </div>

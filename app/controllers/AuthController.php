@@ -44,6 +44,9 @@ class AuthController {
                 // admin -> dashboard admin
                 header('Location: ' . BASE_URL . '/public/index.php?action=admin_dashboard');
                 break;
+            case 'admin_kesiswaan':
+                header('Location: ' . BASE_URL . '/public/index.php?action=admin_kesiswaan_dashboard');
+                break;
             case 'guru':
                 // guru -> dashboard guru
                 header('Location: ' . BASE_URL . '/public/index.php?action=guru_dashboard');

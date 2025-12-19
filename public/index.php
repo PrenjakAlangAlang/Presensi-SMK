@@ -11,8 +11,12 @@ $action = $_GET['action'] ?? 'login';
 $protectedRoutes = [
     'admin_dashboard', 'admin_users', 'admin_kelas', 'admin_lokasi', 'admin_laporan', 'admin_create_user',
     'admin_update_user',
+    'admin_kesiswaan_dashboard', 'admin_kesiswaan_buku_induk', 'admin_kesiswaan_presensi_sekolah',
+    'admin_kesiswaan_create_presensi_sekolah', 'admin_kesiswaan_extend_presensi_sekolah', 'admin_kesiswaan_close_presensi_sekolah',
+    'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk',
     'guru_dashboard', 'guru_kelas', 'guru_laporan',
     'siswa_dashboard', 'siswa_presensi', 'siswa_riwayat', 'siswa_izin',
+    'siswa_buku_induk', 'siswa_save_buku_induk',
     'orangtua_dashboard',
     // orangtua management endpoints (admin)
     'admin_get_siswa_orangtua', 'admin_get_siswa_tersedia_orangtua', 'admin_add_siswa_orangtua', 'admin_remove_siswa_orangtua'
@@ -175,6 +179,55 @@ switch($action) {
         $admin = new AdminController();
         $admin->updateUser();
         break;
+
+    // Admin Kesiswaan Routes
+    case 'admin_kesiswaan_dashboard':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->dashboard();
+        break;
+
+    case 'admin_kesiswaan_buku_induk':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->bukuInduk();
+        break;
+
+    case 'admin_kesiswaan_save_buku_induk':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->saveBukuInduk();
+        break;
+
+    case 'admin_kesiswaan_presensi_sekolah':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->presensiSekolah();
+        break;
+
+    case 'admin_kesiswaan_create_presensi_sekolah':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->createPresensiSekolah();
+        break;
+
+    case 'admin_kesiswaan_extend_presensi_sekolah':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->extendPresensiSekolah();
+        break;
+
+    case 'admin_kesiswaan_close_presensi_sekolah':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->closePresensiSekolah();
+        break;
+
+    case 'admin_kesiswaan_get_presensi_sekolah_status':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->getPresensiSekolahStatus();
+        break;
         
     case 'admin_update_lokasi':
         require_once '../app/controllers/AdminController.php';
@@ -205,6 +258,18 @@ switch($action) {
         require_once '../app/controllers/SiswaController.php';
         $siswa = new SiswaController();
         $siswa->izin();
+        break;
+
+    case 'siswa_buku_induk':
+        require_once '../app/controllers/SiswaController.php';
+        $siswa = new SiswaController();
+        $siswa->bukuInduk();
+        break;
+
+    case 'siswa_save_buku_induk':
+        require_once '../app/controllers/SiswaController.php';
+        $siswa = new SiswaController();
+        $siswa->saveBukuInduk();
         break;
         
     case 'submit_presensi_sekolah':

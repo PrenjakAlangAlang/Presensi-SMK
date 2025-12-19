@@ -41,8 +41,9 @@ require_once __DIR__ . '/../layouts/header.php';
                     <td class="px-6 py-4">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
                             <?php echo $user->role == 'admin' ? 'bg-red-100 text-red-800' : 
+                                   ($user->role == 'admin_kesiswaan' ? 'bg-purple-100 text-purple-800' :
                                    ($user->role == 'guru' ? 'bg-green-100 text-green-800' : 
-                                   ($user->role == 'siswa' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800')); ?>">
+                                   ($user->role == 'siswa' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'))); ?>">
                             <?php echo ucfirst($user->role); ?>
                         </span>
                     </td>
@@ -108,6 +109,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         <option value="">Pilih Role</option>
                         <option value="admin">Admin</option>
                         <option value="guru">Guru</option>
+                        <option value="admin_kesiswaan">Admin Kesiswaan</option>
                         <option value="siswa">Siswa</option>
                         <option value="orangtua">Orang Tua</option>
                     </select>
@@ -151,6 +153,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         <option value="">Pilih Role</option>
                         <option value="admin">Admin</option>
                         <option value="guru">Guru</option>
+                        <option value="admin_kesiswaan">Admin Kesiswaan</option>
                         <option value="siswa">Siswa</option>
                         <option value="orangtua">Orang Tua</option>
                     </select>

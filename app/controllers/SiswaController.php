@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../models/KelasModel.php';
 require_once __DIR__ . '/../models/PresensiSesiModel.php';
 require_once __DIR__ . '/../models/PresensiSekolahSesiModel.php';
+require_once __DIR__ . '/../models/BukuIndukModel.php';
 
 class SiswaController {
     private $presensiModel;
@@ -13,6 +14,7 @@ class SiswaController {
     private $kelasModel;
     private $presensiSesiModel;
     private $presensiSekolahSesiModel;
+    private $bukuIndukModel;
     
     public function __construct() {
         $this->presensiModel = new PresensiModel();
@@ -20,6 +22,7 @@ class SiswaController {
         $this->kelasModel = new KelasModel();
         $this->presensiSesiModel = new PresensiSesiModel();
         $this->presensiSekolahSesiModel = new PresensiSekolahSesiModel();
+        $this->bukuIndukModel = new BukuIndukModel();
     }
     
     public function dashboard() {
@@ -161,6 +164,65 @@ class SiswaController {
             
             header('Location: ' . BASE_URL . '/public/index.php?action=siswa_izin');
         }
+    }
+
+    public function bukuInduk() {
+        $user_id = $_SESSION['user_id'];
+        $record = $this->bukuIndukModel->getByUserId($user_id);
+        require_once __DIR__ . '/../views/siswa/buku_induk.php';
+    }
+
+    public function saveBukuInduk() {
+        if($_SERVER['REQUEST_METHOD'] !== 'POST') return;
+
+        $user_id = $_SESSION['user_id'];
+        $data = [
+            'user_id' => $user_id,
+            'nama' => trim($_POST['nama']),
+            'nis' => trim($_POST['nis']),
+            'nisn' => trim($_POST['nisn']),
+            'tempat_lahir' => trim($_POST['tempat_lahir']),
+            'tanggal_lahir' => $_POST['tanggal_lahir'],
+            'alamat' => trim($_POST['alamat']),
+            'dokumen_pdf' => null
+        ];
+
+        if(isset($_FILES['dokumen_pdf']) && $_FILES['dokumen_pdf']['error'] === UPLOAD_ERR_OK) {
+            $upload = $this->handlePdfUpload($_FILES['dokumen_pdf']);
+            if(!$upload['success']) {
+                $_SESSION['error'] = $upload['message'];
+                header('Location: ' . BASE_URL . '/public/index.php?action=siswa_buku_induk');
+                exit();
+            }
+            $data['dokumen_pdf'] = $upload['path'];
+        } else {
+            $data['dokumen_pdf'] = $_POST['existing_pdf'] ?? null;
+        }
+
+        if($this->bukuIndukModel->upsert($data)) {
+            $_SESSION['success'] = 'Data buku induk diperbarui.';
+        } else {
+            $_SESSION['error'] = 'Gagal menyimpan data.';
+        }
+
+        header('Location: ' . BASE_URL . '/public/index.php?action=siswa_buku_induk');
+        exit();
+    }
+
+    private function handlePdfUpload($file) {
+        $allowed = ['application/pdf'];
+        if(!in_array($file['type'], $allowed)) {
+            return ['success' => false, 'message' => 'File harus PDF.'];
+        }
+        $uploadDir = __DIR__ . '/../../public/uploads/buku_induk';
+        if(!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+        $safeName = uniqid('buku-induk-') . '.pdf';
+        $target = $uploadDir . '/' . $safeName;
+        if(move_uploaded_file($file['tmp_name'], $target)) {
+            $relative = BASE_URL . '/public/uploads/buku_induk/' . $safeName;
+            return ['success' => true, 'path' => $relative];
+        }
+        return ['success' => false, 'message' => 'Gagal upload dokumen.'];
     }
 }
 ?>

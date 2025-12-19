@@ -103,6 +103,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Aktivitas Terbaru -->
+     <!--
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Aktivitas Terbaru</h3>
         <div class="space-y-4">
@@ -135,7 +136,7 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
         </div>
     </div>
-
+-->
     <!-- Quick Actions -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
