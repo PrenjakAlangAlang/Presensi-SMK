@@ -141,6 +141,170 @@ class PresensiModel {
         return $this->db->resultSet();
     }
     
+    /**
+     * Get laporan presensi sekolah (umum)
+     * If $sesi_id provided, returns attendance for that session (left join so students without presensi are included).
+     * Otherwise if $tanggal provided (or default today) returns presensi_sekolah for that date.
+     * Returns array of objects with siswa data and presensi fields (status, waktu, jarak, latitude, longitude, jenis, presensi_sekolah_sesi_id)
+     */
+    public function getLaporanPresensiSekolah($tanggal = null, $sesi_id = null, $filter_status = null, $limit = null, $offset = 0) {
+        // Base select — list all siswa and join any matching presensi_sekolah
+        if ($sesi_id) {
+            $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+                    FROM users u
+                    LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND ps.presensi_sekolah_sesi_id = :sesi_id
+                    WHERE u.role = "siswa"
+                    ORDER BY u.nama';
+            if ($limit) {
+                $sql .= ' LIMIT :limit OFFSET :offset';
+            }
+            $this->db->query($sql);
+            $this->db->bind(':sesi_id', $sesi_id);
+            if ($limit) {
+                $this->db->bind(':limit', $limit);
+                $this->db->bind(':offset', $offset);
+            }
+            return $this->db->resultSet();
+        }
+
+        // fallback: use date filter on presensi_sekolah (today by default)
+        $tanggal = $tanggal ?: date('Y-m-d');
+        
+        // Build query dengan filter status
+        if ($filter_status) {
+            if ($filter_status == 'valid') {
+                // Filter hanya yang hadir (status valid)
+                $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+                        FROM users u
+                        INNER JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.status = "valid"
+                        WHERE u.role = "siswa"
+                        ORDER BY u.nama';
+            } else {
+                // Filter berdasarkan jenis (izin, sakit, alpha)
+                $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+                        FROM users u
+                        INNER JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.jenis = :jenis
+                        WHERE u.role = "siswa"
+                        ORDER BY u.nama';
+                if ($limit) {
+                    $sql .= ' LIMIT :limit OFFSET :offset';
+                }
+                $this->db->query($sql);
+                $this->db->bind(':tanggal', $tanggal);
+                $this->db->bind(':jenis', $filter_status);
+                if ($limit) {
+                    $this->db->bind(':limit', $limit);
+                    $this->db->bind(':offset', $offset);
+                }
+                return $this->db->resultSet();
+            }
+        } else {
+            // Tampilkan semua
+            $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+                    FROM users u
+                    LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal
+                    WHERE u.role = "siswa"
+                    ORDER BY u.nama';
+        }
+
+        if ($limit) {
+            $sql .= ' LIMIT :limit OFFSET :offset';
+        }
+        $this->db->query($sql);
+        $this->db->bind(':tanggal', $tanggal);
+        if ($limit) {
+            $this->db->bind(':limit', $limit);
+            $this->db->bind(':offset', $offset);
+        }
+        return $this->db->resultSet();
+    }
+
+    /**
+     * Count total laporan presensi sekolah
+     */
+    public function countLaporanPresensiSekolah($tanggal = null, $sesi_id = null, $filter_status = null) {
+        if ($sesi_id) {
+            $sql = 'SELECT COUNT(u.id) as total FROM users u WHERE u.role = "siswa"';
+            $this->db->query($sql);
+            $result = $this->db->single();
+            return $result->total ?? 0;
+        }
+
+        $tanggal = $tanggal ?: date('Y-m-d');
+        
+        if ($filter_status) {
+            if ($filter_status == 'valid') {
+                $sql = 'SELECT COUNT(u.id) as total FROM users u
+                        INNER JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.status = "valid"
+                        WHERE u.role = "siswa"';
+                $this->db->query($sql);
+                $this->db->bind(':tanggal', $tanggal);
+            } else {
+                $sql = 'SELECT COUNT(u.id) as total FROM users u
+                        INNER JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.jenis = :jenis
+                        WHERE u.role = "siswa"';
+                $this->db->query($sql);
+                $this->db->bind(':tanggal', $tanggal);
+                $this->db->bind(':jenis', $filter_status);
+            }
+        } else {
+            $sql = 'SELECT COUNT(u.id) as total FROM users u WHERE u.role = "siswa"';
+            $this->db->query($sql);
+        }
+        
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+    
+    /**
+     * Get statistik presensi sekolah untuk periode tertentu
+     * Returns count of hadir, izin, sakit, alpha, and total siswa
+     */
+    public function getStatistikPresensiSekolah($tanggal = null, $bulan = null, $tahun = null) {
+        if ($tanggal) {
+            // Statistik untuk tanggal tertentu
+            $sql = 'SELECT 
+                    COUNT(DISTINCT u.id) as total_siswa,
+                    COUNT(DISTINCT CASE WHEN ps.status = "valid" AND ps.jenis = "hadir" THEN ps.user_id END) as hadir,
+                    COUNT(DISTINCT CASE WHEN ps.jenis = "izin" THEN ps.user_id END) as izin,
+                    COUNT(DISTINCT CASE WHEN ps.jenis = "sakit" THEN ps.user_id END) as sakit,
+                    COUNT(DISTINCT CASE WHEN ps.jenis = "alpha" THEN ps.user_id END) as alpha
+                    FROM users u
+                    LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal
+                    WHERE u.role = "siswa"';
+            $this->db->query($sql);
+            $this->db->bind(':tanggal', $tanggal);
+        } elseif ($bulan && $tahun) {
+            // Statistik untuk bulan tertentu
+            $sql = 'SELECT 
+                    COUNT(DISTINCT u.id) as total_siswa,
+                    COUNT(DISTINCT CASE WHEN ps.status = "valid" AND ps.jenis = "hadir" THEN ps.user_id END) as hadir,
+                    COUNT(DISTINCT CASE WHEN ps.jenis = "izin" THEN ps.user_id END) as izin,
+                    COUNT(DISTINCT CASE WHEN ps.jenis = "sakit" THEN ps.user_id END) as sakit,
+                    COUNT(DISTINCT CASE WHEN ps.jenis = "alpha" THEN ps.user_id END) as alpha
+                    FROM users u
+                    LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND MONTH(ps.waktu) = :bulan AND YEAR(ps.waktu) = :tahun
+                    WHERE u.role = "siswa"';
+            $this->db->query($sql);
+            $this->db->bind(':bulan', $bulan);
+            $this->db->bind(':tahun', $tahun);
+        } else {
+            // Default: statistik hari ini
+            $sql = 'SELECT 
+                    COUNT(DISTINCT u.id) as total_siswa,
+                    COUNT(DISTINCT CASE WHEN ps.status = "valid" AND ps.jenis = "hadir" THEN ps.user_id END) as hadir,
+                    COUNT(DISTINCT CASE WHEN ps.jenis = "izin" THEN ps.user_id END) as izin,
+                    COUNT(DISTINCT CASE WHEN ps.jenis = "sakit" THEN ps.user_id END) as sakit,
+                    COUNT(DISTINCT CASE WHEN ps.jenis = "alpha" THEN ps.user_id END) as alpha
+                    FROM users u
+                    LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = CURDATE()
+                    WHERE u.role = "siswa"';
+            $this->db->query($sql);
+        }
+        
+        return $this->db->single();
+    }
+    
     public function ajukanIzin($data) {
         $this->db->query('INSERT INTO izin_siswa (siswa_id, tanggal, alasan, status) 
                          VALUES (:siswa_id, :tanggal, :alasan, "pending")');
@@ -168,6 +332,15 @@ class PresensiModel {
         $this->db->bind(':sesi_id', $presensi_sekolah_sesi_id);
         $row = $this->db->single();
         return $row ? true : false;
+    }
+
+    /**
+     * Get list of dates that have presensi sekolah records
+     * Returns array of unique dates in DESC order
+     */
+    public function getTanggalPresensiSekolah() {
+        $this->db->query('SELECT DISTINCT DATE(waktu) as tanggal FROM presensi_sekolah ORDER BY tanggal DESC');
+        return $this->db->resultSet();
     }
 }
 ?>

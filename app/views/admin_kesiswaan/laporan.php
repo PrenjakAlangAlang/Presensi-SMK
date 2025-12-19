@@ -12,7 +12,7 @@ require_once __DIR__ . '/../layouts/header.php';
 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
     <h3 class="text-lg font-semibold text-gray-800 mb-4">Filter Laporan</h3>
     <form method="GET" action="<?php echo BASE_URL; ?>/public/index.php" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <input type="hidden" name="action" value="admin_laporan">
+        <input type="hidden" name="action" value="admin_kesiswaan_laporan">
         
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
@@ -286,7 +286,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <?php if ($total_pages > 1): ?>
                 <!-- Previous Button -->
                 <?php if ($page > 1): ?>
-                    <a href="?action=admin_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&page=<?php echo $page - 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+                    <a href="?action=admin_kesiswaan_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&page=<?php echo $page - 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
                         <i class="fas fa-chevron-left"></i>
                     </a>
                 <?php else: ?>
@@ -305,13 +305,13 @@ require_once __DIR__ . '/../layouts/header.php';
                     <?php if ($i == $page): ?>
                         <span class="px-3 py-2 bg-blue-600 text-white rounded-lg"><?php echo $i; ?></span>
                     <?php else: ?>
-                        <a href="?action=admin_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&page=<?php echo $i; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"><?php echo $i; ?></a>
+                        <a href="?action=admin_kesiswaan_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&page=<?php echo $i; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"><?php echo $i; ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
 
                 <!-- Next Button -->
                 <?php if ($page < $total_pages): ?>
-                    <a href="?action=admin_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&page=<?php echo $page + 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+                    <a href="?action=admin_kesiswaan_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&page=<?php echo $page + 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
                         <i class="fas fa-chevron-right"></i>
                     </a>
                 <?php else: ?>
@@ -322,47 +322,6 @@ require_once __DIR__ . '/../layouts/header.php';
             <?php else: ?>
                 <span class="text-gray-500">-</span>
             <?php endif; ?>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Detail Presensi -->
-<div id="detailPresensiModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Detail Presensi</h3>
-        </div>
-        <div class="p-6 space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Siswa</label>
-                    <p class="text-gray-800 font-medium" id="detailNama">-</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Kelas</label>
-                    <p class="text-gray-800" id="detailKelas">-</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal & Waktu</label>
-                    <p class="text-gray-800" id="detailWaktu">-</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <p id="detailStatus">-</p>
-                </div>
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Lokasi</label>
-                    <div class="p-3 bg-gray-50 rounded-lg">
-                        <p class="text-gray-800" id="detailLokasi">-</p>
-                        <p class="text-sm text-gray-600 mt-1" id="detailJarak">-</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="p-6 border-t border-gray-200 flex justify-end">
-            <button onclick="closeDetailPresensiModal()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
-                Tutup
-            </button>
         </div>
     </div>
 </div>
@@ -415,76 +374,21 @@ const distributionChart = new Chart(distributionCtx, {
 });
 
 function lihatDetailPresensi(presensiId) {
-    // Simulate API call to get presensi detail
-    const detailData = {
-        nama: 'Siswa A',
-        kelas: 'XI RPL 1',
-        waktu: '<?php echo date('d M Y H:i'); ?>',
-        status: 'Hadir',
-        lokasi: 'SMK Negeri 7 Yogyakarta',
-        jarak: '45 meter dari titik presensi'
-    };
-    
-    document.getElementById('detailNama').textContent = detailData.nama;
-    document.getElementById('detailKelas').textContent = detailData.kelas;
-    document.getElementById('detailWaktu').textContent = detailData.waktu;
-    document.getElementById('detailLokasi').textContent = detailData.lokasi;
-    document.getElementById('detailJarak').textContent = detailData.jarak;
-    
-    const statusElement = document.getElementById('detailStatus');
-    statusElement.textContent = detailData.status;
-    statusElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800';
-    
-    document.getElementById('detailPresensiModal').classList.remove('hidden');
-}
-
-function closeDetailPresensiModal() {
-    document.getElementById('detailPresensiModal').classList.add('hidden');
+    // Simulate API call to get presensi detail - you can implement this later
+    alert('Detail presensi untuk ID: ' + presensiId);
 }
 
 function exportToPDF() {
     const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
     const status = '<?php echo $filter_status ?? ''; ?>';
-    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_export_pdf&tanggal=' + tanggal + '&status=' + status, '_blank');
+    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_export_pdf&tanggal=' + tanggal + '&status=' + status, '_blank');
 }
 
 function exportToExcel() {
     const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
     const status = '<?php echo $filter_status ?? ''; ?>';
-    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_export_excel&tanggal=' + tanggal + '&status=' + status;
+    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_export_excel&tanggal=' + tanggal + '&status=' + status;
 }
-
-// Filter form handling
-document.getElementById('filterForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    showNotification('success', 'Filter diterapkan!');
-});
-
-function showNotification(type, message) {
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transform transition-transform duration-300 ${
-        type === 'success' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
-    }`;
-    notification.innerHTML = `
-        <div class="flex items-center space-x-2">
-            <i class="fas fa-${type === 'success' ? 'check' : 'info'}-circle"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-
-// Close modal when clicking outside
-document.getElementById('detailPresensiModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDetailPresensiModal();
-    }
-});
 </script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

@@ -61,6 +61,13 @@ class PresensiSekolahSesiModel {
         }
         return $this->db->resultSet();
     }
+
+    // Ambil satu sesi berdasarkan tanggal (untuk laporan)
+    public function getSesiByTanggal($tanggal) {
+        $this->db->query('SELECT * FROM presensi_sekolah_sesi WHERE DATE(waktu_buka) = :tanggal ORDER BY waktu_buka DESC LIMIT 1');
+        $this->db->bind(':tanggal', $tanggal);
+        return $this->db->single();
+    }
 }
 
 ?>

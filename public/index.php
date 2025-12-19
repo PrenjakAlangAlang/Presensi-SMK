@@ -10,10 +10,11 @@ $action = $_GET['action'] ?? 'login';
 // Check authentication for protected routes
 $protectedRoutes = [
     'admin_dashboard', 'admin_users', 'admin_kelas', 'admin_lokasi', 'admin_laporan', 'admin_create_user',
-    'admin_update_user',
+    'admin_update_user', 'admin_export_excel', 'admin_export_pdf',
     'admin_kesiswaan_dashboard', 'admin_kesiswaan_buku_induk', 'admin_kesiswaan_presensi_sekolah',
     'admin_kesiswaan_create_presensi_sekolah', 'admin_kesiswaan_extend_presensi_sekolah', 'admin_kesiswaan_close_presensi_sekolah',
     'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk',
+    'admin_kesiswaan_laporan', 'admin_kesiswaan_export_excel', 'admin_kesiswaan_export_pdf',
     'guru_dashboard', 'guru_kelas', 'guru_laporan',
     'siswa_dashboard', 'siswa_presensi', 'siswa_riwayat', 'siswa_izin',
     'siswa_buku_induk', 'siswa_save_buku_induk',
@@ -100,6 +101,18 @@ switch($action) {
         require_once '../app/controllers/AdminController.php';
         $admin = new AdminController();
         $admin->laporan();
+        break;
+
+    case 'admin_export_excel':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->exportExcel();
+        break;
+
+    case 'admin_export_pdf':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->exportPDF();
         break;
         
     case 'admin_create_user':
@@ -227,6 +240,24 @@ switch($action) {
         require_once '../app/controllers/AdminKesiswaanController.php';
         $ak = new AdminKesiswaanController();
         $ak->getPresensiSekolahStatus();
+        break;
+
+    case 'admin_kesiswaan_laporan':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->laporan();
+        break;
+
+    case 'admin_kesiswaan_export_excel':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->exportExcel();
+        break;
+
+    case 'admin_kesiswaan_export_pdf':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->exportPDF();
         break;
         
     case 'admin_update_lokasi':

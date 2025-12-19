@@ -112,6 +112,13 @@ function isActiveMenu($action, $current) {
                         <span class="font-medium">Presensi Sekolah</span>
                     </a>
                 </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_laporan" 
+                       class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_kesiswaan_laporan', $current_action); ?>">
+                        <i class="fas fa-chart-bar w-5 text-center"></i>
+                        <span class="font-medium">Laporan</span>
+                    </a>
+                </li>
 
             <?php elseif($user_role == 'guru'): ?>
                 <!-- Guru Menu -->
