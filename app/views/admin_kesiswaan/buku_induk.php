@@ -85,7 +85,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         <td class="px-4 py-3 max-w-xs truncate" title="<?php echo htmlspecialchars($r->alamat); ?>"><?php echo htmlspecialchars($r->alamat); ?></td>
                         <td class="px-4 py-3">
                             <?php if(!empty($r->dokumen_pdf)): ?>
-                                <a href="<?php echo $r->dokumen_pdf; ?>" target="_blank" class="text-blue-600 hover:underline">Lihat</a>
+                                <a href="<?php echo $r->dokumen_pdf; ?>" target="_blank" class="text-blue-600 hover:underline"><i class="fas fa-eye"></i></a>
                             <?php else: ?>
                                 <span class="text-gray-400">-</span>
                             <?php endif; ?>
