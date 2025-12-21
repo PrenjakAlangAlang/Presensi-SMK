@@ -29,6 +29,14 @@ class AdminKesiswaanController {
         $totalSiswa = count($this->userModel->getUsersByRole('siswa'));
         $totalGuru = count($this->userModel->getUsersByRole('guru'));
         $sessions = $this->presensiSekolahSesiModel->getSessions();
+        
+        // Pagination variables
+        $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+        $limit = 5;
+        $offset = ($page - 1) * $limit;
+        $total_records = count($sessions);
+        $total_pages = ceil($total_records / $limit);
+        
         require_once __DIR__ . '/../views/admin_kesiswaan/dashboard.php';
     }
 
