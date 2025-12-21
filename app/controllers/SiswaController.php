@@ -152,17 +152,28 @@ class SiswaController {
             $data = [
                 'siswa_id' => $_SESSION['user_id'],
                 'tanggal' => $_POST['tanggal'],
-                'alasan' => $_POST['alasan']
+                'jenis_izin' => $_POST['jenis_izin'] ?? 'izin',
+                'alasan' => $_POST['alasan'],
+                'foto_bukti' => null
             ];
+            
+            // Handle file upload jika ada
+            if(isset($_FILES['bukti']) && $_FILES['bukti']['error'] === UPLOAD_ERR_OK) {
+                $upload = $this->handleIzinUpload($_FILES['bukti']);
+                if($upload['success']) {
+                    $data['foto_bukti'] = $upload['path'];
+                }
+            }
             
             // Ajukan izin melalui model, set flash message lalu redirect
             if($this->presensiModel->ajukanIzin($data)) {
-                $_SESSION['success'] = 'Izin berhasil diajukan!';
+                $_SESSION['success'] = 'Izin berhasil disetujui otomatis!';
             } else {
                 $_SESSION['error'] = 'Gagal mengajukan izin!';
             }
             
             header('Location: ' . BASE_URL . '/public/index.php?action=siswa_izin');
+            exit();
         }
     }
 
@@ -223,6 +234,31 @@ class SiswaController {
             return ['success' => true, 'path' => $relative];
         }
         return ['success' => false, 'message' => 'Gagal upload dokumen.'];
+    }
+
+    private function handleIzinUpload($file) {
+        $allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+        if(!in_array($file['type'], $allowed)) {
+            return ['success' => false, 'message' => 'File harus JPG, PNG, atau PDF.'];
+        }
+        
+        // Cek ukuran file (max 2MB)
+        if($file['size'] > 2 * 1024 * 1024) {
+            return ['success' => false, 'message' => 'Ukuran file maksimal 2MB.'];
+        }
+        
+        $uploadDir = __DIR__ . '/../../public/uploads/izin';
+        if(!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+        
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $safeName = uniqid('izin-') . '.' . $ext;
+        $target = $uploadDir . '/' . $safeName;
+        
+        if(move_uploaded_file($file['tmp_name'], $target)) {
+            $relative = BASE_URL . '/public/uploads/izin/' . $safeName;
+            return ['success' => true, 'path' => $relative];
+        }
+        return ['success' => false, 'message' => 'Gagal upload bukti izin.'];
     }
 }
 ?>

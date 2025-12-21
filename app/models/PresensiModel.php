@@ -306,11 +306,13 @@ class PresensiModel {
     }
     
     public function ajukanIzin($data) {
-        $this->db->query('INSERT INTO izin_siswa (siswa_id, tanggal, alasan, status) 
-                         VALUES (:siswa_id, :tanggal, :alasan, "pending")');
+        $this->db->query('INSERT INTO izin_siswa (siswa_id, tanggal, jenis_izin, alasan, foto_bukti,  waktu_pengajuan) 
+                         VALUES (:siswa_id, :tanggal, :jenis_izin, :alasan, :foto_bukti,  NOW())');
         $this->db->bind(':siswa_id', $data['siswa_id']);
         $this->db->bind(':tanggal', $data['tanggal']);
+        $this->db->bind(':jenis_izin', $data['jenis_izin'] ?? 'izin');
         $this->db->bind(':alasan', $data['alasan']);
+        $this->db->bind(':foto_bukti', $data['foto_bukti'] ?? null);
         
         return $this->db->execute();
     }

@@ -9,7 +9,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <h2 class="text-2xl font-bold text-gray-800 mb-2">Ajukan Izin</h2>
         <p class="text-gray-600 mb-6">Formulir pengajuan izin tidak hadir</p>
         
-        <form method="POST" action="index.php?action=ajukan_izin" id="izinForm">
+        <form method="POST" action="index.php?action=ajukan_izin" id="izinForm" enctype="multipart/form-data">
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Izin</label>
@@ -54,13 +54,13 @@ require_once __DIR__ . '/../layouts/header.php';
                     <div id="fileName" class="text-sm text-gray-600 mt-2 hidden"></div>
                 </div>
                 
-                <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 class="font-medium text-blue-800 mb-2">Perhatian</h4>
-                    <ul class="text-sm text-blue-700 space-y-1">
-                        <li>• Pengajuan izin harus diajukan maksimal H-1</li>
-                        <li>• Izin akan diverifikasi oleh wali kelas</li>
-                        <li>• Status pengajuan dapat dilihat di riwayat</li>
-                        <li>• Untuk keadaan darurat, hubungi wali kelas langsung</li>
+                <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h4 class="font-medium text-green-800 mb-2">Informasi</h4>
+                    <ul class="text-sm text-green-700 space-y-1">
+                        <li>• Izin akan langsung disetujui secara otomatis</li>
+                        <li>• Pengajuan izin dapat dilakukan untuk tanggal hari ini atau yang akan datang</li>
+                        <li>• Riwayat izin dapat dilihat di bagian sebelah kanan</li>
+                        <li>• Upload bukti jika diperlukan (opsional)</li>
                     </ul>
                 </div>
                 
@@ -91,12 +91,7 @@ require_once __DIR__ . '/../layouts/header.php';
                                 <?php echo $izin->alasan; ?>
                             </p>
                         </div>
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
-                            <?php echo $izin->status == 'disetujui' ? 'bg-green-100 text-green-800' : 
-                                   ($izin->status == 'ditolak' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'); ?>">
-                            <?php echo $izin->status == 'disetujui' ? 'Disetujui' : 
-                                  ($izin->status == 'ditolak' ? 'Ditolak' : 'Menunggu'); ?>
-                        </span>
+                        
                     </div>
                     <div class="flex justify-between items-center text-sm text-gray-500">
                         <span>Diajukan: <?php echo date('d M Y H:i', strtotime($izin->waktu_pengajuan)); ?></span>
@@ -114,44 +109,7 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
         
         <!-- Statistik Izin -->
-        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 class="font-semibold text-gray-800 mb-3">Statistik Izin</h4>
-            <div class="grid grid-cols-3 gap-4 text-center">
-                <div>
-                    <div class="text-2xl font-bold text-blue-600">
-                        <?php 
-                        $totalIzin = count($riwayatIzin);
-                        echo $totalIzin;
-                        ?>
-                    </div>
-                    <div class="text-sm text-gray-600">Total</div>
-                </div>
-                <div>
-                    <div class="text-2xl font-bold text-green-600">
-                        <?php 
-                        $disetujui = 0;
-                        foreach($riwayatIzin as $izin) {
-                            if($izin->status == 'disetujui') $disetujui++;
-                        }
-                        echo $disetujui;
-                        ?>
-                    </div>
-                    <div class="text-sm text-gray-600">Disetujui</div>
-                </div>
-                <div>
-                    <div class="text-2xl font-bold text-yellow-600">
-                        <?php 
-                        $pending = 0;
-                        foreach($riwayatIzin as $izin) {
-                            if($izin->status == 'pending') $pending++;
-                        }
-                        echo $pending;
-                        ?>
-                    </div>
-                    <div class="text-sm text-gray-600">Pending</div>
-                </div>
-            </div>
-        </div>
+        
     </div>
 </div>
 
@@ -183,48 +141,23 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
     }
 });
 
-// Form submission handling
+// Form submission handling - izin langsung disetujui
 document.getElementById('izinForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
     // Basic validation
     const tanggal = document.querySelector('input[name="tanggal"]').value;
     const jenisIzin = document.querySelector('select[name="jenis_izin"]').value;
     const alasan = document.querySelector('textarea[name="alasan"]').value;
     
     if (!tanggal || !jenisIzin || !alasan) {
+        e.preventDefault();
         showNotification('error', 'Harap lengkapi semua field yang wajib diisi!');
         return;
     }
     
-    // Check if date is not in the past
-    const selectedDate = new Date(tanggal);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (selectedDate < today) {
-        showNotification('error', 'Tanggal izin tidak boleh di masa lalu!');
-        return;
-    }
-    
-    // Show confirmation modal
-    showConfirmModal();
+    // Allow form to submit naturally
 });
 
-function showConfirmModal() {
-    document.getElementById('confirmModal').classList.remove('hidden');
-}
 
-function closeConfirmModal() {
-    document.getElementById('confirmModal').classList.add('hidden');
-    
-    // Reset form
-    document.getElementById('izinForm').reset();
-    document.getElementById('fileName').classList.add('hidden');
-    
-    // Show success notification
-    showNotification('success', 'Izin berhasil diajukan! Status dapat dilihat di riwayat.');
-}
 
 function showNotification(type, message) {
     const notification = document.createElement('div');
@@ -245,12 +178,13 @@ function showNotification(type, message) {
     }, 5000);
 }
 
-// Close modal when clicking outside
-document.getElementById('confirmModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeConfirmModal();
-    }
-});
+// Show success message if exists
+<?php if(isset($_SESSION['success'])): ?>
+showNotification('success', '<?php echo $_SESSION['success']; unset($_SESSION['success']); ?>');
+<?php endif; ?>
+<?php if(isset($_SESSION['error'])): ?>
+showNotification('error', '<?php echo $_SESSION['error']; unset($_SESSION['error']); ?>');
+<?php endif; ?>
 
 // Add some interactivity to the form
 document.addEventListener('DOMContentLoaded', function() {
