@@ -63,15 +63,19 @@ require_once __DIR__ . '/../layouts/header.php';
                 <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Presensi</label>
                     <select id="jenisPresensiSekolah" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="hadir">Hadir</option>
-                        <option value="izin">Izin</option>
-                        <option value="sakit">Sakit</option>
+                        <option value="hadir">Hadir (Perlu validasi lokasi GPS)</option>
+                        <option value="izin">Izin (Tanpa validasi lokasi)</option>
+                        <option value="sakit">Sakit (Tanpa validasi lokasi)</option>
                     </select>
+                    <p class="text-xs text-gray-500 mt-2">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="infoGPSSekolah">Untuk presensi Hadir, Anda harus berada dalam radius 100m dari sekolah</span>
+                    </p>
                 </div>
 
                 <!-- Form Alasan (hidden by default) -->
                 <div id="formAlasanSekolah" class="p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Alasan</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Alasan <span class="text-red-500">*</span></label>
                     <textarea id="alasanSekolah" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Jelaskan alasan Anda..."></textarea>
                     
                     <label class="block text-sm font-medium text-gray-700 mt-3 mb-2">Bukti (Opsional)</label>
@@ -127,11 +131,15 @@ require_once __DIR__ . '/../layouts/header.php';
                         <option value="izin">Izin</option>
                         <option value="sakit">Sakit</option>
                     </select>
+                    <p class="text-xs text-gray-500 mt-2">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="infoGPSKelas">Untuk presensi Hadir, Anda harus berada dalam radius 100m dari sekolah</span>
+                    </p>
                 </div>
 
                 <!-- Form Alasan Kelas (hidden by default) -->
                 <div id="formAlasanKelas" class="p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Alasan</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Alasan <span class="text-red-500">*</span></label>
                     <textarea id="alasanKelas" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Jelaskan alasan Anda..."></textarea>
                     
                     <label class="block text-sm font-medium text-gray-700 mt-3 mb-2">Bukti (Opsional)</label>
@@ -393,8 +401,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 // Submit presensi sekolah
 function submitPresensiSekolah() {
-    if (!userLocation) return;
-    
     const btn = document.getElementById('presensiSekolahBtn');
     const originalText = btn.innerHTML;
     const jenis = document.getElementById('jenisPresensiSekolah').value;
@@ -404,6 +410,58 @@ function submitPresensiSekolah() {
     // Validasi alasan jika jenis izin atau sakit
     if ((jenis === 'izin' || jenis === 'sakit') && !alasan.trim()) {
         showNotification('error', 'Alasan wajib diisi untuk jenis ' + jenis);
+        return;
+    }
+    
+    // Untuk izin/sakit, tidak perlu validasi lokasi GPS
+    if (jenis === 'izin' || jenis === 'sakit') {
+        // Langsung submit tanpa cek lokasi
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
+        
+        const fd = new FormData();
+        fd.append('latitude', 0);
+        fd.append('longitude', 0);
+        fd.append('jenis', jenis);
+        if (alasan.trim()) fd.append('alasan', alasan);
+        if (buktiFile) fd.append('bukti', buktiFile);
+
+        fetch('index.php?action=submit_presensi_sekolah', {
+            method: 'POST',
+            body: fd
+        })
+        .then(res => res.json())
+        .then(json => {
+            if (json.success) {
+                const jenisText = jenis === 'izin' ? 'Izin' : 'Sakit';
+                showNotification('success', 'Presensi sekolah berhasil dicatat! Status: ' + jenisText);
+                addToPresensiHistory('Sekolah', jenisText, new Date().toLocaleTimeString());
+                sessionAlreadyPresenced = true;
+                document.getElementById('presensiSekolahBtn').disabled = true;
+                
+                // Reset form
+                document.getElementById('jenisPresensiSekolah').value = 'hadir';
+                document.getElementById('alasanSekolah').value = '';
+                document.getElementById('buktiSekolah').value = '';
+                document.getElementById('formAlasanSekolah').classList.add('hidden');
+            } else {
+                showNotification('error', json.message || 'Gagal mencatat presensi');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showNotification('error', 'Terjadi kesalahan saat mengirim presensi');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+        return;
+    }
+    
+    // Untuk hadir, perlu validasi lokasi GPS
+    if (!userLocation) {
+        showNotification('error', 'Lokasi belum tersedia. Pastikan GPS aktif.');
         return;
     }
     
@@ -456,8 +514,8 @@ function submitPresensiKelas() {
     const kelasSelect = document.getElementById('kelasSelect');
     const selectedKelas = kelasSelect.value;
 
-    if (!selectedKelas || !userLocation) {
-        showNotification('error', 'Pilih kelas terlebih dahulu dan pastikan lokasi tersedia!');
+    if (!selectedKelas) {
+        showNotification('error', 'Pilih kelas terlebih dahulu!');
         return;
     }
 
@@ -486,8 +544,23 @@ function submitPresensiKelas() {
     // Build form data and POST to server
     const formData = new FormData();
     formData.append('kelas_id', selectedKelas);
-    formData.append('latitude', userLocation.lat);
-    formData.append('longitude', userLocation.lng);
+    
+    // Untuk izin/sakit, tidak perlu lokasi GPS
+    if (jenis === 'izin' || jenis === 'sakit') {
+        formData.append('latitude', 0);
+        formData.append('longitude', 0);
+    } else {
+        // Untuk hadir, cek lokasi dulu
+        if (!userLocation) {
+            showNotification('error', 'Lokasi belum tersedia. Pastikan GPS aktif.');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+        }
+        formData.append('latitude', userLocation.lat);
+        formData.append('longitude', userLocation.lng);
+    }
+    
     formData.append('jenis', jenis);
     if (alasan.trim()) formData.append('alasan', alasan);
     if (buktiFile) formData.append('bukti', buktiFile);
@@ -562,20 +635,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listener untuk jenis presensi sekolah
     document.getElementById('jenisPresensiSekolah').addEventListener('change', function() {
         const formAlasan = document.getElementById('formAlasanSekolah');
+        const presensiSekolahBtn = document.getElementById('presensiSekolahBtn');
+        
         if (this.value === 'izin' || this.value === 'sakit') {
             formAlasan.classList.remove('hidden');
+            // Untuk izin/sakit, tidak perlu validasi lokasi - enable button jika ada sesi aktif
+            if (sessionActive && !sessionAlreadyPresenced) {
+                presensiSekolahBtn.disabled = false;
+            }
         } else {
             formAlasan.classList.add('hidden');
+            // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
+            if (sessionActive && !sessionAlreadyPresenced && userLocation) {
+                const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
+                presensiSekolahBtn.disabled = distance > 100;
+            } else {
+                presensiSekolahBtn.disabled = true;
+            }
         }
     });
     
     // Event listener untuk jenis presensi kelas
     document.getElementById('jenisPresensiKelas').addEventListener('change', function() {
         const formAlasan = document.getElementById('formAlasanKelas');
+        const presensiKelasBtn = document.getElementById('presensiKelasBtn');
+        const kelasSelect = document.getElementById('kelasSelect');
+        const selectedKelas = kelasSelect.value;
+        
         if (this.value === 'izin' || this.value === 'sakit') {
             formAlasan.classList.remove('hidden');
+            // Untuk izin/sakit, tidak perlu validasi lokasi - enable button jika kelas dipilih dan ada sesi
+            if (selectedKelas && kelasSesi[selectedKelas]) {
+                presensiKelasBtn.disabled = false;
+            }
         } else {
             formAlasan.classList.add('hidden');
+            // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
+            if (selectedKelas && kelasSesi[selectedKelas] && userLocation) {
+                const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
+                presensiKelasBtn.disabled = distance > 100;
+            } else {
+                presensiKelasBtn.disabled = true;
+            }
         }
     });
     // Poll server for active school presensi session (auto open/close + admin override)

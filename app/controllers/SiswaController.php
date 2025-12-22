@@ -74,8 +74,8 @@ class SiswaController {
     public function submitPresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $user_id = $_SESSION['user_id'];
-            $latitude = $_POST['latitude'];
-            $longitude = $_POST['longitude'];
+            $latitude = $_POST['latitude'] ?? 0;
+            $longitude = $_POST['longitude'] ?? 0;
             $jenis = $_POST['jenis'] ?? 'hadir'; // hadir, izin, sakit
             $alasan = $_POST['alasan'] ?? null;
             
@@ -89,15 +89,23 @@ class SiswaController {
                 return;
             }
 
-            // Cek lokasi dan jarak
-            $distance = $this->locationModel->getDistance($latitude, $longitude);
-            $isValid = $this->locationModel->validateLocation($latitude, $longitude);
-
             // Cegah duplikat presensi untuk session yang sama
             if ($this->presensiModel->hasPresensiInSchoolSession($user_id, $activeSession->id)) {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi sekolah ini.']);
                 return;
+            }
+
+            // Jika izin atau sakit, nonaktifkan validasi GPS (set koordinat ke 0)
+            if ($jenis === 'izin' || $jenis === 'sakit') {
+                $latitude = 0;
+                $longitude = 0;
+                $distance = 0;
+                $isValid = true; // Otomatis valid untuk izin/sakit
+            } else {
+                // Untuk hadir, validasi lokasi GPS dengan algoritma Haversine
+                $distance = $this->locationModel->getDistance($latitude, $longitude);
+                $isValid = $this->locationModel->validateLocation($latitude, $longitude);
             }
             
             // Handle upload bukti jika ada (untuk izin/sakit)
@@ -139,13 +147,10 @@ class SiswaController {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $user_id = $_SESSION['user_id'];
             $kelas_id = $_POST['kelas_id'];
-            $latitude = $_POST['latitude'];
-            $longitude = $_POST['longitude'];
+            $latitude = $_POST['latitude'] ?? 0;
+            $longitude = $_POST['longitude'] ?? 0;
             $jenis = $_POST['jenis'] ?? 'hadir'; // hadir, izin, sakit
             $alasan = $_POST['alasan'] ?? null;
-            
-            $distance = $this->locationModel->getDistance($latitude, $longitude);
-            $isValid = $this->locationModel->validateLocation($latitude, $longitude);
             
             // Attach active presensi session id for the kelas
             $activeSession = $this->presensiSesiModel->getActiveSessionByKelas($kelas_id);
@@ -160,6 +165,18 @@ class SiswaController {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi ini.']);
                 return;
+            }
+
+            // Jika izin atau sakit, nonaktifkan validasi GPS (set koordinat ke 0)
+            if ($jenis === 'izin' || $jenis === 'sakit') {
+                $latitude = 0;
+                $longitude = 0;
+                $distance = 0;
+                $isValid = true; // Otomatis valid untuk izin/sakit
+            } else {
+                // Untuk hadir, validasi lokasi GPS dengan algoritma Haversine
+                $distance = $this->locationModel->getDistance($latitude, $longitude);
+                $isValid = $this->locationModel->validateLocation($latitude, $longitude);
             }
             
             // Handle upload bukti jika ada (untuk izin/sakit)
