@@ -63,9 +63,9 @@ require_once __DIR__ . '/../layouts/header.php';
                 <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Presensi</label>
                     <select id="jenisPresensiSekolah" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="hadir">Hadir (Perlu validasi lokasi GPS)</option>
-                        <option value="izin">Izin (Tanpa validasi lokasi)</option>
-                        <option value="sakit">Sakit (Tanpa validasi lokasi)</option>
+                        <option value="hadir">Hadir</option>
+                        <option value="izin">Izin</option>
+                        <option value="sakit">Sakit</option>
                     </select>
                     <p class="text-xs text-gray-500 mt-2">
                         <i class="fas fa-info-circle"></i>
@@ -495,6 +495,10 @@ function submitPresensiSekolah() {
             document.getElementById('alasanSekolah').value = '';
             document.getElementById('buktiSekolah').value = '';
             document.getElementById('formAlasanSekolah').classList.add('hidden');
+            // Reset teks tombol kembali ke default
+            btn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
+            // Reset teks tombol kembali ke default
+            btn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
         } else {
             showNotification('error', json.message || 'Gagal mencatat presensi');
         }
@@ -504,7 +508,7 @@ function submitPresensiSekolah() {
         showNotification('error', 'Terjadi kesalahan saat mengirim presensi');
     })
     .finally(() => {
-        btn.innerHTML = originalText;
+        btn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
         btn.disabled = false;
     });
 }
@@ -581,6 +585,8 @@ function submitPresensiKelas() {
             document.getElementById('alasanKelas').value = '';
             document.getElementById('buktiKelas').value = '';
             document.getElementById('formAlasanKelas').classList.add('hidden');
+            // Reset teks tombol kembali ke default
+            btn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
         } else {
             showNotification('error', data.message || 'Gagal mencatat presensi kelas');
         }
@@ -590,7 +596,7 @@ function submitPresensiKelas() {
         showNotification('error', 'Terjadi kesalahan saat mengirim presensi');
     })
     .finally(() => {
-        btn.innerHTML = originalText;
+        btn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
         btn.disabled = false;
     });
 }
@@ -639,12 +645,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (this.value === 'izin' || this.value === 'sakit') {
             formAlasan.classList.remove('hidden');
+            // Ubah teks tombol menjadi "Submit"
+            presensiSekolahBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Submit</span>';
             // Untuk izin/sakit, tidak perlu validasi lokasi - enable button jika ada sesi aktif
             if (sessionActive && !sessionAlreadyPresenced) {
                 presensiSekolahBtn.disabled = false;
             }
         } else {
             formAlasan.classList.add('hidden');
+            // Kembalikan teks tombol ke "Presensi Sekolah"
+            presensiSekolahBtn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
             // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
             if (sessionActive && !sessionAlreadyPresenced && userLocation) {
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
@@ -664,12 +674,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (this.value === 'izin' || this.value === 'sakit') {
             formAlasan.classList.remove('hidden');
+            // Ubah teks tombol menjadi "Submit"
+            presensiKelasBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Submit</span>';
             // Untuk izin/sakit, tidak perlu validasi lokasi - enable button jika kelas dipilih dan ada sesi
             if (selectedKelas && kelasSesi[selectedKelas]) {
                 presensiKelasBtn.disabled = false;
             }
         } else {
             formAlasan.classList.add('hidden');
+            // Kembalikan teks tombol ke "Presensi Kelas"
+            presensiKelasBtn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
             // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
             if (selectedKelas && kelasSesi[selectedKelas] && userLocation) {
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
