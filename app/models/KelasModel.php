@@ -109,5 +109,17 @@ class KelasModel {
         $this->db->query('SELECT * FROM users u WHERE u.role = "siswa" AND u.id NOT IN (SELECT siswa_id FROM siswa_kelas) ORDER BY u.nama');
         return $this->db->resultSet();
     }
+    
+    public function getKelasBySiswa($siswa_id) {
+        // Ambil semua kelas yang diikuti oleh siswa tertentu
+        $this->db->query('SELECT k.*, u.nama as wali_kelas_nama 
+                         FROM kelas k
+                         INNER JOIN siswa_kelas sk ON k.id = sk.kelas_id
+                         LEFT JOIN users u ON k.wali_kelas = u.id
+                         WHERE sk.siswa_id = :siswa_id
+                         ORDER BY k.nama_kelas');
+        $this->db->bind(':siswa_id', $siswa_id);
+        return $this->db->resultSet();
+    }
 }
 ?>

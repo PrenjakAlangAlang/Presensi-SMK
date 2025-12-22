@@ -16,7 +16,7 @@ $protectedRoutes = [
     'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk',
     'admin_kesiswaan_laporan', 'admin_kesiswaan_export_excel', 'admin_kesiswaan_export_pdf',
     'guru_dashboard', 'guru_kelas', 'guru_laporan',
-    'siswa_dashboard', 'siswa_presensi', 'siswa_riwayat', 'siswa_izin',
+    'siswa_dashboard', 'siswa_presensi', 'siswa_riwayat',
     'siswa_buku_induk', 'siswa_save_buku_induk',
     'orangtua_dashboard',
     // orangtua management endpoints (admin)
@@ -284,12 +284,6 @@ switch($action) {
         $siswa = new SiswaController();
         $siswa->riwayat();
         break;
-        
-    case 'siswa_izin':
-        require_once '../app/controllers/SiswaController.php';
-        $siswa = new SiswaController();
-        $siswa->izin();
-        break;
 
     case 'siswa_buku_induk':
         require_once '../app/controllers/SiswaController.php';
@@ -314,13 +308,6 @@ switch($action) {
         $siswa = new SiswaController();
         $siswa->submitPresensiKelas();
         break;
-        
-    case 'ajukan_izin':
-        require_once '../app/controllers/SiswaController.php';
-        $siswa = new SiswaController();
-        $siswa->ajukanIzin();
-        break;
-        // Tambahkan case ini dalam switch statement di public/index.php
 
     // Guru Routes
     case 'guru_dashboard':

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Dec 17, 2025 at 04:34 AM
+-- Generation Time: Dec 22, 2025 at 04:20 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -24,6 +24,33 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `buku_induk`
+--
+
+CREATE TABLE `buku_induk` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `nama` varchar(150) NOT NULL,
+  `nis` varchar(50) NOT NULL,
+  `nisn` varchar(50) NOT NULL,
+  `tempat_lahir` varchar(100) NOT NULL,
+  `tanggal_lahir` date NOT NULL,
+  `alamat` text,
+  `dokumen_pdf` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `buku_induk`
+--
+
+INSERT INTO `buku_induk` (`id`, `user_id`, `nama`, `nis`, `nisn`, `tempat_lahir`, `tanggal_lahir`, `alamat`, `dokumen_pdf`, `created_at`, `updated_at`) VALUES
+(1, 5, 'Fakhri', '7627', '11134567', 'Sleman', '2025-12-01', 'Ngampel', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-694239e508e54.pdf', '2025-12-17 05:04:37', '2025-12-17 05:04:37');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `izin_siswa`
 --
 
@@ -31,11 +58,19 @@ CREATE TABLE `izin_siswa` (
   `id` int NOT NULL,
   `siswa_id` int NOT NULL,
   `tanggal` date NOT NULL,
+  `jenis_izin` varchar(50) DEFAULT 'izin',
   `alasan` text NOT NULL,
   `foto_bukti` varchar(255) DEFAULT NULL,
-  `status` enum('pending','disetujui','ditolak') DEFAULT 'pending',
   `waktu_pengajuan` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `izin_siswa`
+--
+
+INSERT INTO `izin_siswa` (`id`, `siswa_id`, `tanggal`, `jenis_izin`, `alasan`, `foto_bukti`, `waktu_pengajuan`) VALUES
+(18, 8, '2025-12-22', 'izin', 'bbiukj', 'http://localhost/Presensi-SMK/public/uploads/izin/izin-6948c26d5bd6e.jpeg', '2025-12-21 21:00:45'),
+(19, 8, '2025-12-22', 'izin', 'vcds', NULL, '2025-12-21 21:07:20');
 
 -- --------------------------------------------------------
 
@@ -80,7 +115,9 @@ CREATE TABLE `laporan_kemajuan` (
 
 INSERT INTO `laporan_kemajuan` (`id`, `kelas_id`, `guru_id`, `tanggal`, `catatan`, `created_at`) VALUES
 (1, 1, 2, '2025-11-02', 'jh', '2025-11-02 15:25:14'),
-(2, 1, 2, '2025-11-03', 'sEMUA hADIR', '2025-11-03 06:58:27');
+(2, 1, 2, '2025-11-03', 'sEMUA hADIR', '2025-11-03 06:58:27'),
+(3, 3, 2, '2025-12-22', 'mmno', '2025-12-22 02:27:07'),
+(4, 3, 2, '2025-12-22', 'bhjb', '2025-12-22 02:36:13');
 
 -- --------------------------------------------------------
 
@@ -154,15 +191,16 @@ CREATE TABLE `presensi_kelas` (
   `jarak` double NOT NULL,
   `status` enum('valid','invalid') DEFAULT 'invalid',
   `waktu` datetime DEFAULT CURRENT_TIMESTAMP,
-  `presensi_sesi_id` int DEFAULT NULL
+  `presensi_sesi_id` int DEFAULT NULL,
+  `jenis` enum('hadir','izin','sakit','alpha') DEFAULT 'hadir'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `presensi_kelas`
 --
 
-INSERT INTO `presensi_kelas` (`id`, `user_id`, `kelas_id`, `latitude`, `longitude`, `jarak`, `status`, `waktu`, `presensi_sesi_id`) VALUES
-(1, 3, 1, -7.649809168880289, 110.41317558958572, 27.219115022648, 'valid', '2025-11-02 22:41:04', 4);
+INSERT INTO `presensi_kelas` (`id`, `user_id`, `kelas_id`, `latitude`, `longitude`, `jarak`, `status`, `waktu`, `presensi_sesi_id`, `jenis`) VALUES
+(1, 3, 1, -7.649809168880289, 110.41317558958572, 27.219115022648, 'valid', '2025-11-02 22:41:04', 4, 'hadir');
 
 -- --------------------------------------------------------
 
@@ -187,8 +225,9 @@ CREATE TABLE `presensi_sekolah` (
 --
 
 INSERT INTO `presensi_sekolah` (`id`, `presensi_sekolah_sesi_id`, `user_id`, `latitude`, `longitude`, `jarak`, `status`, `waktu`, `jenis`) VALUES
-(1, 2, 3, -7.649853, 110.41310899999999, 28.321532878069, 'valid', '2025-11-07 22:53:32', 'hadir'),
-(2, 3, 3, -7.649853, 110.41310899999999, 28.321532878069, 'valid', '2025-11-07 23:03:47', 'hadir');
+(2, 3, 3, -7.649853, 110.41310899999999, 28.321532878069, 'valid', '2025-11-07 23:03:47', 'hadir'),
+(3, 4, 8, -7.649859, 110.413132, 29.800198709058, 'valid', '2025-12-20 00:17:50', 'hadir'),
+(5, 5, 8, -7.6498202263171775, 110.41319353214884, 29.382694675745, 'valid', '2025-12-22 01:18:02', 'hadir');
 
 -- --------------------------------------------------------
 
@@ -214,7 +253,19 @@ CREATE TABLE `presensi_sekolah_sesi` (
 INSERT INTO `presensi_sekolah_sesi` (`id`, `waktu_buka`, `waktu_tutup`, `status`, `is_manual`, `created_by`, `note`, `created_at`) VALUES
 (1, '2025-11-07 22:46:00', '2025-11-07 22:49:00', 'closed', 1, 1, '', '2025-11-07 22:46:46'),
 (2, '2025-11-07 22:53:00', '2025-11-07 23:10:50', 'closed', 1, 1, '', '2025-11-07 22:53:12'),
-(3, '2025-11-07 23:03:00', '2025-11-07 23:21:00', 'closed', 1, 1, '', '2025-11-07 23:03:12');
+(3, '2025-11-07 23:03:00', '2025-11-07 23:21:00', 'closed', 1, 1, '', '2025-11-07 23:03:12'),
+(4, '2025-12-20 00:17:00', '2025-12-20 00:20:00', 'closed', 1, 1, 'nlknlk', '2025-12-20 00:17:24'),
+(5, '2025-12-22 01:14:00', '2025-12-22 01:30:00', 'closed', 1, 1, '', '2025-12-22 01:17:33'),
+(6, '2025-12-22 08:53:00', '2025-12-22 09:05:00', 'closed', 1, 1, '', '2025-12-22 08:53:47'),
+(7, '2025-12-22 09:03:00', '2025-12-22 09:10:00', 'closed', 1, 1, '', '2025-12-22 09:03:29'),
+(8, '2025-12-22 09:04:00', '2025-12-22 09:10:00', 'closed', 1, 1, '', '2025-12-22 09:04:42'),
+(9, '2025-12-22 09:08:00', '2025-12-22 09:24:00', 'closed', 1, 1, '', '2025-12-22 09:08:08'),
+(10, '2025-12-22 09:23:00', '2025-12-22 09:36:00', 'closed', 1, 1, '', '2025-12-22 09:23:56'),
+(11, '2025-12-22 09:44:00', '2025-12-22 09:56:00', 'closed', 1, 1, '', '2025-12-22 09:44:16'),
+(12, '2025-12-22 10:32:00', '2025-12-22 10:43:00', 'closed', 1, 1, '', '2025-12-22 10:32:25'),
+(13, '2025-12-22 10:39:00', '2025-12-22 10:46:00', 'closed', 1, 1, '', '2025-12-22 10:39:17'),
+(14, '2025-12-22 11:00:00', '2025-12-22 11:13:00', 'closed', 1, 1, '', '2025-12-22 11:00:23'),
+(15, '2025-12-22 11:06:00', '2025-12-22 11:16:00', 'closed', 1, 1, '', '2025-12-22 11:07:01');
 
 -- --------------------------------------------------------
 
@@ -238,7 +289,9 @@ CREATE TABLE `presensi_sesi` (
 INSERT INTO `presensi_sesi` (`id`, `kelas_id`, `guru_id`, `waktu_buka`, `waktu_tutup`, `status`) VALUES
 (1, 1, 2, '2025-11-02 22:21:03', '2025-11-02 22:21:38', 'closed'),
 (3, 1, 2, '2025-11-02 22:25:07', '2025-11-02 22:25:14', 'closed'),
-(4, 1, 2, '2025-11-02 22:33:10', '2025-11-03 13:58:27', 'closed');
+(4, 1, 2, '2025-11-02 22:33:10', '2025-11-03 13:58:27', 'closed'),
+(5, 3, 2, '2025-12-22 09:26:48', '2025-12-22 09:27:07', 'closed'),
+(6, 3, 2, '2025-12-22 09:36:01', '2025-12-22 09:36:13', 'closed');
 
 -- --------------------------------------------------------
 
@@ -272,7 +325,7 @@ CREATE TABLE `users` (
   `nama` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `role` enum('admin','guru','siswa','orangtua') NOT NULL,
+  `role` enum('admin','admin_kesiswaan','guru','siswa','orangtua') NOT NULL,
   `foto_profil` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -289,11 +342,19 @@ INSERT INTO `users` (`id`, `nama`, `email`, `password`, `role`, `foto_profil`, `
 (5, 'Fakhri', 'fakhri@gmail.com', '123', 'siswa', NULL, '2025-11-02 02:43:43'),
 (6, 'Zola', 'z@gmail.com', '123', 'guru', NULL, '2025-11-06 09:01:04'),
 (7, 'Habib', 'h@gmail.com', '123', 'siswa', NULL, '2025-11-07 07:14:24'),
-(8, 'Zola', 'zola@gmail.com', '123', 'siswa', NULL, '2025-12-01 04:07:59');
+(8, 'Zola', 'zola@gmail.com', '123', 'siswa', NULL, '2025-12-01 04:07:59'),
+(9, 'Yoga', 'yoga@gmail.com', 'yoga123', 'admin_kesiswaan', NULL, '2025-12-17 04:56:50');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `buku_induk`
+--
+ALTER TABLE `buku_induk`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_user_buku_induk` (`user_id`);
 
 --
 -- Indexes for table `izin_siswa`
@@ -390,10 +451,16 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `buku_induk`
+--
+ALTER TABLE `buku_induk`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `izin_siswa`
 --
 ALTER TABLE `izin_siswa`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `kelas`
@@ -405,7 +472,7 @@ ALTER TABLE `kelas`
 -- AUTO_INCREMENT for table `laporan_kemajuan`
 --
 ALTER TABLE `laporan_kemajuan`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `log_aktivitas`
@@ -429,25 +496,25 @@ ALTER TABLE `orangtua_siswa`
 -- AUTO_INCREMENT for table `presensi_kelas`
 --
 ALTER TABLE `presensi_kelas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `presensi_sekolah`
 --
 ALTER TABLE `presensi_sekolah`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `presensi_sekolah_sesi`
 --
 ALTER TABLE `presensi_sekolah_sesi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `presensi_sesi`
 --
 ALTER TABLE `presensi_sesi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `siswa_kelas`
@@ -459,11 +526,17 @@ ALTER TABLE `siswa_kelas`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `buku_induk`
+--
+ALTER TABLE `buku_induk`
+  ADD CONSTRAINT `fk_buku_induk_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `izin_siswa`

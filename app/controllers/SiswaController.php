@@ -55,7 +55,20 @@ class SiswaController {
     public function izin() {
         $user_id = $_SESSION['user_id'];
         $riwayatIzin = $this->presensiModel->getIzinBySiswa($user_id);
-    require_once __DIR__ . '/../views/siswa/izin.php';
+        
+        // Get kelas yang diikuti siswa
+        $kelasSiswa = $this->kelasModel->getKelasBySiswa($user_id);
+        
+        // Check sesi presensi sekolah aktif
+        $this->presensiSekolahSesiModel->closeExpiredSessions();
+        $sesiSekolahAktif = $this->presensiSekolahSesiModel->getActiveSession();
+        
+        // Check sesi presensi kelas aktif untuk setiap kelas
+        foreach ($kelasSiswa as $kelas) {
+            $kelas->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($kelas->id);
+        }
+        
+        require_once __DIR__ . '/../views/siswa/izin.php';
     }
     
     public function submitPresensiSekolah() {
@@ -63,12 +76,14 @@ class SiswaController {
             $user_id = $_SESSION['user_id'];
             $latitude = $_POST['latitude'];
             $longitude = $_POST['longitude'];
+            $jenis = $_POST['jenis'] ?? 'hadir'; // hadir, izin, sakit
+            $alasan = $_POST['alasan'] ?? null;
+            
             // Pastikan sesi sekolah yang sudah kadaluarsa ditutup
             $this->presensiSekolahSesiModel->closeExpiredSessions();
             $activeSession = $this->presensiSekolahSesiModel->getActiveSession();
 
             if (!$activeSession) {
-                // Tidak ada sesi aktif -> tolak penyimpanan
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Tidak ada sesi presensi sekolah aktif saat ini.']);
                 return;
@@ -84,6 +99,19 @@ class SiswaController {
                 echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi sekolah ini.']);
                 return;
             }
+            
+            // Handle upload bukti jika ada (untuk izin/sakit)
+            $foto_bukti = null;
+            if(isset($_FILES['bukti']) && $_FILES['bukti']['error'] === UPLOAD_ERR_OK) {
+                $upload = $this->handleBuktiUpload($_FILES['bukti']);
+                if($upload['success']) {
+                    $foto_bukti = $upload['path'];
+                } else {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => $upload['message']]);
+                    return;
+                }
+            }
 
             $data = [
                 'presensi_sekolah_sesi_id' => $activeSession->id,
@@ -92,13 +120,15 @@ class SiswaController {
                 'longitude' => $longitude,
                 'jarak' => $distance,
                 'status' => $isValid ? 'valid' : 'invalid',
-                'jenis' => 'hadir'
+                'jenis' => $jenis,
+                'alasan' => $alasan,
+                'foto_bukti' => $foto_bukti
             ];
 
             // Simpan presensi dan kembalikan hasil serta apakah lokasi valid
             header('Content-Type: application/json');
             if($this->presensiModel->recordPresensiSekolah($data)) {
-                echo json_encode(['success' => true, 'valid' => $isValid]);
+                echo json_encode(['success' => true, 'valid' => $isValid, 'jenis' => $jenis]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Gagal mencatat presensi']);
             }
@@ -111,69 +141,58 @@ class SiswaController {
             $kelas_id = $_POST['kelas_id'];
             $latitude = $_POST['latitude'];
             $longitude = $_POST['longitude'];
+            $jenis = $_POST['jenis'] ?? 'hadir'; // hadir, izin, sakit
+            $alasan = $_POST['alasan'] ?? null;
             
             $distance = $this->locationModel->getDistance($latitude, $longitude);
             $isValid = $this->locationModel->validateLocation($latitude, $longitude);
             
-            $data = [
-                'user_id' => $user_id,
-                'kelas_id' => $kelas_id,
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'jarak' => $distance,
-                'status' => $isValid ? 'valid' : 'invalid'
-            ];
-            
             // Attach active presensi session id for the kelas
             $activeSession = $this->presensiSesiModel->getActiveSessionByKelas($kelas_id);
             if (!$activeSession) {
-                echo json_encode(['success' => false, 'message' => 'Belum ada sesi presensi aktif untuk kelas ini.']);
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Tidak ada sesi presensi aktif untuk kelas ini.']);
                 return;
             }
 
             // Prevent duplicate presensi for the same session
             if ($this->presensiModel->hasPresensiInSession($user_id, $activeSession->id)) {
+                header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi ini.']);
                 return;
             }
+            
+            // Handle upload bukti jika ada (untuk izin/sakit)
+            $foto_bukti = null;
+            if(isset($_FILES['bukti']) && $_FILES['bukti']['error'] === UPLOAD_ERR_OK) {
+                $upload = $this->handleBuktiUpload($_FILES['bukti']);
+                if($upload['success']) {
+                    $foto_bukti = $upload['path'];
+                } else {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => $upload['message']]);
+                    return;
+                }
+            }
 
-            $data['presensi_sesi_id'] = $activeSession->id;
+            $data = [
+                'presensi_sesi_id' => $activeSession->id,
+                'user_id' => $user_id,
+                'kelas_id' => $kelas_id,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'jarak' => $distance,
+                'status' => $isValid ? 'valid' : 'invalid',
+                'jenis' => $jenis,
+                'alasan' => $alasan,
+                'foto_bukti' => $foto_bukti
+            ];
 
             if($this->presensiModel->recordPresensiKelas($data)) {
-                echo json_encode(['success' => true, 'valid' => $isValid]);
+                echo json_encode(['success' => true, 'valid' => $isValid, 'jenis' => $jenis]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Gagal mencatat presensi kelas']);
             }
-        }
-    }
-    
-    public function ajukanIzin() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $data = [
-                'siswa_id' => $_SESSION['user_id'],
-                'tanggal' => $_POST['tanggal'],
-                'jenis_izin' => $_POST['jenis_izin'] ?? 'izin',
-                'alasan' => $_POST['alasan'],
-                'foto_bukti' => null
-            ];
-            
-            // Handle file upload jika ada
-            if(isset($_FILES['bukti']) && $_FILES['bukti']['error'] === UPLOAD_ERR_OK) {
-                $upload = $this->handleIzinUpload($_FILES['bukti']);
-                if($upload['success']) {
-                    $data['foto_bukti'] = $upload['path'];
-                }
-            }
-            
-            // Ajukan izin melalui model, set flash message lalu redirect
-            if($this->presensiModel->ajukanIzin($data)) {
-                $_SESSION['success'] = 'Izin berhasil disetujui otomatis!';
-            } else {
-                $_SESSION['error'] = 'Gagal mengajukan izin!';
-            }
-            
-            header('Location: ' . BASE_URL . '/public/index.php?action=siswa_izin');
-            exit();
         }
     }
 
@@ -236,7 +255,7 @@ class SiswaController {
         return ['success' => false, 'message' => 'Gagal upload dokumen.'];
     }
 
-    private function handleIzinUpload($file) {
+    private function handleBuktiUpload($file) {
         $allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
         if(!in_array($file['type'], $allowed)) {
             return ['success' => false, 'message' => 'File harus JPG, PNG, atau PDF.'];
@@ -251,14 +270,14 @@ class SiswaController {
         if(!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
         
         $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $safeName = uniqid('izin-') . '.' . $ext;
+        $safeName = uniqid('bukti-') . '.' . $ext;
         $target = $uploadDir . '/' . $safeName;
         
         if(move_uploaded_file($file['tmp_name'], $target)) {
             $relative = BASE_URL . '/public/uploads/izin/' . $safeName;
             return ['success' => true, 'path' => $relative];
         }
-        return ['success' => false, 'message' => 'Gagal upload bukti izin.'];
+        return ['success' => false, 'message' => 'Gagal upload bukti.'];
     }
 }
 ?>

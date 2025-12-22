@@ -184,9 +184,27 @@ if ($kelas_id) {
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
-                                <?php echo $presensi->status == 'valid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
-                                <?php echo $presensi->status == 'valid' ? 'Hadir' : 'Tidak Hadir'; ?>
+                            <?php 
+                            // Mapping jenis untuk tampilan status
+                            $jenisMap = [
+                                'hadir' => ['label' => 'Hadir', 'class' => 'bg-green-100 text-green-800'],
+                                'izin' => ['label' => 'Izin', 'class' => 'bg-yellow-100 text-yellow-800'],
+                                'sakit' => ['label' => 'Sakit', 'class' => 'bg-red-100 text-red-800'],
+                                'acara_keluarga' => ['label' => 'Acara Keluarga', 'class' => 'bg-purple-100 text-purple-800'],
+                                'lainnya' => ['label' => 'Lainnya', 'class' => 'bg-gray-100 text-gray-800'],
+                                'alpha' => ['label' => 'Alpha', 'class' => 'bg-gray-300 text-gray-800']
+                            ];
+                            
+                            $jenis = $presensi->jenis ?? 'hadir';
+                            $statusInfo = $jenisMap[$jenis] ?? ['label' => 'Tidak Hadir', 'class' => 'bg-gray-100 text-gray-800'];
+                            
+                            // Jika tidak ada presensi sama sekali (status null)
+                            if (!$presensi->status) {
+                                $statusInfo = ['label' => 'Belum Presensi', 'class' => 'bg-gray-100 text-gray-600'];
+                            }
+                            ?>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <?php echo $statusInfo['class']; ?>">
+                                <?php echo $statusInfo['label']; ?>
                             </span>
                         </td>
                         <td class="px-6 py-4 text-gray-600">
@@ -198,12 +216,31 @@ if ($kelas_id) {
                                     <i class="fas fa-check-circle mr-1"></i>
                                     Valid
                                 </span>
+                            <?php elseif($presensi->status == 'invalid'): ?>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <i class="fas fa-times-circle mr-1"></i>
+                                    Invalid
+                                </span>
                             <?php else: ?>
                                 <span class="text-gray-400">-</span>
                             <?php endif; ?>
                         </td>
                         <td class="px-6 py-4 text-gray-600">
-                            <?php echo $presensi->jenis ? ucfirst($presensi->jenis) : 'Presensi Sekolah'; ?>
+                            <?php 
+                            if ($presensi->jenis) {
+                                $keteranganMap = [
+                                    'hadir' => 'Presensi Normal',
+                                    'izin' => 'Izin',
+                                    'sakit' => 'Sakit',
+                                    'acara_keluarga' => 'Acara Keluarga',
+                                    'lainnya' => 'Lainnya',
+                                    'alpha' => 'Alpha'
+                                ];
+                                echo $keteranganMap[$presensi->jenis] ?? ucfirst($presensi->jenis);
+                            } else {
+                                echo '-';
+                            }
+                            ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>

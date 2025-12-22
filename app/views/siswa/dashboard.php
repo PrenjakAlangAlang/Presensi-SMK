@@ -125,9 +125,9 @@ require_once __DIR__ . '/../layouts/header.php';
                 <i class="fas fa-history text-green-600 text-2xl mb-2"></i>
                 <p class="text-sm font-medium text-green-800">Riwayat</p>
             </a>
-            <a href="index.php?action=siswa_izin" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 text-center transition-colors">
-                <i class="fas fa-envelope text-orange-600 text-2xl mb-2"></i>
-                <p class="text-sm font-medium text-orange-800">Ajukan Izin</p>
+            <a href="index.php?action=siswa_buku_induk" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 text-center transition-colors">
+                <i class="fas fa-id-card text-orange-600 text-2xl mb-2"></i>
+                <p class="text-sm font-medium text-orange-800">Buku Induk</p>
             </a>
             <a href="#" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 text-center transition-colors">
                 <i class="fas fa-user text-purple-600 text-2xl mb-2"></i>

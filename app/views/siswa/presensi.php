@@ -59,6 +59,26 @@ require_once __DIR__ . '/../layouts/header.php';
                     </div>
                 </div>
 
+                <!-- Jenis Presensi Sekolah -->
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Presensi</label>
+                    <select id="jenisPresensiSekolah" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="hadir">Hadir</option>
+                        <option value="izin">Izin</option>
+                        <option value="sakit">Sakit</option>
+                    </select>
+                </div>
+
+                <!-- Form Alasan (hidden by default) -->
+                <div id="formAlasanSekolah" class="p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Alasan</label>
+                    <textarea id="alasanSekolah" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Jelaskan alasan Anda..."></textarea>
+                    
+                    <label class="block text-sm font-medium text-gray-700 mt-3 mb-2">Bukti (Opsional)</label>
+                    <input type="file" id="buktiSekolah" accept="image/*,.pdf" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, atau PDF. Maks 2MB</p>
+                </div>
+
                 <button id="presensiSekolahBtn" 
                         onclick="submitPresensiSekolah()" 
                         disabled
@@ -97,6 +117,26 @@ require_once __DIR__ . '/../layouts/header.php';
                             <option value="<?php echo $k->id; ?>"><?php echo htmlspecialchars($k->nama_kelas); ?></option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+
+                <!-- Jenis Presensi Kelas -->
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Presensi</label>
+                    <select id="jenisPresensiKelas" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="hadir">Hadir</option>
+                        <option value="izin">Izin</option>
+                        <option value="sakit">Sakit</option>
+                    </select>
+                </div>
+
+                <!-- Form Alasan Kelas (hidden by default) -->
+                <div id="formAlasanKelas" class="p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Alasan</label>
+                    <textarea id="alasanKelas" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Jelaskan alasan Anda..."></textarea>
+                    
+                    <label class="block text-sm font-medium text-gray-700 mt-3 mb-2">Bukti (Opsional)</label>
+                    <input type="file" id="buktiKelas" accept="image/*,.pdf" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, atau PDF. Maks 2MB</p>
                 </div>
 
                 <div class="p-4 bg-green-50 rounded-lg border border-green-200">
@@ -357,13 +397,26 @@ function submitPresensiSekolah() {
     
     const btn = document.getElementById('presensiSekolahBtn');
     const originalText = btn.innerHTML;
+    const jenis = document.getElementById('jenisPresensiSekolah').value;
+    const alasan = document.getElementById('alasanSekolah').value;
+    const buktiFile = document.getElementById('buktiSekolah').files[0];
+    
+    // Validasi alasan jika jenis izin atau sakit
+    if ((jenis === 'izin' || jenis === 'sakit') && !alasan.trim()) {
+        showNotification('error', 'Alasan wajib diisi untuk jenis ' + jenis);
+        return;
+    }
     
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
+    
     // Real API call to server
     const fd = new FormData();
     fd.append('latitude', userLocation.lat);
     fd.append('longitude', userLocation.lng);
+    fd.append('jenis', jenis);
+    if (alasan.trim()) fd.append('alasan', alasan);
+    if (buktiFile) fd.append('bukti', buktiFile);
 
     fetch('index.php?action=submit_presensi_sekolah', {
         method: 'POST',
@@ -372,11 +425,18 @@ function submitPresensiSekolah() {
     .then(res => res.json())
     .then(json => {
         if (json.success) {
-            showNotification('success', 'Presensi sekolah berhasil dicatat!');
-            addToPresensiHistory('Sekolah', 'Berhasil', new Date().toLocaleTimeString());
+            const jenisText = jenis === 'hadir' ? 'Hadir' : jenis === 'izin' ? 'Izin' : 'Sakit';
+            showNotification('success', 'Presensi sekolah berhasil dicatat! Status: ' + jenisText);
+            addToPresensiHistory('Sekolah', jenisText, new Date().toLocaleTimeString());
             // mark that current user has presenced for this session to prevent duplicate
             sessionAlreadyPresenced = true;
             document.getElementById('presensiSekolahBtn').disabled = true;
+            
+            // Reset form
+            document.getElementById('jenisPresensiSekolah').value = 'hadir';
+            document.getElementById('alasanSekolah').value = '';
+            document.getElementById('buktiSekolah').value = '';
+            document.getElementById('formAlasanSekolah').classList.add('hidden');
         } else {
             showNotification('error', json.message || 'Gagal mencatat presensi');
         }
@@ -410,6 +470,15 @@ function submitPresensiKelas() {
     const btn = document.getElementById('presensiKelasBtn');
     const originalText = btn.innerHTML;
     const kelasName = kelasSelect.options[kelasSelect.selectedIndex].text;
+    const jenis = document.getElementById('jenisPresensiKelas').value;
+    const alasan = document.getElementById('alasanKelas').value;
+    const buktiFile = document.getElementById('buktiKelas').files[0];
+    
+    // Validasi alasan jika jenis izin atau sakit
+    if ((jenis === 'izin' || jenis === 'sakit') && !alasan.trim()) {
+        showNotification('error', 'Alasan wajib diisi untuk jenis ' + jenis);
+        return;
+    }
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
@@ -419,6 +488,9 @@ function submitPresensiKelas() {
     formData.append('kelas_id', selectedKelas);
     formData.append('latitude', userLocation.lat);
     formData.append('longitude', userLocation.lng);
+    formData.append('jenis', jenis);
+    if (alasan.trim()) formData.append('alasan', alasan);
+    if (buktiFile) formData.append('bukti', buktiFile);
 
     fetch('index.php?action=submit_presensi_kelas', {
         method: 'POST',
@@ -427,8 +499,15 @@ function submitPresensiKelas() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showNotification('success', `Presensi kelas ${kelasName} berhasil!`);
-            addToPresensiHistory(kelasName, 'Berhasil', new Date().toLocaleTimeString());
+            const jenisText = jenis === 'hadir' ? 'Hadir' : jenis === 'izin' ? 'Izin' : 'Sakit';
+            showNotification('success', `Presensi kelas ${kelasName} berhasil! Status: ${jenisText}`);
+            addToPresensiHistory(kelasName, jenisText, new Date().toLocaleTimeString());
+            
+            // Reset form
+            document.getElementById('jenisPresensiKelas').value = 'hadir';
+            document.getElementById('alasanKelas').value = '';
+            document.getElementById('buktiKelas').value = '';
+            document.getElementById('formAlasanKelas').classList.add('hidden');
         } else {
             showNotification('error', data.message || 'Gagal mencatat presensi kelas');
         }
@@ -479,6 +558,26 @@ document.addEventListener('DOMContentLoaded', function() {
     initMap();
     getUserLocation();
     setInterval(updateTime, 1000);
+    
+    // Event listener untuk jenis presensi sekolah
+    document.getElementById('jenisPresensiSekolah').addEventListener('change', function() {
+        const formAlasan = document.getElementById('formAlasanSekolah');
+        if (this.value === 'izin' || this.value === 'sakit') {
+            formAlasan.classList.remove('hidden');
+        } else {
+            formAlasan.classList.add('hidden');
+        }
+    });
+    
+    // Event listener untuk jenis presensi kelas
+    document.getElementById('jenisPresensiKelas').addEventListener('change', function() {
+        const formAlasan = document.getElementById('formAlasanKelas');
+        if (this.value === 'izin' || this.value === 'sakit') {
+            formAlasan.classList.remove('hidden');
+        } else {
+            formAlasan.classList.add('hidden');
+        }
+    });
     // Poll server for active school presensi session (auto open/close + admin override)
     function fetchSchoolSessionStatus() {
         fetch('index.php?action=get_presensi_sekolah_status')
