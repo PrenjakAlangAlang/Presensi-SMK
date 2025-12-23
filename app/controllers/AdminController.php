@@ -277,6 +277,19 @@ class AdminController {
         }
         $tanggal = $_GET['tanggal'] ?? $default_tanggal;
         $filter_status = $_GET['status'] ?? null;
+        $sesi_id = $_GET['sesi_id'] ?? null;
+        
+        // Ambil semua sesi untuk dropdown dan filter berdasarkan tanggal
+        $all_sessions = $this->presensiSekolahSesiModel->getSessions();
+        $sessions = [];
+        if ($tanggal) {
+            foreach($all_sessions as $s) {
+                $session_date = date('Y-m-d', strtotime($s->waktu_buka));
+                if ($session_date == $tanggal) {
+                    $sessions[] = $s;
+                }
+            }
+        }
         
         // Pagination settings
         $limit = 10; // Items per page
@@ -285,11 +298,11 @@ class AdminController {
         $offset = ($page - 1) * $limit;
         
         // Get total count
-        $total_records = $this->presensiModel->countLaporanPresensiSekolah($tanggal, null, $filter_status);
+        $total_records = $this->presensiModel->countLaporanPresensiSekolah($tanggal, $sesi_id, $filter_status);
         $total_pages = ceil($total_records / $limit);
         
         // Ambil data presensi sekolah dan statistik
-        $presensi = $this->presensiModel->getLaporanPresensiSekolah($tanggal, null, $filter_status, $limit, $offset);
+        $presensi = $this->presensiModel->getLaporanPresensiSekolah($tanggal, $sesi_id, $filter_status, $limit, $offset);
         $statistik = $this->presensiModel->getStatistikPresensiSekolah($tanggal);
         
     require_once __DIR__ . '/../views/admin/laporan.php';

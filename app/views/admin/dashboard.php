@@ -101,7 +101,7 @@ require_once __DIR__ . '/../layouts/header.php';
 -->
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div class="grid grid-cols-1 lg:grid-cols-1 gap-8">
     <!-- Aktivitas Terbaru -->
      <!--
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -141,19 +141,19 @@ require_once __DIR__ . '/../layouts/header.php';
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
         <div class="grid grid-cols-2 gap-4">
-            <a href="index.php?action=admin_users" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 text-center transition-colors">
+            <a href="index.php?action=admin_users" class="p-8 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 text-center transition-colors">
                 <i class="fas fa-users text-blue-600 text-2xl mb-2"></i>
                 <p class="text-sm font-medium text-blue-800">Kelola User</p>
             </a>
-            <a href="index.php?action=admin_kelas" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 text-center transition-colors">
+            <a href="index.php?action=admin_kelas" class="p-8 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 text-center transition-colors">
                 <i class="fas fa-chalkboard text-green-600 text-2xl mb-2"></i>
                 <p class="text-sm font-medium text-green-800">Data Kelas</p>
             </a>
-            <a href="index.php?action=admin_lokasi" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 text-center transition-colors">
+            <a href="index.php?action=admin_lokasi" class="p-8 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 text-center transition-colors">
                 <i class="fas fa-map-marker-alt text-orange-600 text-2xl mb-2"></i>
                 <p class="text-sm font-medium text-orange-800">Lokasi</p>
             </a>
-            <a href="index.php?action=admin_laporan" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 text-center transition-colors">
+            <a href="index.php?action=admin_laporan" class="p-8 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 text-center transition-colors">
                 <i class="fas fa-chart-bar text-purple-600 text-2xl mb-2"></i>
                 <p class="text-sm font-medium text-purple-800">Laporan</p>
             </a>

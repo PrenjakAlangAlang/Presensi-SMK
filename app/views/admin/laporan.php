@@ -11,12 +11,12 @@ require_once __DIR__ . '/../layouts/header.php';
 <!-- Filter Section -->
 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
     <h3 class="text-lg font-semibold text-gray-800 mb-4">Filter Laporan</h3>
-    <form method="GET" action="<?php echo BASE_URL; ?>/public/index.php" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <form method="GET" action="<?php echo BASE_URL; ?>/public/index.php" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <input type="hidden" name="action" value="admin_laporan">
         
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
-            <select name="tanggal" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <select name="tanggal" id="filterTanggal" onchange="loadSesiByTanggal()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 <?php if (!empty($tanggal_list)): ?>
                     <?php foreach($tanggal_list as $tgl): ?>
                         <option value="<?php echo $tgl->tanggal; ?>" <?php echo (isset($_GET['tanggal']) && $_GET['tanggal'] == $tgl->tanggal) || (!isset($_GET['tanggal']) && $tgl->tanggal == $tanggal) ? 'selected' : ''; ?>>
@@ -25,6 +25,20 @@ require_once __DIR__ . '/../layouts/header.php';
                     <?php endforeach; ?>
                 <?php else: ?>
                     <option value="<?php echo date('Y-m-d'); ?>">Tidak ada data presensi</option>
+                <?php endif; ?>
+            </select>
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Sesi Presensi</label>
+            <select name="sesi_id" id="filterSesi" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Semua Sesi</option>
+                <?php if (!empty($sessions)): ?>
+                    <?php foreach($sessions as $s): ?>
+                        <option value="<?php echo $s->id; ?>" <?php echo (isset($_GET['sesi_id']) && $_GET['sesi_id'] == $s->id) ? 'selected' : ''; ?>>
+                            Sesi <?php echo date('H:i', strtotime($s->waktu_buka)); ?> - <?php echo $s->waktu_tutup ? date('H:i', strtotime($s->waktu_tutup)) : 'Buka'; ?>
+                        </option>
+                    <?php endforeach; ?>
                 <?php endif; ?>
             </select>
         </div>
@@ -311,7 +325,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <?php if ($total_pages > 1): ?>
                 <!-- Previous Button -->
                 <?php if ($page > 1): ?>
-                    <a href="?action=admin_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&page=<?php echo $page - 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+                    <a href="?action=admin_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&sesi_id=<?php echo urlencode($_GET['sesi_id'] ?? ''); ?>&page=<?php echo $page - 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
                         <i class="fas fa-chevron-left"></i>
                     </a>
                 <?php else: ?>
@@ -330,13 +344,13 @@ require_once __DIR__ . '/../layouts/header.php';
                     <?php if ($i == $page): ?>
                         <span class="px-3 py-2 bg-blue-600 text-white rounded-lg"><?php echo $i; ?></span>
                     <?php else: ?>
-                        <a href="?action=admin_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&page=<?php echo $i; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"><?php echo $i; ?></a>
+                        <a href="?action=admin_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&sesi_id=<?php echo urlencode($_GET['sesi_id'] ?? ''); ?>&page=<?php echo $i; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"><?php echo $i; ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
 
                 <!-- Next Button -->
                 <?php if ($page < $total_pages): ?>
-                    <a href="?action=admin_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&page=<?php echo $page + 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+                    <a href="?action=admin_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&sesi_id=<?php echo urlencode($_GET['sesi_id'] ?? ''); ?>&page=<?php echo $page + 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
                         <i class="fas fa-chevron-right"></i>
                     </a>
                 <?php else: ?>
@@ -403,6 +417,31 @@ require_once __DIR__ . '/../layouts/header.php';
 <script>
 // Data presensi dari PHP untuk modal detail
 const presensiData = <?php echo json_encode(isset($presensi) ? $presensi : []); ?>;
+const allSessions = <?php echo json_encode(isset($all_sessions) ? $all_sessions : []); ?>;
+
+function loadSesiByTanggal() {
+    const tanggal = document.getElementById('filterTanggal').value;
+    const sesiSelect = document.getElementById('filterSesi');
+    
+    // Clear existing options except first
+    sesiSelect.innerHTML = '<option value="">Semua Sesi</option>';
+    
+    // Filter sessions by selected date
+    const filteredSessions = allSessions.filter(s => {
+        const sessionDate = s.waktu_buka.split(' ')[0];
+        return sessionDate === tanggal;
+    });
+    
+    // Add filtered sessions to dropdown
+    filteredSessions.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.id;
+        const waktuBuka = new Date(s.waktu_buka).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'});
+        const waktuTutup = s.waktu_tutup ? new Date(s.waktu_tutup).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'}) : 'Buka';
+        option.textContent = `Sesi ${waktuBuka} - ${waktuTutup}`;
+        sesiSelect.appendChild(option);
+    });
+}
 
 function lihatDetailPresensi(siswaId) {
     // Cari data presensi berdasarkan siswa_id
