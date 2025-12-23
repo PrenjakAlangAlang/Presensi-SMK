@@ -71,7 +71,7 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-1 gap-8 mb-8">
     <!-- Kelas Saya -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div class="flex justify-between items-center mb-6">
@@ -103,13 +103,6 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
     </div>
 
-    <!-- Grafik Kehadiran -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6">Kehadiran Minggu Ini</h3>
-        <div class="h-64">
-            <canvas id="attendanceChart"></canvas>
-        </div>
-    </div>
 </div>
 
 <!-- Aktivitas Terbaru -->
@@ -127,78 +120,80 @@ require_once __DIR__ . '/../layouts/header.php';
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-                <tr>
-                    <td class="px-4 py-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-blue-600 text-sm"></i>
+                <?php if(!empty($aktivitasTerbaru)): ?>
+                    <?php foreach($aktivitasTerbaru as $aktivitas): ?>
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-blue-600 text-sm"></i>
+                                </div>
+                                <span class="font-medium text-gray-800"><?php echo htmlspecialchars($aktivitas->nama ?? 'Siswa'); ?></span>
                             </div>
-                            <span class="font-medium text-gray-800">Siswa A</span>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 text-gray-600">XI RPL 1</td>
-                    <td class="px-4 py-3 text-gray-600">07:45</td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Hadir
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-gray-600">Valid</td>
-                </tr>
-                <tr>
-                    <td class="px-4 py-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-blue-600 text-sm"></i>
-                            </div>
-                            <span class="font-medium text-gray-800">Siswa B</span>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 text-gray-600">XI RPL 1</td>
-                    <td class="px-4 py-3 text-gray-600">07:50</td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Hadir
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-gray-600">Valid</td>
-                </tr>
+                        </td>
+                        <td class="px-4 py-3 text-gray-600"><?php echo htmlspecialchars($aktivitas->nama_kelas ?? '-'); ?></td>
+                        <td class="px-4 py-3 text-gray-600">
+                            <?php echo $aktivitas->waktu ? date('H:i', strtotime($aktivitas->waktu)) : '-'; ?>
+                        </td>
+                        <td class="px-4 py-3">
+                            <?php 
+                            $jenis = $aktivitas->jenis ?? 'hadir';
+                            $badgeClass = 'bg-green-100 text-green-800';
+                            $label = 'Hadir';
+                            
+                            if($jenis == 'izin') {
+                                $badgeClass = 'bg-yellow-100 text-yellow-800';
+                                $label = 'Izin';
+                            } elseif($jenis == 'sakit') {
+                                $badgeClass = 'bg-orange-100 text-orange-800';
+                                $label = 'Sakit';
+                            } elseif($jenis == 'alpha') {
+                                $badgeClass = 'bg-gray-100 text-gray-800';
+                                $label = 'Alpha';
+                            }
+                            ?>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium <?php echo $badgeClass; ?>">
+                                <?php echo $label; ?>
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-gray-600">
+                            <?php 
+                            // Jika izin atau sakit, tidak ada validasi lokasi
+                            if(isset($aktivitas->jenis) && ($aktivitas->jenis == 'izin' || $aktivitas->jenis == 'sakit')): 
+                            ?>
+                                <span class="text-gray-400">-</span>
+                            <?php elseif($aktivitas->status == 'valid'): ?>
+                                <span class="inline-flex items-center text-green-600 text-xs">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Valid
+                                </span>
+                            <?php elseif($aktivitas->status == 'invalid'): ?>
+                                <span class="inline-flex items-center text-red-600 text-xs">
+                                    <i class="fas fa-times-circle mr-1"></i>
+                                    Invalid
+                                </span>
+                            <?php else: ?>
+                                <span class="text-gray-400">-</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                            <i class="fas fa-inbox text-3xl mb-2 text-gray-300"></i>
+                            <p>Belum ada aktivitas presensi hari ini</p>
+                        </td>
+                    </tr>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
-// Grafik Kehadiran untuk Guru
-const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
-const attendanceChart = new Chart(attendanceCtx, {
-    type: 'bar',
-    data: {
-        labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'],
-        datasets: [{
-            label: 'Presentase Kehadiran',
-            data: [85, 88, 82, 90, 78],
-            backgroundColor: '#3b82f6',
-            borderColor: '#3b82f6',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 100,
-                ticks: {
-                    callback: function(value) {
-                        return value + '%';
-                    }
-                }
-            }
-        }
-    }
-});
+
+
 </script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

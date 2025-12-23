@@ -33,6 +33,24 @@ class GuruController {
             $totalSiswa += count($siswa);
         }
         
+        // Ambil presensi terbaru untuk semua kelas yang diajar guru
+        $aktivitasTerbaru = [];
+        foreach($kelasSaya as $kelas) {
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas->id, date('Y-m-d'));
+            foreach($presensi as $p) {
+                if($p->status) { // Hanya yang sudah presensi
+                    $p->nama_kelas = $kelas->nama_kelas;
+                    $aktivitasTerbaru[] = $p;
+                }
+            }
+        }
+        
+        // Urutkan berdasarkan waktu terbaru dan ambil 10 teratas
+        usort($aktivitasTerbaru, function($a, $b) {
+            return strtotime($b->waktu ?? '1970-01-01') - strtotime($a->waktu ?? '1970-01-01');
+        });
+        $aktivitasTerbaru = array_slice($aktivitasTerbaru, 0, 10);
+        
     require_once __DIR__ . '/../views/guru/dashboard.php';
     }
     
