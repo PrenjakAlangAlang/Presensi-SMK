@@ -461,5 +461,92 @@ class PresensiModel {
         $this->db->bind(':waktu', $waktu_insert);
         return $this->db->execute();
     }
+
+    /**
+     * Update presensi kelas status
+     * Used by teachers to modify student attendance status
+     */
+    public function updatePresensiKelas($siswa_id, $kelas_id, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
+        // Build WHERE clause based on whether sesi_id is provided
+        if ($sesi_id) {
+            // Update specific session
+            $sql = 'UPDATE presensi_kelas 
+                    SET jenis = :jenis, alasan = :alasan, foto_bukti = :foto_bukti, status = :status,
+                        latitude = :latitude, longitude = :longitude, jarak = :jarak
+                    WHERE user_id = :user_id AND kelas_id = :kelas_id AND presensi_sesi_id = :sesi_id';
+        } else {
+            // Update today's attendance
+            $sql = 'UPDATE presensi_kelas 
+                    SET jenis = :jenis, alasan = :alasan, foto_bukti = :foto_bukti, status = :status,
+                        latitude = :latitude, longitude = :longitude, jarak = :jarak
+                    WHERE user_id = :user_id AND kelas_id = :kelas_id AND DATE(waktu) = CURDATE()';
+        }
+        
+        $this->db->query($sql);
+        $this->db->bind(':user_id', $siswa_id);
+        $this->db->bind(':kelas_id', $kelas_id);
+        $this->db->bind(':jenis', $jenis);
+        $this->db->bind(':alasan', $alasan);
+        $this->db->bind(':foto_bukti', $foto_bukti);
+        
+        // Set status and coordinates based on jenis
+        if ($jenis === 'izin' || $jenis === 'sakit') {
+            $this->db->bind(':status', 'valid');
+            $this->db->bind(':latitude', 0);
+            $this->db->bind(':longitude', 0);
+            $this->db->bind(':jarak', 0);
+        } else {
+            $this->db->bind(':status', 'valid');
+            $this->db->bind(':latitude', 0);
+            $this->db->bind(':longitude', 0);
+            $this->db->bind(':jarak', 0);
+        }
+        
+        if ($sesi_id) {
+            $this->db->bind(':sesi_id', $sesi_id);
+        }
+        
+        return $this->db->execute();
+    }
+
+    /**
+     * Create presensi kelas record if it doesn't exist
+     * Used when teacher creates attendance record for student who hasn't checked in
+     */
+    public function createOrUpdatePresensiKelas($siswa_id, $kelas_id, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
+        // Check if record exists
+        if ($sesi_id) {
+            $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND kelas_id = :kelas_id AND presensi_sesi_id = :sesi_id LIMIT 1');
+            $this->db->bind(':user_id', $siswa_id);
+            $this->db->bind(':kelas_id', $kelas_id);
+            $this->db->bind(':sesi_id', $sesi_id);
+        } else {
+            $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND kelas_id = :kelas_id AND DATE(waktu) = CURDATE() LIMIT 1');
+            $this->db->bind(':user_id', $siswa_id);
+            $this->db->bind(':kelas_id', $kelas_id);
+        }
+        
+        $exists = $this->db->single();
+        
+        if ($exists) {
+            // Update existing record
+            return $this->updatePresensiKelas($siswa_id, $kelas_id, $jenis, $alasan, $foto_bukti, $sesi_id);
+        } else {
+            // Create new record
+            $data = [
+                'presensi_sesi_id' => $sesi_id,
+                'user_id' => $siswa_id,
+                'kelas_id' => $kelas_id,
+                'latitude' => 0,
+                'longitude' => 0,
+                'jarak' => 0,
+                'status' => 'valid',
+                'jenis' => $jenis,
+                'alasan' => $alasan,
+                'foto_bukti' => $foto_bukti
+            ];
+            return $this->recordPresensiKelas($data);
+        }
+    }
 }
 ?>

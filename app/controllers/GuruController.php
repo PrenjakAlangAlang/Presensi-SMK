@@ -230,5 +230,60 @@ class GuruController {
         // Generate PDF content here
         exit();
     }
+    
+    public function ubahStatusPresensi() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $siswa_id = $_POST['siswa_id'] ?? null;
+            $kelas_id = $_POST['kelas_id'] ?? null;
+            $jenis = $_POST['jenis'] ?? 'hadir';
+            $alasan = $_POST['alasan'] ?? null;
+            $foto_bukti = $_POST['foto_bukti'] ?? null;
+            $sesi_id = $_POST['sesi_id'] ?? null;
+            $guru_id = $_SESSION['user_id'];
+            
+            // Validasi input
+            if (!$siswa_id || !$kelas_id) {
+                echo json_encode(['success' => false, 'message' => 'Data tidak lengkap']);
+                return;
+            }
+            
+            // Validasi guru mengajar kelas ini
+            $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
+            $isMyClass = false;
+            foreach($kelasSaya as $kelas) {
+                if ($kelas->id == $kelas_id) {
+                    $isMyClass = true;
+                    break;
+                }
+            }
+            
+            if (!$isMyClass) {
+                echo json_encode(['success' => false, 'message' => 'Anda tidak memiliki akses ke kelas ini']);
+                return;
+            }
+            
+            // Validasi alasan untuk izin/sakit
+            if (($jenis === 'izin' || $jenis === 'sakit') && empty($alasan)) {
+                echo json_encode(['success' => false, 'message' => 'Alasan harus diisi untuk status izin/sakit']);
+                return;
+            }
+            
+            // Update atau buat presensi
+            $result = $this->presensiModel->createOrUpdatePresensiKelas(
+                $siswa_id,
+                $kelas_id,
+                $jenis,
+                $alasan,
+                $foto_bukti,
+                $sesi_id
+            );
+            
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Status presensi berhasil diubah']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Gagal mengubah status presensi']);
+            }
+        }
+    }
 }
 ?>

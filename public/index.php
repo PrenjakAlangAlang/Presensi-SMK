@@ -363,6 +363,12 @@ switch($action) {
         $guru = new GuruController();
         $guru->exportLaporan();
         break;
+        
+    case 'guru_ubah_status_presensi':
+        require_once '../app/controllers/GuruController.php';
+        $guru = new GuruController();
+        $guru->ubahStatusPresensi();
+        break;
 
     // Orang Tua Routes
     case 'orangtua_dashboard':
