@@ -440,5 +440,44 @@ class AdminKesiswaanController {
         <?php
         exit;
     }
+
+    public function ubahStatusPresensiSekolah() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $siswa_id = $_POST['siswa_id'] ?? null;
+            $tanggal = $_POST['tanggal'] ?? date('Y-m-d');
+            $jenis = $_POST['jenis'] ?? 'hadir';
+            $alasan = $_POST['alasan'] ?? null;
+            $foto_bukti = $_POST['foto_bukti'] ?? null;
+            $sesi_id = $_POST['sesi_id'] ?? null;
+            
+            // Validasi input
+            if (!$siswa_id) {
+                echo json_encode(['success' => false, 'message' => 'Data tidak lengkap']);
+                return;
+            }
+            
+            // Validasi alasan untuk izin/sakit
+            if (($jenis === 'izin' || $jenis === 'sakit') && empty($alasan)) {
+                echo json_encode(['success' => false, 'message' => 'Alasan harus diisi untuk status izin/sakit']);
+                return;
+            }
+            
+            // Update atau buat presensi
+            $result = $this->presensiModel->createOrUpdatePresensiSekolah(
+                $siswa_id,
+                $tanggal,
+                $jenis,
+                $alasan,
+                $foto_bukti,
+                $sesi_id
+            );
+            
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Status presensi sekolah berhasil diubah']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Gagal mengubah status presensi sekolah']);
+            }
+        }
+    }
 }
 ?>

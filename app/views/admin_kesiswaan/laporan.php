@@ -223,12 +223,13 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Keterangan</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Aksi</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Edit</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
                 <?php if (empty($presensi)): ?>
                 <tr>
-                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>Tidak ada data presensi untuk tanggal yang dipilih</p>
                     </td>
@@ -308,6 +309,17 @@ require_once __DIR__ . '/../layouts/header.php';
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
+                        <td class="px-6 py-4">
+                            <?php 
+                            $jenis = isset($p->jenis) ? $p->jenis : 'hadir';
+                            $alasan = isset($p->alasan) ? $p->alasan : '';
+                            $foto_bukti = isset($p->foto_bukti) ? $p->foto_bukti : '';
+                            ?>
+                            <button onclick="editPresensiSekolah('<?php echo $p->siswa_id; ?>', '<?php echo htmlspecialchars($p->nama ?? '', ENT_QUOTES); ?>', '<?php echo $jenis; ?>', '<?php echo htmlspecialchars($alasan, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($foto_bukti, ENT_QUOTES); ?>')" 
+                                    class="text-green-600 hover:text-green-800 transition-colors">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -375,6 +387,106 @@ require_once __DIR__ . '/../layouts/header.php';
 // Data presensi dari PHP untuk modal detail
 const presensiData = <?php echo json_encode(isset($presensi) ? $presensi : []); ?>;
 const allSessions = <?php echo json_encode(isset($all_sessions) ? $all_sessions : []); ?>;
+
+function editPresensiSekolah(siswa_id, nama, jenis, alasan, foto_bukti) {
+    document.getElementById('edit_siswa_id').value = siswa_id;
+    document.getElementById('edit_nama_siswa').textContent = nama;
+    document.getElementById('edit_jenis').value = jenis || 'hadir';
+    document.getElementById('edit_alasan').value = alasan || '';
+    document.getElementById('edit_foto_bukti').value = foto_bukti || '';
+    
+    toggleEditKeteranganSekolah();
+    document.getElementById('modalEditPresensiSekolah').classList.remove('hidden');
+}
+
+function closeModalEdit() {
+    document.getElementById('modalEditPresensiSekolah').classList.add('hidden');
+}
+
+function toggleEditKeteranganSekolah() {
+    const jenis = document.getElementById('edit_jenis').value;
+    const keteranganSection = document.getElementById('editKeteranganSekolahSection');
+    
+    if (jenis === 'izin' || jenis === 'sakit') {
+        keteranganSection.classList.remove('hidden');
+    } else {
+        keteranganSection.classList.add('hidden');
+    }
+}
+
+function submitEditPresensiSekolah(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const jenis = formData.get('jenis');
+    const alasan = formData.get('alasan');
+    
+    // Validasi: jika izin/sakit, alasan harus diisi
+    if ((jenis === 'izin' || jenis === 'sakit') && !alasan) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Perhatian',
+            text: 'Alasan harus diisi untuk status izin/sakit'
+        });
+        return false;
+    }
+    
+    // Confirm before submit
+    Swal.fire({
+        title: 'Konfirmasi',
+        text: 'Apakah Anda yakin ingin mengubah status presensi siswa ini?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Ubah',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Menyimpan...',
+                text: 'Mohon tunggu',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            fetch('index.php?action=admin_kesiswaan_ubah_status_presensi_sekolah', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: data.message || 'Status presensi berhasil diubah!'
+                    }).then(() => {
+                        closeModalEdit();
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: data.message || 'Gagal mengubah status presensi'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Terjadi kesalahan saat mengubah status'
+                });
+            });
+        }
+    });
+    
+    return false;
+}
 
 function loadSesiByTanggal() {
     const tanggal = document.getElementById('filterTanggal').value;

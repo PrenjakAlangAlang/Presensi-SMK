@@ -220,12 +220,13 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Keterangan</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Aksi</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Edit</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
                 <?php if (empty($presensi)): ?>
                 <tr>
-                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>Tidak ada data presensi untuk tanggal yang dipilih</p>
                     </td>
@@ -305,6 +306,17 @@ require_once __DIR__ . '/../layouts/header.php';
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
+                        <td class="px-6 py-4">
+                            <?php 
+                            $jenis = isset($p->jenis) ? $p->jenis : 'hadir';
+                            $alasan = isset($p->alasan) ? $p->alasan : '';
+                            $foto_bukti = isset($p->foto_bukti) ? $p->foto_bukti : '';
+                            ?>
+                            <button onclick="editPresensiSekolah('<?php echo $p->siswa_id; ?>', '<?php echo htmlspecialchars($p->nama ?? '', ENT_QUOTES); ?>', '<?php echo $jenis; ?>', '<?php echo htmlspecialchars($alasan, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($foto_bukti, ENT_QUOTES); ?>')" 
+                                    class="text-green-600 hover:text-green-800 transition-colors">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -365,6 +377,68 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 </div>
 
+<!-- Modal Edit Presensi Sekolah -->
+<div id="modalEditPresensiSekolah" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Ubah Status Presensi Sekolah</h3>
+            <button onclick="closeModalEdit()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <form id="formEditPresensiSekolah" onsubmit="return submitEditPresensiSekolah(event)">
+            <input type="hidden" id="edit_siswa_id" name="siswa_id">
+            <input type="hidden" id="edit_tanggal" name="tanggal" value="<?php echo $tanggal; ?>">
+            <input type="hidden" id="edit_sesi_id" name="sesi_id" value="<?php echo $_GET['sesi_id'] ?? ''; ?>">
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Nama Siswa
+                </label>
+                <p id="edit_nama_siswa" class="text-gray-600"></p>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_jenis">
+                    Status Presensi
+                </label>
+                <select id="edit_jenis" name="jenis" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" onchange="toggleEditKeteranganSekolah()">
+                    <option value="hadir">Hadir</option>
+                    <option value="izin">Izin</option>
+                    <option value="sakit">Sakit</option>
+                    <option value="alpha">Alpha</option>
+                </select>
+            </div>
+            
+            <div id="editKeteranganSekolahSection" class="hidden">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_alasan">
+                        Alasan <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="edit_alasan" name="alasan" rows="3" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan alasan..."></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_foto_bukti">
+                        Foto Bukti (URL)
+                    </label>
+                    <input type="text" id="edit_foto_bukti" name="foto_bukti" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan URL foto bukti...">
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeModalEdit()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Batal
+                </button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Modal Detail Presensi -->
 <div id="detailPresensiModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4">
@@ -418,6 +492,70 @@ require_once __DIR__ . '/../layouts/header.php';
 // Data presensi dari PHP untuk modal detail
 const presensiData = <?php echo json_encode(isset($presensi) ? $presensi : []); ?>;
 const allSessions = <?php echo json_encode(isset($all_sessions) ? $all_sessions : []); ?>;
+
+function editPresensiSekolah(siswa_id, nama, jenis, alasan, foto_bukti) {
+    document.getElementById('edit_siswa_id').value = siswa_id;
+    document.getElementById('edit_nama_siswa').textContent = nama;
+    document.getElementById('edit_jenis').value = jenis || 'hadir';
+    document.getElementById('edit_alasan').value = alasan || '';
+    document.getElementById('edit_foto_bukti').value = foto_bukti || '';
+    
+    toggleEditKeteranganSekolah();
+    document.getElementById('modalEditPresensiSekolah').classList.remove('hidden');
+}
+
+function closeModalEdit() {
+    document.getElementById('modalEditPresensiSekolah').classList.add('hidden');
+}
+
+function toggleEditKeteranganSekolah() {
+    const jenis = document.getElementById('edit_jenis').value;
+    const keteranganSection = document.getElementById('editKeteranganSekolahSection');
+    
+    if (jenis === 'izin' || jenis === 'sakit') {
+        keteranganSection.classList.remove('hidden');
+    } else {
+        keteranganSection.classList.add('hidden');
+    }
+}
+
+function submitEditPresensiSekolah(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const jenis = formData.get('jenis');
+    const alasan = formData.get('alasan');
+    
+    // Validasi: jika izin/sakit, alasan harus diisi
+    if ((jenis === 'izin' || jenis === 'sakit') && !alasan) {
+        alert('Alasan harus diisi untuk status izin/sakit');
+        return false;
+    }
+    
+    // Show loading
+    if (confirm('Apakah Anda yakin ingin mengubah status presensi siswa ini?')) {
+        fetch('index.php?action=admin_ubah_status_presensi_sekolah', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Status presensi berhasil diubah!');
+                closeModalEdit();
+                location.reload();
+            } else {
+                alert(data.message || 'Gagal mengubah status presensi');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengubah status');
+        });
+    }
+    
+    return false;
+}
 
 function loadSesiByTanggal() {
     const tanggal = document.getElementById('filterTanggal').value;

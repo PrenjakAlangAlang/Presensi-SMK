@@ -363,6 +363,24 @@ switch($action) {
         $guru = new GuruController();
         $guru->exportLaporan();
         break;
+        
+    case 'guru_ubah_status_presensi':
+        require_once '../app/controllers/GuruController.php';
+        $guru = new GuruController();
+        $guru->ubahStatusPresensi();
+        break;
+        
+    case 'admin_ubah_status_presensi_sekolah':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->ubahStatusPresensiSekolah();
+        break;
+        
+    case 'admin_kesiswaan_ubah_status_presensi_sekolah':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->ubahStatusPresensiSekolah();
+        break;
 
     // Orang Tua Routes
     case 'orangtua_dashboard':
