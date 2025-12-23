@@ -18,13 +18,13 @@ if ($kelas_id) {
 }
 ?>
 
-<div class="mb-6">
+<div class="mb-6 no-print">
     <h2 class="text-2xl font-bold text-gray-800">Laporan Kelas</h2>
     <p class="text-gray-600">Monitoring dan analisis kehadiran siswa per kelas</p>
 </div>
 
 <!-- Pilih Kelas -->
-<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6 no-print">
     <h3 class="text-lg font-semibold text-gray-800 mb-4">Pilih Kelas</h3>
     <div class="flex flex-wrap gap-3">
         <?php foreach($kelasSaya as $kelas): ?>
@@ -38,7 +38,7 @@ if ($kelas_id) {
 
 <?php if($selected_kelas): ?>
 <!-- Sessions selector -->
-<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6 no-print">
     <h3 class="text-lg font-semibold text-gray-800 mb-4">Sesi Presensi</h3>
     <div class="flex flex-wrap gap-3">
         <?php $sessions = $laporan[$selected_kelas->id]['sessions'] ?? []; ?>
@@ -61,7 +61,7 @@ if ($kelas_id) {
 
 <!-- Laporan kemajuan per sesi -->
 <?php $laporan_kemajuan = $laporan[$selected_kelas->id]['laporan_kemajuan'] ?? []; ?>
-<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6 no-print">
     <h3 class="text-lg font-semibold text-gray-800 mb-4">Laporan Kemajuan (Sesi)</h3>
     <?php if(count($laporan_kemajuan) > 0): ?>
         <?php foreach($laporan_kemajuan as $l): ?>
@@ -75,12 +75,51 @@ if ($kelas_id) {
     <?php endif; ?>
 </div>
 <!-- Statistik Kelas -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<?php 
+// Hitung statistik berdasarkan data presensi
+$hadir = 0;
+$izin = 0;
+$sakit = 0;
+$alpha = 0;
+$totalSiswa = count($selected_kelas->siswa ?? []);
+
+if(isset($laporan[$selected_kelas->id]['presensi'])) {
+    foreach($laporan[$selected_kelas->id]['presensi'] as $presensi) {
+        if($presensi->status == 'valid') {
+            // Cek jenis presensi
+            if(isset($presensi->jenis)) {
+                if($presensi->jenis == 'hadir') {
+                    $hadir++;
+                } elseif($presensi->jenis == 'izin') {
+                    $izin++;
+                } elseif($presensi->jenis == 'sakit') {
+                    $sakit++;
+                } elseif($presensi->jenis == 'alpha') {
+                    $alpha++;
+                }
+            } else {
+                // Default ke hadir jika tidak ada jenis
+                $hadir++;
+            }
+        } elseif($presensi->status == null) {
+            // Belum presensi = alpha
+            $alpha++;
+        }
+    }
+}
+// Hitung yang belum presensi sama sekali
+$belumPresensi = $totalSiswa - ($hadir + $izin + $sakit + $alpha);
+$alpha += $belumPresensi; // Tambahkan ke alpha
+
+$presentase = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
+?>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 no-print">
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
         <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <i class="fas fa-users text-green-600 text-xl"></i>
         </div>
-    <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo isset($selected_kelas->total_siswa) ? $selected_kelas->total_siswa : count($selected_kelas->siswa ?? []); ?></h3>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $totalSiswa; ?></h3>
         <p class="text-gray-600 text-sm">Total Siswa</p>
     </div>
 
@@ -88,71 +127,63 @@ if ($kelas_id) {
         <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <i class="fas fa-user-check text-blue-600 text-xl"></i>
         </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1">
-            <?php 
-            $hadir = 0;
-            if(isset($laporan[$selected_kelas->id]['presensi'])) {
-                foreach($laporan[$selected_kelas->id]['presensi'] as $presensi) {
-                    if($presensi->status == 'valid') $hadir++;
-                }
-            }
-            echo $hadir;
-            ?>
-        </h3>
-        <p class="text-gray-600 text-sm">Hadir Hari Ini</p>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $hadir; ?></h3>
+        <p class="text-gray-600 text-sm">Hadir</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
         <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <i class="fas fa-user-clock text-yellow-600 text-xl"></i>
+            <i class="fas fa-file-alt text-yellow-600 text-xl"></i>
         </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1">
-            <?php 
-            $tidakHadir = count($selected_kelas->siswa ?? []) - $hadir;
-            echo $tidakHadir > 0 ? $tidakHadir : 0;
-            ?>
-        </h3>
-        <p class="text-gray-600 text-sm">Tidak Hadir</p>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $izin; ?></h3>
+        <p class="text-gray-600 text-sm">Izin</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
+        <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-heartbeat text-orange-600 text-xl"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $sakit; ?></h3>
+        <p class="text-gray-600 text-sm">Sakit</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
+        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-user-times text-red-600 text-xl"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $alpha; ?></h3>
+        <p class="text-gray-600 text-sm">Alpha</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
         <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <i class="fas fa-percentage text-purple-600 text-xl"></i>
         </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1">
-            <?php 
-            $totalSiswa = count($selected_kelas->siswa ?? []);
-            $presentase = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
-            echo $presentase;
-            ?>%
-        </h3>
-        <p class="text-gray-600 text-sm">Presentase</p>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $presentase; ?>%</h3>
+        <p class="text-gray-600 text-sm">Presentase Kehadiran</p>
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-    <!-- Grafik Kehadiran -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6">Kehadiran 7 Hari Terakhir</h3>
-        <div class="h-64">
-            <canvas id="weeklyAttendanceChart"></canvas>
-        </div>
-    </div>
 
-    <!-- Status Kehadiran -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6">Status Kehadiran Hari Ini</h3>
-        <div class="h-64">
-            <canvas id="attendanceStatusChart"></canvas>
-        </div>
+
+<!-- Header Cetak (hanya muncul saat print) -->
+<div class="print-only" style="display: none;">
+    <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Laporan Presensi Kelas</h1>
+        <h2 class="text-xl font-semibold text-gray-700 mt-2"><?php echo htmlspecialchars($selected_kelas->nama_kelas ?? ''); ?></h2>
+        <p class="text-gray-600 mt-2">Tanggal Cetak: <?php echo date('d F Y, H:i'); ?></p>
+        <?php if(isset($laporan[$selected_kelas->id]['selected_sesi'])): ?>
+            <p class="text-gray-600">Sesi: <?php echo date('d-m-Y H:i', strtotime($laporan[$selected_kelas->id]['selected_sesi']->waktu_buka)); ?></p>
+        <?php endif; ?>
     </div>
+    <hr class="my-4">
 </div>
 
 <!-- Daftar Presensi -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
     <div class="p-6 border-b border-gray-200 flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-800">Daftar Presensi - <?php echo htmlspecialchars($selected_kelas->nama_kelas); ?></h3>
-        <div class="flex space-x-2">
+        <div class="flex space-x-2 no-print">
             <button onclick="cetakLaporan()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
                 <i class="fas fa-print"></i>
                 <span>Cetak Laporan</span>
@@ -211,7 +242,12 @@ if ($kelas_id) {
                             <?php echo $presensi->waktu ? date('H:i', strtotime($presensi->waktu)) : '-'; ?>
                         </td>
                         <td class="px-6 py-4">
-                            <?php if($presensi->status == 'valid'): ?>
+                            <?php 
+                            // Jika izin atau sakit, tidak ada validasi lokasi GPS
+                            if (isset($presensi->jenis) && ($presensi->jenis == 'izin' || $presensi->jenis == 'sakit')): 
+                            ?>
+                                <span class="text-gray-400">-</span>
+                            <?php elseif($presensi->status == 'valid'): ?>
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     <i class="fas fa-check-circle mr-1"></i>
                                     Valid
@@ -225,22 +261,45 @@ if ($kelas_id) {
                                 <span class="text-gray-400">-</span>
                             <?php endif; ?>
                         </td>
-                        <td class="px-6 py-4 text-gray-600">
-                            <?php 
-                            if ($presensi->jenis) {
-                                $keteranganMap = [
-                                    'hadir' => 'Presensi Normal',
-                                    'izin' => 'Izin',
-                                    'sakit' => 'Sakit',
-                                    'acara_keluarga' => 'Acara Keluarga',
-                                    'lainnya' => 'Lainnya',
-                                    'alpha' => 'Alpha'
-                                ];
-                                echo $keteranganMap[$presensi->jenis] ?? ucfirst($presensi->jenis);
-                            } else {
-                                echo '-';
-                            }
-                            ?>
+                        <td class="px-6 py-4">
+                            <?php if (isset($presensi->jenis) && ($presensi->jenis == 'izin' || $presensi->jenis == 'sakit') && (isset($presensi->alasan) || isset($presensi->foto_bukti))): ?>
+                                <div class="space-y-1">
+                                    <?php if (isset($presensi->alasan) && $presensi->alasan): ?>
+                                        <div class="text-sm text-gray-700">
+                                            <span class="font-medium">Alasan:</span><br>
+                                            <span class="text-gray-600"><?php echo htmlspecialchars($presensi->alasan); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (isset($presensi->foto_bukti) && $presensi->foto_bukti): ?>
+                                        <div>
+                                            <a href="<?php echo htmlspecialchars($presensi->foto_bukti); ?>" 
+                                               target="_blank" 
+                                               class="inline-flex items-center text-blue-600 hover:text-blue-800 text-xs">
+                                                <i class="fas fa-paperclip mr-1"></i>
+                                                Lihat Bukti
+                                            </a>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php else: ?>
+                                <span class="text-gray-400 text-sm">
+                                    <?php 
+                                    if ($presensi->jenis) {
+                                        $keteranganMap = [
+                                            'hadir' => 'Presensi Normal',
+                                            'izin' => 'Izin',
+                                            'sakit' => 'Sakit',
+                                            'acara_keluarga' => 'Acara Keluarga',
+                                            'lainnya' => 'Lainnya',
+                                            'alpha' => 'Alpha'
+                                        ];
+                                        echo $keteranganMap[$presensi->jenis] ?? ucfirst($presensi->jenis);
+                                    } else {
+                                        echo '-';
+                                    }
+                                    ?>
+                                </span>
+                            <?php endif; ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -267,65 +326,7 @@ if ($kelas_id) {
 <?php endif; ?>
 
 <script>
-// Grafik Kehadiran Mingguan
-const weeklyCtx = document.getElementById('weeklyAttendanceChart').getContext('2d');
-const weeklyChart = new Chart(weeklyCtx, {
-    type: 'bar',
-    data: {
-        labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-        datasets: [{
-            label: 'Presentase Kehadiran',
-            data: [85, 88, 82, 90, 78, 0, 0],
-            backgroundColor: '#3b82f6',
-            borderColor: '#3b82f6',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 100,
-                ticks: {
-                    callback: function(value) {
-                        return value + '%';
-                    }
-                }
-            }
-        }
-    }
-});
 
-// Grafik Status Kehadiran
-const statusCtx = document.getElementById('attendanceStatusChart').getContext('2d');
-const statusChart = new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Hadir', 'Izin', 'Sakit', 'Alpha'],
-        datasets: [{
-            data: [<?php echo $hadir; ?>, 2, 1, <?php echo $tidakHadir - 3 > 0 ? $tidakHadir - 3 : 0; ?>],
-            backgroundColor: [
-                '#10b981',
-                '#f59e0b',
-                '#ef4444',
-                '#6b7280'
-            ],
-            borderWidth: 2,
-            borderColor: '#fff'
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
-});
 
 function cetakLaporan() {
     showNotification('info', 'Mempersiapkan laporan untuk dicetak...');
@@ -363,9 +364,14 @@ function showNotification(type, message) {
     .no-print {
         display: none !important;
     }
+    
+    .print-only {
+        display: block !important;
+    }
 
     body {
         background: white !important;
+        padding: 20px;
     }
 
     .bg-gray-50 {
@@ -378,6 +384,57 @@ function showNotification(type, message) {
 
     .border {
         border: 1px solid #000 !important;
+    }
+    
+    .rounded-xl, .rounded-lg {
+        border-radius: 0 !important;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    thead {
+        background-color: #f3f4f6 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    th, td {
+        border: 1px solid #000 !important;
+        padding: 8px !important;
+        text-align: left;
+    }
+    
+    /* Cetak badge warna */
+    .bg-green-100 {
+        background-color: #d1fae5 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .bg-yellow-100 {
+        background-color: #fef3c7 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .bg-red-100 {
+        background-color: #fee2e2 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .bg-gray-100 {
+        background-color: #f3f4f6 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* Halaman baru untuk tabel panjang */
+    tr {
+        page-break-inside: avoid;
     }
 }
 </style>

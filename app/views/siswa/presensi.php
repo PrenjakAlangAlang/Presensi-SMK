@@ -642,11 +642,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('jenisPresensiSekolah').addEventListener('change', function() {
         const formAlasan = document.getElementById('formAlasanSekolah');
         const presensiSekolahBtn = document.getElementById('presensiSekolahBtn');
+        const infoGPSSekolah = document.getElementById('infoGPSSekolah');
         
         if (this.value === 'izin' || this.value === 'sakit') {
             formAlasan.classList.remove('hidden');
             // Ubah teks tombol menjadi "Submit"
             presensiSekolahBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Submit</span>';
+            // Ubah info GPS
+            infoGPSSekolah.textContent = 'Untuk izin/sakit, tidak perlu validasi GPS';
             // Untuk izin/sakit, tidak perlu validasi lokasi - enable button jika ada sesi aktif
             if (sessionActive && !sessionAlreadyPresenced) {
                 presensiSekolahBtn.disabled = false;
@@ -655,6 +658,8 @@ document.addEventListener('DOMContentLoaded', function() {
             formAlasan.classList.add('hidden');
             // Kembalikan teks tombol ke "Presensi Sekolah"
             presensiSekolahBtn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
+            // Kembalikan info GPS
+            infoGPSSekolah.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius 100m dari sekolah';
             // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
             if (sessionActive && !sessionAlreadyPresenced && userLocation) {
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
@@ -671,25 +676,36 @@ document.addEventListener('DOMContentLoaded', function() {
         const presensiKelasBtn = document.getElementById('presensiKelasBtn');
         const kelasSelect = document.getElementById('kelasSelect');
         const selectedKelas = kelasSelect.value;
+        const infoGPSKelas = document.getElementById('infoGPSKelas');
         
         if (this.value === 'izin' || this.value === 'sakit') {
             formAlasan.classList.remove('hidden');
             // Ubah teks tombol menjadi "Submit"
             presensiKelasBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Submit</span>';
+            // Ubah info GPS
+            infoGPSKelas.textContent = 'Untuk izin/sakit, tidak perlu validasi GPS';
             // Untuk izin/sakit, tidak perlu validasi lokasi - enable button jika kelas dipilih dan ada sesi
             if (selectedKelas && kelasSesi[selectedKelas]) {
                 presensiKelasBtn.disabled = false;
+                document.getElementById('statusKelas').textContent = 'Siap submit ' + this.value;
+                document.getElementById('statusKelas').className = 'text-green-600';
             }
         } else {
             formAlasan.classList.add('hidden');
             // Kembalikan teks tombol ke "Presensi Kelas"
             presensiKelasBtn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
+            // Kembalikan info GPS
+            infoGPSKelas.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius 100m dari sekolah';
             // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
             if (selectedKelas && kelasSesi[selectedKelas] && userLocation) {
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
                 presensiKelasBtn.disabled = distance > 100;
+                document.getElementById('statusKelas').textContent = distance <= 100 ? 'Siap presensi' : 'Di luar radius';
+                document.getElementById('statusKelas').className = distance <= 100 ? 'text-green-600' : 'text-red-600';
             } else {
                 presensiKelasBtn.disabled = true;
+                document.getElementById('statusKelas').textContent = userLocation ? 'Siap presensi' : 'Menunggu lokasi';
+                document.getElementById('statusKelas').className = userLocation ? 'text-yellow-600' : 'text-yellow-600';
             }
         }
     });
@@ -724,6 +740,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('kelasSelect').addEventListener('change', function() {
         const selected = this.value;
         const presensiKelasBtn = document.getElementById('presensiKelasBtn');
+        const jenisPresensi = document.getElementById('jenisPresensiKelas').value;
 
         if (!selected) {
             presensiKelasBtn.disabled = true;
@@ -732,7 +749,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // enable only if location available and session active
+        // enable only if session active
         const sesiAktif = kelasSesi[selected] || false;
         if (!sesiAktif) {
             presensiKelasBtn.disabled = true;
@@ -741,9 +758,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        presensiKelasBtn.disabled = !userLocation;
-        document.getElementById('statusKelas').textContent = userLocation ? 'Siap presensi' : 'Menunggu lokasi';
-        document.getElementById('statusKelas').className = userLocation ? 'text-green-600' : 'text-yellow-600';
+        // Jika izin/sakit, tidak perlu validasi lokasi
+        if (jenisPresensi === 'izin' || jenisPresensi === 'sakit') {
+            presensiKelasBtn.disabled = false;
+            document.getElementById('statusKelas').textContent = 'Siap submit ' + jenisPresensi;
+            document.getElementById('statusKelas').className = 'text-green-600';
+        } else {
+            // Untuk hadir, perlu validasi lokasi
+            presensiKelasBtn.disabled = !userLocation;
+            document.getElementById('statusKelas').textContent = userLocation ? 'Siap presensi' : 'Menunggu lokasi';
+            document.getElementById('statusKelas').className = userLocation ? 'text-green-600' : 'text-yellow-600';
+        }
     });
 });
 
