@@ -35,8 +35,9 @@ class SiswaController {
     }
     
     public function presensi() {
+        $user_id = $_SESSION['user_id'];
         $lokasiSekolah = $this->locationModel->getLokasiSekolah();
-        $kelas = $this->kelasModel->getAllKelas();
+        $kelas = $this->kelasModel->getKelasBySiswa($user_id);
         // Attach active session info to each kelas so frontend can enable presensi per kelas
         foreach ($kelas as $k) {
             $k->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($k->id);

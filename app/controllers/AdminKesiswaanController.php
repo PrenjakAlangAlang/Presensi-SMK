@@ -118,9 +118,19 @@ class AdminKesiswaanController {
     public function closePresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id = $_POST['id'];
+            
+            // Mark absent students as alpha before closing
+            $alphaCount = $this->presensiModel->markAbsentStudentsAsAlphaSekolah($id);
+            
+            // Close the session
             $ok = $this->presensiSekolahSesiModel->closeSession($id);
+            
             header('Content-Type: application/json');
-            echo json_encode(['success' => (bool)$ok]);
+            echo json_encode([
+                'success' => (bool)$ok,
+                'alpha_count' => $alphaCount,
+                'message' => $alphaCount > 0 ? "Sesi ditutup. $alphaCount siswa ditandai alpha." : 'Sesi ditutup.'
+            ]);
             exit;
         }
     }

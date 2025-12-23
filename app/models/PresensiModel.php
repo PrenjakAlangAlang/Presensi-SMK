@@ -634,5 +634,88 @@ class PresensiModel {
             return $this->recordPresensiSekolah($data);
         }
     }
+
+    /**
+     * Mark all students who haven't checked in for a school session as alpha
+     * Called when school session is closed
+     */
+    public function markAbsentStudentsAsAlphaSekolah($sesi_id) {
+        // Get all students who haven't checked in for this session
+        $this->db->query('
+            SELECT u.id 
+            FROM users u 
+            WHERE u.role = "siswa" 
+            AND u.id NOT IN (
+                SELECT user_id 
+                FROM presensi_sekolah 
+                WHERE presensi_sekolah_sesi_id = :sesi_id
+            )
+        ');
+        $this->db->bind(':sesi_id', $sesi_id);
+        $absentStudents = $this->db->resultSet();
+        
+        $count = 0;
+        foreach ($absentStudents as $student) {
+            $data = [
+                'presensi_sekolah_sesi_id' => $sesi_id,
+                'user_id' => $student->id,
+                'latitude' => 0,
+                'longitude' => 0,
+                'jarak' => 0,
+                'status' => 'valid',
+                'jenis' => 'alpha',
+                'alasan' => 'Tidak hadir saat sesi ditutup',
+                'foto_bukti' => null
+            ];
+            if ($this->recordPresensiSekolah($data)) {
+                $count++;
+            }
+        }
+        
+        return $count;
+    }
+
+    /**
+     * Mark all students in a class who haven't checked in for a session as alpha
+     * Called when class session is closed
+     */
+    public function markAbsentStudentsAsAlphaKelas($kelas_id, $sesi_id) {
+        // Get all students in this class who haven't checked in for this session
+        $this->db->query('
+            SELECT sk.siswa_id 
+            FROM siswa_kelas sk
+            WHERE sk.kelas_id = :kelas_id
+            AND sk.siswa_id NOT IN (
+                SELECT user_id 
+                FROM presensi_kelas 
+                WHERE kelas_id = :kelas_id 
+                AND presensi_sesi_id = :sesi_id
+            )
+        ');
+        $this->db->bind(':kelas_id', $kelas_id);
+        $this->db->bind(':sesi_id', $sesi_id);
+        $absentStudents = $this->db->resultSet();
+        
+        $count = 0;
+        foreach ($absentStudents as $student) {
+            $data = [
+                'presensi_sesi_id' => $sesi_id,
+                'user_id' => $student->siswa_id,
+                'kelas_id' => $kelas_id,
+                'latitude' => 0,
+                'longitude' => 0,
+                'jarak' => 0,
+                'status' => 'valid',
+                'jenis' => 'alpha',
+                'alasan' => 'Tidak hadir saat sesi ditutup',
+                'foto_bukti' => null
+            ];
+            if ($this->recordPresensiKelas($data)) {
+                $count++;
+            }
+        }
+        
+        return $count;
+    }
 }
 ?>

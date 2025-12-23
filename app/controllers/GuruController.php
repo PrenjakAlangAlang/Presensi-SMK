@@ -167,6 +167,15 @@ class GuruController {
             // Hapus session kelas yang dibuka
             unset($_SESSION['kelas_buka_' . $kelas_id]);
 
+            // Get active session to mark absent students as alpha
+            $activeSession = $this->presensiSesiModel->getActiveSessionByKelas($kelas_id);
+            $alphaCount = 0;
+            
+            if ($activeSession) {
+                // Mark absent students as alpha before closing
+                $alphaCount = $this->presensiModel->markAbsentStudentsAsAlphaKelas($kelas_id, $activeSession->id);
+            }
+
             // Close session in DB
             $closed = $this->presensiSesiModel->closeSession($kelas_id, $guru_id);
 
@@ -174,9 +183,13 @@ class GuruController {
             $saved = $this->simpanLaporanKemajuan($kelas_id, $guru_id, $catatan);
 
             if ($closed && $saved) {
-                echo json_encode(['success' => true, 'message' => 'Presensi kelas ditutup!']);
+                $message = 'Presensi kelas ditutup!';
+                if ($alphaCount > 0) {
+                    $message .= " $alphaCount siswa ditandai alpha.";
+                }
+                echo json_encode(['success' => true, 'message' => $message, 'alpha_count' => $alphaCount]);
             } else if ($saved) {
-                echo json_encode(['success' => true, 'message' => 'Presensi kelas ditutup (session DB tidak berubah)']);
+                echo json_encode(['success' => true, 'message' => 'Presensi kelas ditutup (session DB tidak berubah)', 'alpha_count' => $alphaCount]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Gagal menutup sesi atau menyimpan laporan kemajuan']);
             }

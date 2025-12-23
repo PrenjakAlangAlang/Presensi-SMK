@@ -125,9 +125,21 @@ document.getElementById('createSessionForm').addEventListener('submit', function
 });
 
 document.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', function(){
+    if (!confirm('Tutup sesi presensi ini? Siswa yang belum presensi akan ditandai alpha.')) return;
+    
     const fd = new FormData(); fd.append('id', this.dataset.id);
     fetch('index.php?action=admin_kesiswaan_close_presensi_sekolah', { method: 'POST', body: fd })
-        .then(r => r.json()).then(json => { if(json.success) location.reload(); else alert('Gagal menutup sesi'); });
+        .then(r => r.json())
+        .then(json => {
+            if (json.success) {
+                if (json.alpha_count > 0) {
+                    alert(json.message || `Sesi ditutup. ${json.alpha_count} siswa ditandai alpha.`);
+                }
+                location.reload();
+            } else {
+                alert('Gagal menutup sesi');
+            }
+        });
 }));
 
 document.querySelectorAll('.extend-btn').forEach(btn => btn.addEventListener('click', function(){

@@ -225,7 +225,12 @@ document.getElementById('tutupPresensiForm').addEventListener('submit', function
             document.getElementById(`statusPresensi${currentKelasId}`).textContent = 'Tutup';
             document.getElementById(`statusPresensi${currentKelasId}`).className = 'font-medium text-gray-600';
             closeTutupPresensiModal();
-            showNotification('success', 'Presensi kelas berhasil ditutup!');
+            
+            let message = data.message || 'Presensi kelas berhasil ditutup!';
+            if (data.alpha_count > 0) {
+                message += ` ${data.alpha_count} siswa ditandai alpha.`;
+            }
+            showNotification('success', message);
         }
     })
     .catch(error => {

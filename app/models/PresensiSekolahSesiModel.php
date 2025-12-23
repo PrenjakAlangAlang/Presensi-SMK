@@ -2,12 +2,15 @@
 // app/models/PresensiSekolahSesiModel.php
 // Model untuk mengelola sesi presensi sekolah (auto dan manual override oleh admin)
 require_once 'Database.php';
+require_once 'PresensiModel.php';
 
 class PresensiSekolahSesiModel {
     private $db;
+    private $presensiModel;
 
     public function __construct() {
         $this->db = new Database();
+        $this->presensiModel = new PresensiModel();
     }
 
     // Ambil sesi sekolah yang masih open (jika ada)
@@ -47,6 +50,16 @@ class PresensiSekolahSesiModel {
 
     // Tutup semua sesi yang sudah lewat waktunya (dipanggil sebelum cek aktif)
     public function closeExpiredSessions() {
+        // Get all sessions that need to be closed
+        $this->db->query('SELECT id FROM presensi_sekolah_sesi WHERE status = "open" AND waktu_tutup <= NOW()');
+        $expiredSessions = $this->db->resultSet();
+        
+        // Mark absent students as alpha for each expired session
+        foreach ($expiredSessions as $session) {
+            $this->presensiModel->markAbsentStudentsAsAlphaSekolah($session->id);
+        }
+        
+        // Close the expired sessions
         $this->db->query('UPDATE presensi_sekolah_sesi SET status = "closed" WHERE status = "open" AND waktu_tutup <= NOW()');
         return $this->db->execute();
     }

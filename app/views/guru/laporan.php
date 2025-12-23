@@ -245,7 +245,7 @@ $presentase = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
                         <td class="px-6 py-4">
                             <?php 
                             // Jika izin atau sakit, tidak ada validasi lokasi GPS
-                            if (isset($presensi->jenis) && ($presensi->jenis == 'izin' || $presensi->jenis == 'sakit')): 
+                            if (isset($presensi->jenis) && ($presensi->jenis == 'izin' || $presensi->jenis == 'sakit' || $presensi->jenis == 'alpha')): 
                             ?>
                                 <span class="text-gray-400">-</span>
                             <?php elseif($presensi->status == 'valid'): ?>
