@@ -3,6 +3,9 @@ $page_title = "Laporan Presensi";
 require_once __DIR__ . '/../layouts/header.php';
 ?>
 
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-800">Laporan Presensi</h2>
     <p class="text-gray-600">Analisis dan monitoring kehadiran seluruh siswa</p>
@@ -204,13 +207,14 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Waktu</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Status</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Keterangan</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
                 <?php if (empty($presensi)): ?>
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>Tidak ada data presensi untuk tanggal yang dipilih</p>
                     </td>
@@ -260,6 +264,30 @@ require_once __DIR__ . '/../layouts/header.php';
                         </td>
                         <td class="px-6 py-4 text-gray-600">
                             <?php echo isset($p->jarak) ? round($p->jarak, 2) . ' m' : '-'; ?>
+                        </td>
+                        <td class="px-6 py-4">
+                            <?php if (isset($p->jenis) && ($p->jenis == 'izin' || $p->jenis == 'sakit') && (isset($p->alasan) || isset($p->foto_bukti))): ?>
+                                <div class="space-y-1">
+                                    <?php if (isset($p->alasan) && $p->alasan): ?>
+                                        <div class="text-sm text-gray-700">
+                                            <span class="font-medium">Alasan:</span><br>
+                                            <span class="text-gray-600"><?php echo htmlspecialchars($p->alasan); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (isset($p->foto_bukti) && $p->foto_bukti): ?>
+                                        <div>
+                                            <a href="<?php echo htmlspecialchars($p->foto_bukti); ?>" 
+                                               target="_blank" 
+                                               class="inline-flex items-center text-blue-600 hover:text-blue-800 text-xs">
+                                                <i class="fas fa-paperclip mr-1"></i>
+                                                Lihat Bukti
+                                            </a>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php else: ?>
+                                <span class="text-gray-400 text-sm">-</span>
+                            <?php endif; ?>
                         </td>
                         <td class="px-6 py-4">
                             <button onclick="lihatDetailPresensi(<?php echo $p->siswa_id; ?>)" class="text-blue-600 hover:text-blue-800 transition-colors">
@@ -326,7 +354,136 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 </div>
 
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
+// Data presensi dari PHP untuk modal detail
+const presensiData = <?php echo json_encode(isset($presensi) ? $presensi : []); ?>;
+
+function lihatDetailPresensi(siswaId) {
+    // Cari data presensi berdasarkan siswa_id
+    const data = presensiData.find(p => p.siswa_id == siswaId);
+    
+    if (!data) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Data presensi tidak ditemukan'
+        });
+        return;
+    }
+    
+    // Buat konten modal
+    let modalContent = `
+        <div class="space-y-3 text-left">
+            <div class="border-b pb-3">
+                <p class="text-sm text-gray-600">Nama Siswa</p>
+                <p class="text-lg font-semibold text-gray-800">${data.nama || '-'}</p>
+            </div>
+            <div class="border-b pb-3">
+                <p class="text-sm text-gray-600">Email</p>
+                <p class="text-gray-800">${data.email || '-'}</p>
+            </div>
+    `;
+    
+    // Format tanggal dan waktu
+    if (data.waktu) {
+        const waktu = new Date(data.waktu);
+        const tanggalFormatted = waktu.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+        const waktuFormatted = waktu.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        modalContent += `
+            <div class="grid grid-cols-2 gap-3 border-b pb-3">
+                <div>
+                    <p class="text-sm text-gray-600">Tanggal</p>
+                    <p class="text-gray-800">${tanggalFormatted}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Waktu</p>
+                    <p class="text-gray-800">${waktuFormatted}</p>
+                </div>
+            </div>
+        `;
+    } else {
+        modalContent += `
+            <div class="border-b pb-3">
+                <p class="text-sm text-gray-600">Tanggal & Waktu</p>
+                <p class="text-gray-800">-</p>
+            </div>
+        `;
+    }
+    
+    // Status
+    let statusBadge = '';
+    if (data.status === 'valid') {
+        const jenis = data.jenis || 'hadir';
+        let statusClass = 'bg-green-100 text-green-800';
+        if (jenis === 'izin') statusClass = 'bg-yellow-100 text-yellow-800';
+        else if (jenis === 'sakit') statusClass = 'bg-orange-100 text-orange-800';
+        else if (jenis === 'alpha') statusClass = 'bg-red-100 text-red-800';
+        
+        statusBadge = `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
+            <i class="fas fa-check-circle mr-1"></i> ${jenis.charAt(0).toUpperCase() + jenis.slice(1)}
+        </span>`;
+    } else if (data.status === 'invalid') {
+        statusBadge = '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800"><i class="fas fa-times-circle mr-1"></i> Tidak Valid</span>';
+    } else {
+        statusBadge = '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"><i class="fas fa-minus-circle mr-1"></i> Belum Presensi</span>';
+    }
+    
+    modalContent += `
+        <div class="border-b pb-3">
+            <p class="text-sm text-gray-600 mb-1">Status</p>
+            ${statusBadge}
+        </div>
+        <div class="border-b pb-3">
+            <p class="text-sm text-gray-600">Jarak</p>
+            <p class="text-gray-800">${data.jarak ? Math.round(data.jarak * 100) / 100 + ' m' : '-'}</p>
+        </div>
+    `;
+    
+    // Keterangan (alasan dan bukti) jika ada
+    if ((data.jenis === 'izin' || data.jenis === 'sakit') && (data.alasan || data.foto_bukti)) {
+        modalContent += '<div class="bg-blue-50 p-3 rounded-lg">';
+        modalContent += '<p class="text-sm font-semibold text-gray-700 mb-2">Keterangan</p>';
+        
+        if (data.alasan) {
+            modalContent += `<p class="text-sm text-gray-700 mb-2"><span class="font-medium">Alasan:</span><br>${data.alasan}</p>`;
+        }
+        
+        if (data.foto_bukti) {
+            modalContent += `<a href="${data.foto_bukti}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm">
+                <i class="fas fa-paperclip mr-1"></i> Lihat Bukti
+            </a>`;
+        }
+        
+        modalContent += '</div>';
+    }
+    
+    modalContent += '</div>';
+    
+    // Tampilkan dengan SweetAlert
+    Swal.fire({
+        title: 'Detail Presensi',
+        html: modalContent,
+        width: '600px',
+        showCloseButton: true,
+        showConfirmButton: false
+    });
+}
+
+function exportToPDF() {
+    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
+    const status = '<?php echo $filter_status ?? ''; ?>';
+    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_export_pdf&tanggal=' + tanggal + '&status=' + status, '_blank');
+}
+
+function exportToExcel() {
+    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
+    const status = '<?php echo $filter_status ?? ''; ?>';
+    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_export_excel&tanggal=' + tanggal + '&status=' + status;
+}
+
 // Grafik Distribusi Kehadiran - Data Real dari PHP
 const distributionCtx = document.getElementById('attendanceDistributionChart').getContext('2d');
 const distributionChart = new Chart(distributionCtx, {
@@ -372,23 +529,6 @@ const distributionChart = new Chart(distributionCtx, {
         }
     }
 });
-
-function lihatDetailPresensi(presensiId) {
-    // Simulate API call to get presensi detail - you can implement this later
-    alert('Detail presensi untuk ID: ' + presensiId);
-}
-
-function exportToPDF() {
-    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
-    const status = '<?php echo $filter_status ?? ''; ?>';
-    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_export_pdf&tanggal=' + tanggal + '&status=' + status, '_blank');
-}
-
-function exportToExcel() {
-    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
-    const status = '<?php echo $filter_status ?? ''; ?>';
-    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_export_excel&tanggal=' + tanggal + '&status=' + status;
-}
 </script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

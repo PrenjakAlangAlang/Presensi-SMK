@@ -119,7 +119,7 @@ class PresensiModel {
     public function getLaporanPresensiKelas($kelas_id, $tanggal = null, $sesi_id = null) {
         // Base select — list all siswa in kelas and join any matching presensi_kelas
         if ($sesi_id) {
-            $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, "kelas" as sumber
+            $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
                     FROM users u
                     LEFT JOIN presensi_kelas pk ON u.id = pk.user_id AND pk.presensi_sesi_id = :sesi_id
                     WHERE u.id IN (SELECT siswa_id FROM siswa_kelas WHERE kelas_id = :kelas_id)
@@ -133,7 +133,7 @@ class PresensiModel {
 
         // fallback: use date filter on presensi_kelas (today by default)
         $tanggal = $tanggal ?: date('Y-m-d');
-        $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, "kelas" as sumber
+        $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
                 FROM users u
                 LEFT JOIN presensi_kelas pk ON u.id = pk.user_id AND DATE(pk.waktu) = :tanggal AND pk.kelas_id = :kelas_id
                 WHERE u.id IN (SELECT siswa_id FROM siswa_kelas WHERE kelas_id = :kelas_id)
@@ -155,7 +155,7 @@ class PresensiModel {
     public function getLaporanPresensiSekolah($tanggal = null, $sesi_id = null, $filter_status = null, $limit = null, $offset = 0) {
         // Base select — list all siswa and join any matching presensi_sekolah
         if ($sesi_id) {
-            $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+            $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
                     FROM users u
                     LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND ps.presensi_sekolah_sesi_id = :sesi_id
                     WHERE u.role = "siswa"
@@ -179,14 +179,14 @@ class PresensiModel {
         if ($filter_status) {
             if ($filter_status == 'valid') {
                 // Filter hanya yang hadir (status valid)
-                $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+                $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
                         FROM users u
                         INNER JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.status = "valid"
                         WHERE u.role = "siswa"
                         ORDER BY u.nama';
             } else {
                 // Filter berdasarkan jenis (izin, sakit, alpha)
-                $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+                $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
                         FROM users u
                         INNER JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.jenis = :jenis
                         WHERE u.role = "siswa"
@@ -205,7 +205,7 @@ class PresensiModel {
             }
         } else {
             // Tampilkan semua
-            $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+            $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
                     FROM users u
                     LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal
                     WHERE u.role = "siswa"
@@ -367,7 +367,7 @@ class PresensiModel {
      * Create presensi_sekolah record for izin
      * Automatically called when izin is approved/submitted
      */
-    public function createPresensiSekolahIzin($siswa_id, $tanggal, $jenis_izin, $waktu_pengajuan = null, $sesi_sekolah_id = null) {
+    public function createPresensiSekolahIzin($siswa_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_sekolah_id = null) {
         // Check if presensi already exists for this date
         $this->db->query('SELECT id FROM presensi_sekolah WHERE user_id = :user_id AND DATE(waktu) = :tanggal LIMIT 1');
         $this->db->bind(':user_id', $siswa_id);
@@ -382,11 +382,13 @@ class PresensiModel {
         $waktu_insert = $waktu_pengajuan ?: ($tanggal . ' 00:00:00');
 
         // Insert izin record to presensi_sekolah
-        $this->db->query('INSERT INTO presensi_sekolah (presensi_sekolah_sesi_id, user_id, latitude, longitude, jarak, status, jenis, waktu) 
-                         VALUES (:sesi_id, :user_id, 0, 0, 0, "valid", :jenis, :waktu)');
+        $this->db->query('INSERT INTO presensi_sekolah (presensi_sekolah_sesi_id, user_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu) 
+                         VALUES (:sesi_id, :user_id, 0, 0, 0, "valid", :jenis, :alasan, :foto_bukti, :waktu)');
         $this->db->bind(':sesi_id', $sesi_sekolah_id);
         $this->db->bind(':user_id', $siswa_id);
         $this->db->bind(':jenis', $jenis_izin);
+        $this->db->bind(':alasan', $alasan);
+        $this->db->bind(':foto_bukti', $foto_bukti);
         $this->db->bind(':waktu', $waktu_insert);
         return $this->db->execute();
     }
@@ -395,7 +397,7 @@ class PresensiModel {
      * Create presensi_kelas records for izin for all classes the student is enrolled in
      * If sesi_kelas_id is null, will not link to any session
      */
-    public function createPresensiKelasIzin($siswa_id, $tanggal, $jenis_izin, $waktu_pengajuan = null, $sesi_kelas_id = null) {
+    public function createPresensiKelasIzin($siswa_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_kelas_id = null) {
         // Get all classes the student is enrolled in
         $this->db->query('SELECT kelas_id FROM siswa_kelas WHERE siswa_id = :siswa_id');
         $this->db->bind(':siswa_id', $siswa_id);
@@ -414,12 +416,14 @@ class PresensiModel {
             
             if (!$exists) {
                 // Insert izin record to presensi_kelas
-                $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, kelas_id, latitude, longitude, jarak, status, jenis, waktu) 
-                                 VALUES (:sesi_id, :user_id, :kelas_id, 0, 0, 0, "valid", :jenis, :waktu)');
+                $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, kelas_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu) 
+                                 VALUES (:sesi_id, :user_id, :kelas_id, 0, 0, 0, "valid", :jenis, :alasan, :foto_bukti, :waktu)');
                 $this->db->bind(':sesi_id', $sesi_kelas_id);
                 $this->db->bind(':user_id', $siswa_id);
                 $this->db->bind(':kelas_id', $kelas->kelas_id);
                 $this->db->bind(':jenis', $jenis_izin); // Store jenis_izin in jenis field (izin, sakit, etc)
+                $this->db->bind(':alasan', $alasan);
+                $this->db->bind(':foto_bukti', $foto_bukti);
                 $this->db->bind(':waktu', $waktu_insert);
                 $this->db->execute();
             }
@@ -430,7 +434,7 @@ class PresensiModel {
     /**
      * Create presensi_kelas record for izin for a single specific class
      */
-    public function createPresensiKelasSingleIzin($siswa_id, $kelas_id, $tanggal, $jenis_izin, $waktu_pengajuan = null, $sesi_kelas_id = null) {
+    public function createPresensiKelasSingleIzin($siswa_id, $kelas_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_kelas_id = null) {
         // Check if presensi already exists for this class and date
         $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND kelas_id = :kelas_id AND DATE(waktu) = :tanggal LIMIT 1');
         $this->db->bind(':user_id', $siswa_id);
@@ -446,12 +450,14 @@ class PresensiModel {
         $waktu_insert = $waktu_pengajuan ?: ($tanggal . ' 00:00:00');
 
         // Insert izin record to presensi_kelas
-        $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, kelas_id, latitude, longitude, jarak, status, jenis, waktu) 
-                         VALUES (:sesi_id, :user_id, :kelas_id, 0, 0, 0, "valid", :jenis, :waktu)');
+        $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, kelas_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu) 
+                         VALUES (:sesi_id, :user_id, :kelas_id, 0, 0, 0, "valid", :jenis, :alasan, :foto_bukti, :waktu)');
         $this->db->bind(':sesi_id', $sesi_kelas_id);
         $this->db->bind(':user_id', $siswa_id);
         $this->db->bind(':kelas_id', $kelas_id);
         $this->db->bind(':jenis', $jenis_izin);
+        $this->db->bind(':alasan', $alasan);
+        $this->db->bind(':foto_bukti', $foto_bukti);
         $this->db->bind(':waktu', $waktu_insert);
         return $this->db->execute();
     }

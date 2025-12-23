@@ -114,6 +114,12 @@ switch($action) {
         $admin = new AdminController();
         $admin->exportPDF();
         break;
+
+    case 'admin_get_presensi_detail':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->getPresensiDetail();
+        break;
         
     case 'admin_create_user':
         require_once '../app/controllers/AdminController.php';
@@ -258,6 +264,12 @@ switch($action) {
         require_once '../app/controllers/AdminKesiswaanController.php';
         $ak = new AdminKesiswaanController();
         $ak->exportPDF();
+        break;
+
+    case 'admin_kesiswaan_get_presensi_detail':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->getPresensiDetail();
         break;
         
     case 'admin_update_lokasi':

@@ -204,13 +204,14 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Waktu</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Status</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Keterangan</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
                 <?php if (empty($presensi)): ?>
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>Tidak ada data presensi untuk tanggal yang dipilih</p>
                     </td>
@@ -260,6 +261,30 @@ require_once __DIR__ . '/../layouts/header.php';
                         </td>
                         <td class="px-6 py-4 text-gray-600">
                             <?php echo isset($p->jarak) ? round($p->jarak, 2) . ' m' : '-'; ?>
+                        </td>
+                        <td class="px-6 py-4">
+                            <?php if (isset($p->jenis) && ($p->jenis == 'izin' || $p->jenis == 'sakit') && (isset($p->alasan) || isset($p->foto_bukti))): ?>
+                                <div class="space-y-1">
+                                    <?php if (isset($p->alasan) && $p->alasan): ?>
+                                        <div class="text-sm text-gray-700">
+                                            <span class="font-medium">Alasan:</span><br>
+                                            <span class="text-gray-600"><?php echo htmlspecialchars($p->alasan); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (isset($p->foto_bukti) && $p->foto_bukti): ?>
+                                        <div>
+                                            <a href="<?php echo htmlspecialchars($p->foto_bukti); ?>" 
+                                               target="_blank" 
+                                               class="inline-flex items-center text-blue-600 hover:text-blue-800 text-xs">
+                                                <i class="fas fa-paperclip mr-1"></i>
+                                                Lihat Bukti
+                                            </a>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php else: ?>
+                                <span class="text-gray-400 text-sm">-</span>
+                            <?php endif; ?>
                         </td>
                         <td class="px-6 py-4">
                             <button onclick="lihatDetailPresensi(<?php echo $p->siswa_id; ?>)" class="text-blue-600 hover:text-blue-800 transition-colors">
@@ -339,22 +364,30 @@ require_once __DIR__ . '/../layouts/header.php';
                     <p class="text-gray-800 font-medium" id="detailNama">-</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Kelas</label>
-                    <p class="text-gray-800" id="detailKelas">-</p>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <p class="text-gray-800" id="detailEmail">-</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal & Waktu</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
+                    <p class="text-gray-800" id="detailTanggal">-</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Waktu</label>
                     <p class="text-gray-800" id="detailWaktu">-</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <p id="detailStatus">-</p>
                 </div>
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Lokasi</label>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jarak</label>
+                    <p class="text-gray-800" id="detailJarak">-</p>
+                </div>
+                <div class="col-span-2" id="detailKeteranganSection" style="display: none;">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan</label>
                     <div class="p-3 bg-gray-50 rounded-lg">
-                        <p class="text-gray-800" id="detailLokasi">-</p>
-                        <p class="text-sm text-gray-600 mt-1" id="detailJarak">-</p>
+                        <div id="detailAlasan" class="mb-2"></div>
+                        <div id="detailBukti"></div>
                     </div>
                 </div>
             </div>
@@ -368,6 +401,111 @@ require_once __DIR__ . '/../layouts/header.php';
 </div>
 
 <script>
+// Data presensi dari PHP untuk modal detail
+const presensiData = <?php echo json_encode(isset($presensi) ? $presensi : []); ?>;
+
+function lihatDetailPresensi(siswaId) {
+    // Cari data presensi berdasarkan siswa_id
+    const data = presensiData.find(p => p.siswa_id == siswaId);
+    
+    if (!data) {
+        alert('Data presensi tidak ditemukan');
+        return;
+    }
+    
+    // Set data ke modal
+    document.getElementById('detailNama').textContent = data.nama || '-';
+    document.getElementById('detailEmail').textContent = data.email || '-';
+    
+    // Format tanggal dan waktu
+    if (data.waktu) {
+        const waktu = new Date(data.waktu);
+        const tanggalFormatted = waktu.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+        const waktuFormatted = waktu.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('detailTanggal').textContent = tanggalFormatted;
+        document.getElementById('detailWaktu').textContent = waktuFormatted;
+    } else {
+        document.getElementById('detailTanggal').textContent = '-';
+        document.getElementById('detailWaktu').textContent = '-';
+    }
+    
+    // Set status dengan badge
+    const statusElement = document.getElementById('detailStatus');
+    let statusHTML = '';
+    if (data.status === 'valid') {
+        const jenis = data.jenis || 'hadir';
+        let statusClass = 'bg-green-100 text-green-800';
+        if (jenis === 'izin') statusClass = 'bg-yellow-100 text-yellow-800';
+        else if (jenis === 'sakit') statusClass = 'bg-orange-100 text-orange-800';
+        else if (jenis === 'alpha') statusClass = 'bg-red-100 text-red-800';
+        
+        statusHTML = `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
+            <i class="fas fa-check-circle mr-1"></i> ${jenis.charAt(0).toUpperCase() + jenis.slice(1)}
+        </span>`;
+    } else if (data.status === 'invalid') {
+        statusHTML = '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800"><i class="fas fa-times-circle mr-1"></i> Tidak Valid</span>';
+    } else {
+        statusHTML = '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"><i class="fas fa-minus-circle mr-1"></i> Belum Presensi</span>';
+    }
+    statusElement.innerHTML = statusHTML;
+    
+    // Set jarak
+    document.getElementById('detailJarak').textContent = data.jarak ? Math.round(data.jarak * 100) / 100 + ' m' : '-';
+    
+    // Set keterangan (alasan dan bukti) jika ada
+    const keteranganSection = document.getElementById('detailKeteranganSection');
+    const alasanDiv = document.getElementById('detailAlasan');
+    const buktiDiv = document.getElementById('detailBukti');
+    
+    if ((data.jenis === 'izin' || data.jenis === 'sakit') && (data.alasan || data.foto_bukti)) {
+        keteranganSection.style.display = 'block';
+        
+        // Set alasan
+        if (data.alasan) {
+            alasanDiv.innerHTML = `<p class="text-sm text-gray-700"><span class="font-medium">Alasan:</span><br><span class="text-gray-600">${data.alasan}</span></p>`;
+        } else {
+            alasanDiv.innerHTML = '';
+        }
+        
+        // Set bukti
+        if (data.foto_bukti) {
+            buktiDiv.innerHTML = `<a href="${data.foto_bukti}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm">
+                <i class="fas fa-paperclip mr-1"></i> Lihat Bukti
+            </a>`;
+        } else {
+            buktiDiv.innerHTML = '';
+        }
+    } else {
+        keteranganSection.style.display = 'none';
+    }
+    
+    // Tampilkan modal
+    document.getElementById('detailPresensiModal').classList.remove('hidden');
+}
+
+function closeDetailPresensiModal() {
+    document.getElementById('detailPresensiModal').classList.add('hidden');
+}
+
+function exportToPDF() {
+    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
+    const status = '<?php echo $filter_status ?? ''; ?>';
+    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_export_pdf&tanggal=' + tanggal + '&status=' + status, '_blank');
+}
+
+function exportToExcel() {
+    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
+    const status = '<?php echo $filter_status ?? ''; ?>';
+    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_export_excel&tanggal=' + tanggal + '&status=' + status;
+}
+
+// Close modal when clicking outside
+document.getElementById('detailPresensiModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDetailPresensiModal();
+    }
+});
+
 // Grafik Distribusi Kehadiran - Data Real dari PHP
 const distributionCtx = document.getElementById('attendanceDistributionChart').getContext('2d');
 const distributionChart = new Chart(distributionCtx, {
@@ -411,78 +549,6 @@ const distributionChart = new Chart(distributionCtx, {
                 }
             }
         }
-    }
-});
-
-function lihatDetailPresensi(presensiId) {
-    // Simulate API call to get presensi detail
-    const detailData = {
-        nama: 'Siswa A',
-        kelas: 'XI RPL 1',
-        waktu: '<?php echo date('d M Y H:i'); ?>',
-        status: 'Hadir',
-        lokasi: 'SMK Negeri 7 Yogyakarta',
-        jarak: '45 meter dari titik presensi'
-    };
-    
-    document.getElementById('detailNama').textContent = detailData.nama;
-    document.getElementById('detailKelas').textContent = detailData.kelas;
-    document.getElementById('detailWaktu').textContent = detailData.waktu;
-    document.getElementById('detailLokasi').textContent = detailData.lokasi;
-    document.getElementById('detailJarak').textContent = detailData.jarak;
-    
-    const statusElement = document.getElementById('detailStatus');
-    statusElement.textContent = detailData.status;
-    statusElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800';
-    
-    document.getElementById('detailPresensiModal').classList.remove('hidden');
-}
-
-function closeDetailPresensiModal() {
-    document.getElementById('detailPresensiModal').classList.add('hidden');
-}
-
-function exportToPDF() {
-    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
-    const status = '<?php echo $filter_status ?? ''; ?>';
-    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_export_pdf&tanggal=' + tanggal + '&status=' + status, '_blank');
-}
-
-function exportToExcel() {
-    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
-    const status = '<?php echo $filter_status ?? ''; ?>';
-    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_export_excel&tanggal=' + tanggal + '&status=' + status;
-}
-
-// Filter form handling
-document.getElementById('filterForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    showNotification('success', 'Filter diterapkan!');
-});
-
-function showNotification(type, message) {
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transform transition-transform duration-300 ${
-        type === 'success' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
-    }`;
-    notification.innerHTML = `
-        <div class="flex items-center space-x-2">
-            <i class="fas fa-${type === 'success' ? 'check' : 'info'}-circle"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-
-// Close modal when clicking outside
-document.getElementById('detailPresensiModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDetailPresensiModal();
     }
 });
 </script>

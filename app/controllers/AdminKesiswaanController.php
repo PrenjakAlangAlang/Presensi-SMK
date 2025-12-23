@@ -241,6 +241,8 @@ class AdminKesiswaanController {
         echo '<th>Waktu</th>';
         echo '<th>Status</th>';
         echo '<th>Jarak (m)</th>';
+        echo '<th>Alasan</th>';
+        echo '<th>Bukti</th>';
         echo '</tr>';
         
         $no = 1;
@@ -265,10 +267,12 @@ class AdminKesiswaanController {
             }
             
             echo '<td>' . (isset($p->jarak) ? round($p->jarak, 2) : '-') . '</td>';
+            echo '<td>' . (isset($p->alasan) ? htmlspecialchars($p->alasan) : '-') . '</td>';
+            echo '<td>' . (isset($p->foto_bukti) && $p->foto_bukti ? 'Ada' : '-') . '</td>';
             echo '</tr>';
         }
         
-        echo '</table>';
+        echo '</table';
         echo '</body></html>';
         exit;
     }
@@ -377,6 +381,8 @@ class AdminKesiswaanController {
                 <th>Waktu</th>
                 <th>Status</th>
                 <th>Jarak (m)</th>
+                <th>Alasan</th>
+                <th>Bukti</th>
             </tr>
         </thead>
         <tbody>
@@ -405,6 +411,8 @@ class AdminKesiswaanController {
                     ?>
                 </td>
                 <td><?php echo isset($p->jarak) ? round($p->jarak, 2) : '-'; ?></td>
+                <td><?php echo isset($p->alasan) && $p->alasan ? htmlspecialchars($p->alasan) : '-'; ?></td>
+                <td><?php echo isset($p->foto_bukti) && $p->foto_bukti ? 'Ada' : '-'; ?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>
