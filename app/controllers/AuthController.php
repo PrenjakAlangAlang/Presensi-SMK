@@ -55,10 +55,6 @@ class AuthController {
                 // siswa -> dashboard siswa
                 header('Location: ' . BASE_URL . '/public/index.php?action=siswa_dashboard');
                 break;
-            case 'orangtua':
-                // orangtua -> dashboard orangtua
-                header('Location: ' . BASE_URL . '/public/index.php?action=orangtua_dashboard');
-                break;
             default:
                 // fallback ke login jika role tidak dikenali
                 header('Location: ' . BASE_URL . '/public/index.php?action=login');

@@ -232,6 +232,10 @@ class SiswaController {
             'tempat_lahir' => trim($_POST['tempat_lahir']),
             'tanggal_lahir' => $_POST['tanggal_lahir'],
             'alamat' => trim($_POST['alamat']),
+            'nama_ayah' => isset($_POST['nama_ayah']) ? trim($_POST['nama_ayah']) : null,
+            'nama_ibu' => isset($_POST['nama_ibu']) ? trim($_POST['nama_ibu']) : null,
+            'no_telp_ortu' => isset($_POST['no_telp_ortu']) ? trim($_POST['no_telp_ortu']) : null,
+            'email_ortu' => isset($_POST['email_ortu']) ? trim($_POST['email_ortu']) : null,
             'dokumen_pdf' => null
         ];
 

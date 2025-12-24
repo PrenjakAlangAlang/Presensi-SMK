@@ -224,49 +224,6 @@ class AdminController {
             exit;
         }
     }
-
-    // API: get siswa assigned to an orangtua (JSON)
-    public function getSiswaOrangtua() {
-        if(isset($_GET['orangtua_id'])) {
-            $orangtua_id = $_GET['orangtua_id'];
-            $siswa = $this->userModel->getSiswaByOrangTua($orangtua_id);
-            header('Content-Type: application/json');
-            echo json_encode($siswa);
-            exit;
-        }
-    }
-
-    // API: get siswa available to be assigned to an orangtua (not yet assigned)
-    public function getSiswaTersediaOrangtua() {
-        $siswa = $this->userModel->getSiswaWithoutOrangtua();
-        header('Content-Type: application/json');
-        echo json_encode($siswa);
-        exit;
-    }
-
-    // API: add siswa to orangtua
-    public function addSiswaToOrangtua() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $siswa_id = $_POST['siswa_id'];
-            $orangtua_id = $_POST['orangtua_id'];
-            $ok = $this->userModel->addSiswaToOrangtua($siswa_id, $orangtua_id);
-            header('Content-Type: application/json');
-            echo json_encode(['success' => (bool)$ok]);
-            exit;
-        }
-    }
-
-    // API: remove siswa from orangtua
-    public function removeSiswaFromOrangtua() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $siswa_id = $_POST['siswa_id'];
-            $orangtua_id = $_POST['orangtua_id'];
-            $ok = $this->userModel->removeSiswaFromOrangtua($siswa_id, $orangtua_id);
-            header('Content-Type: application/json');
-            echo json_encode(['success' => (bool)$ok]);
-            exit;
-        }
-    }
     
     public function lokasi() {
         // Halaman pengaturan lokasi sekolah

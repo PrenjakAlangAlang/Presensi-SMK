@@ -640,9 +640,14 @@ class PresensiModel {
      * Called when school session is closed
      */
     public function markAbsentStudentsAsAlphaSekolah($sesi_id) {
+        // Get session info for notification
+        $this->db->query('SELECT * FROM presensi_sekolah_sesi WHERE id = :sesi_id');
+        $this->db->bind(':sesi_id', $sesi_id);
+        $sesiInfo = $this->db->single();
+        
         // Get all students who haven't checked in for this session
         $this->db->query('
-            SELECT u.id 
+            SELECT u.id, u.nama
             FROM users u 
             WHERE u.role = "siswa" 
             AND u.id NOT IN (
@@ -680,10 +685,18 @@ class PresensiModel {
      * Called when class session is closed
      */
     public function markAbsentStudentsAsAlphaKelas($kelas_id, $sesi_id) {
+        // Get session and class info for notification
+        $this->db->query('SELECT ps.*, k.nama_kelas FROM presensi_sesi ps 
+                         LEFT JOIN kelas k ON ps.kelas_id = k.id 
+                         WHERE ps.id = :sesi_id');
+        $this->db->bind(':sesi_id', $sesi_id);
+        $sesiInfo = $this->db->single();
+        
         // Get all students in this class who haven't checked in for this session
         $this->db->query('
-            SELECT sk.siswa_id 
+            SELECT sk.siswa_id, u.nama
             FROM siswa_kelas sk
+            LEFT JOIN users u ON sk.siswa_id = u.id
             WHERE sk.kelas_id = :kelas_id
             AND sk.siswa_id NOT IN (
                 SELECT user_id 
@@ -717,5 +730,7 @@ class PresensiModel {
         
         return $count;
     }
+
+
 }
 ?>

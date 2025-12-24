@@ -79,15 +79,6 @@ class UserModel {
         return $this->db->resultSet();
     }
     
-    public function getSiswaByOrangTua($orangtua_id) {
-        // Ambil daftar siswa yang terkait dengan orangtua tertentu
-        $this->db->query('SELECT u.* FROM users u 
-                         INNER JOIN orangtua_siswa os ON u.id = os.siswa_id 
-                         WHERE os.orangtua_id = :orangtua_id');
-        $this->db->bind(':orangtua_id', $orangtua_id);
-        return $this->db->resultSet();
-    }
-    
     public function getGuruWithKelas() {
         // Ambil guru beserta info kelas jika ada (left join)
         $this->db->query('SELECT u.*, k.nama_kelas 
@@ -102,36 +93,6 @@ class UserModel {
         // Ambil semua pengguna yang berperan sebagai siswa
         $this->db->query('SELECT * FROM users WHERE role = "siswa" ORDER BY nama');
         return $this->db->resultSet();
-    }
-
-    // Get siswa who are not yet assigned to any orangtua
-    public function getSiswaWithoutOrangtua() {
-        // Ambil siswa yang belum terhubung ke orangtua manapun
-        $this->db->query('SELECT * FROM users WHERE role = "siswa" AND id NOT IN (SELECT siswa_id FROM orangtua_siswa) ORDER BY nama');
-        return $this->db->resultSet();
-    }
-
-    public function addSiswaToOrangtua($siswa_id, $orangtua_id) {
-        // avoid duplicates
-        $this->db->query('SELECT COUNT(*) as cnt FROM orangtua_siswa WHERE orangtua_id = :orangtua_id AND siswa_id = :siswa_id');
-        $this->db->bind(':orangtua_id', $orangtua_id);
-        $this->db->bind(':siswa_id', $siswa_id);
-        $row = $this->db->single();
-        if($row && $row->cnt > 0) return true; // sudah ada, anggap sukses
-
-        // Jika belum ada, insert relasi
-        $this->db->query('INSERT INTO orangtua_siswa (orangtua_id, siswa_id) VALUES (:orangtua_id, :siswa_id)');
-        $this->db->bind(':orangtua_id', $orangtua_id);
-        $this->db->bind(':siswa_id', $siswa_id);
-        return $this->db->execute();
-    }
-
-    public function removeSiswaFromOrangtua($siswa_id, $orangtua_id) {
-        // Hapus relasi siswa - orangtua
-        $this->db->query('DELETE FROM orangtua_siswa WHERE orangtua_id = :orangtua_id AND siswa_id = :siswa_id');
-        $this->db->bind(':orangtua_id', $orangtua_id);
-        $this->db->bind(':siswa_id', $siswa_id);
-        return $this->db->execute();
     }
 }
 ?>

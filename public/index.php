@@ -17,10 +17,7 @@ $protectedRoutes = [
     'admin_kesiswaan_laporan', 'admin_kesiswaan_export_excel', 'admin_kesiswaan_export_pdf',
     'guru_dashboard', 'guru_kelas', 'guru_laporan',
     'siswa_dashboard', 'siswa_presensi', 'siswa_riwayat',
-    'siswa_buku_induk', 'siswa_save_buku_induk',
-    'orangtua_dashboard',
-    // orangtua management endpoints (admin)
-    'admin_get_siswa_orangtua', 'admin_get_siswa_tersedia_orangtua', 'admin_add_siswa_orangtua', 'admin_remove_siswa_orangtua'
+    'siswa_buku_induk', 'siswa_save_buku_induk'
 ];
 
 if (in_array($action, $protectedRoutes) && !isset($_SESSION['user_id'])) {
@@ -115,11 +112,7 @@ switch($action) {
         $admin->exportPDF();
         break;
 
-    case 'admin_get_presensi_detail':
-        require_once '../app/controllers/AdminController.php';
-        $admin = new AdminController();
-        $admin->getPresensiDetail();
-        break;
+  
         
     case 'admin_create_user':
         require_once '../app/controllers/AdminController.php';
@@ -167,30 +160,6 @@ switch($action) {
         require_once '../app/controllers/AdminController.php';
         $admin = new AdminController();
         $admin->removeSiswaFromKelas();
-        break;
-
-    case 'admin_get_siswa_orangtua':
-        require_once '../app/controllers/AdminController.php';
-        $admin = new AdminController();
-        $admin->getSiswaOrangtua();
-        break;
-
-    case 'admin_get_siswa_tersedia_orangtua':
-        require_once '../app/controllers/AdminController.php';
-        $admin = new AdminController();
-        $admin->getSiswaTersediaOrangtua();
-        break;
-
-    case 'admin_add_siswa_orangtua':
-        require_once '../app/controllers/AdminController.php';
-        $admin = new AdminController();
-        $admin->addSiswaToOrangtua();
-        break;
-
-    case 'admin_remove_siswa_orangtua':
-        require_once '../app/controllers/AdminController.php';
-        $admin = new AdminController();
-        $admin->removeSiswaFromOrangtua();
         break;
 
     case 'admin_update_user':
@@ -266,11 +235,6 @@ switch($action) {
         $ak->exportPDF();
         break;
 
-    case 'admin_kesiswaan_get_presensi_detail':
-        require_once '../app/controllers/AdminKesiswaanController.php';
-        $ak = new AdminKesiswaanController();
-        $ak->getPresensiDetail();
-        break;
         
     case 'admin_update_lokasi':
         require_once '../app/controllers/AdminController.php';
@@ -382,24 +346,6 @@ switch($action) {
         $ak->ubahStatusPresensiSekolah();
         break;
 
-    // Orang Tua Routes
-    case 'orangtua_dashboard':
-        require_once '../app/controllers/OrangTuaController.php';
-        $ortu = new OrangTuaController();
-        $ortu->dashboard();
-        break;
-        
-    case 'get_detail_anak':
-        require_once '../app/controllers/OrangTuaController.php';
-        $ortu = new OrangTuaController();
-        $ortu->getDetailAnak($_GET['siswa_id']);
-        break;
-        
-    case 'get_laporan_mingguan':
-        require_once '../app/controllers/OrangTuaController.php';
-        $ortu = new OrangTuaController();
-        $ortu->getLaporanMingguan($_GET['siswa_id']);
-        break;
     // Default fallback
     default:
         require_once '../app/views/auth/login.php';

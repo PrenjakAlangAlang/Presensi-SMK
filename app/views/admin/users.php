@@ -62,14 +62,6 @@ require_once __DIR__ . '/../layouts/header.php';
                             <button onclick="deleteUser(<?php echo $user->id; ?>)" class="text-red-600 hover:text-red-800 transition-colors">
                                 <i class="fas fa-trash"></i>
                             </button>
-                            <?php if($user->role === 'orangtua'): ?>
-                            <button 
-                                data-orangtua-id="<?php echo $user->id; ?>"
-                                onclick="openKelolaAnakModal(this)"
-                                class="text-green-600 hover:text-green-800 transition-colors">
-                                <i class="fas fa-child"></i>
-                            </button>
-                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -111,7 +103,6 @@ require_once __DIR__ . '/../layouts/header.php';
                         <option value="guru">Guru</option>
                         <option value="admin_kesiswaan">Admin Kesiswaan</option>
                         <option value="siswa">Siswa</option>
-                        <option value="orangtua">Orang Tua</option>
                     </select>
                 </div>
             </div>
@@ -155,7 +146,6 @@ require_once __DIR__ . '/../layouts/header.php';
                         <option value="guru">Guru</option>
                         <option value="admin_kesiswaan">Admin Kesiswaan</option>
                         <option value="siswa">Siswa</option>
-                        <option value="orangtua">Orang Tua</option>
                     </select>
                 </div>
             </div>
@@ -214,131 +204,3 @@ document.getElementById('addUserModal').addEventListener('click', function(e) {
 </script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
-
-<!-- Modal Kelola Anak (Orang Tua) -->
-<div id="kelolaAnakModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Kelola Anak - <span id="modalOrangtuaNama"></span></h3>
-        </div>
-        <div class="p-6 overflow-y-auto max-h-96">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <h4 class="font-medium mb-2">Anak Terdaftar</h4>
-                    <ul id="anakTerdaftar" class="divide-y divide-gray-200 bg-gray-50 rounded p-2"></ul>
-                </div>
-                <div>
-                    <h4 class="font-medium mb-2">Tambah Anak</h4>
-                    <select id="anakSelect" class="w-full p-3 border border-gray-300 rounded-lg"></select>
-                    <div class="mt-3 flex justify-end">
-                        <button id="tambahAnakBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Tambah</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="p-6 border-t border-gray-200 flex justify-end">
-            <button type="button" onclick="closeKelolaAnakModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Tutup</button>
-        </div>
-    </div>
-</div>
-
-<script>
-let currentOrangtuaId = null;
-
-function openKelolaAnakModal(button) {
-    currentOrangtuaId = button.getAttribute('data-orangtua-id');
-    const row = button.closest('tr');
-    const nama = row.querySelector('span.font-medium') ? row.querySelector('span.font-medium').textContent : '';
-    document.getElementById('modalOrangtuaNama').textContent = nama;
-
-    loadAnakTerdaftar(currentOrangtuaId);
-    loadAnakTersedia();
-
-    document.getElementById('kelolaAnakModal').classList.remove('hidden');
-}
-
-function closeKelolaAnakModal() {
-    document.getElementById('kelolaAnakModal').classList.add('hidden');
-}
-
-function loadAnakTerdaftar(orangtuaId) {
-    const ul = document.getElementById('anakTerdaftar');
-    ul.innerHTML = '<li class="p-3 text-gray-500">Memuat...</li>';
-    fetch(`index.php?action=admin_get_siswa_orangtua&orangtua_id=${orangtuaId}`)
-        .then(res => res.json())
-        .then(data => {
-            ul.innerHTML = '';
-            if(!data || data.length === 0) {
-                ul.innerHTML = '<li class="p-3 text-gray-500">Belum ada anak terdaftar</li>';
-                return;
-            }
-            data.forEach(s => {
-                const li = document.createElement('li');
-                li.className = 'p-3 flex justify-between items-center';
-                li.innerHTML = `<div><div class="font-medium">${s.nama}</div><div class="text-xs text-gray-500">${s.email}</div></div><button class="text-red-600 hover:text-red-800" onclick="hapusAnak(${s.id})"><i class="fas fa-trash"></i></button>`;
-                ul.appendChild(li);
-            });
-        })
-        .catch(() => { ul.innerHTML = '<li class="p-3 text-red-500">Gagal memuat data</li>'; });
-}
-
-function loadAnakTersedia() {
-    const select = document.getElementById('anakSelect');
-    select.innerHTML = '<option value="">Memuat...</option>';
-    fetch('index.php?action=admin_get_siswa_tersedia_orangtua')
-        .then(res => res.json())
-        .then(data => {
-            select.innerHTML = '<option value="">Pilih Siswa</option>';
-            data.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = s.nama + ' — ' + s.email;
-                select.appendChild(opt);
-            });
-        })
-        .catch(() => { select.innerHTML = '<option value="">Gagal memuat</option>'; });
-}
-
-document.getElementById('tambahAnakBtn').addEventListener('click', function(){
-    const siswaId = document.getElementById('anakSelect').value;
-    if(!siswaId) return alert('Pilih siswa terlebih dahulu');
-
-    fetch('index.php?action=admin_add_siswa_orangtua', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `siswa_id=${encodeURIComponent(siswaId)}&orangtua_id=${encodeURIComponent(currentOrangtuaId)}`
-    })
-    .then(res => res.json())
-    .then(resp => {
-        if(resp.success) {
-            loadAnakTerdaftar(currentOrangtuaId);
-            loadAnakTersedia();
-        } else alert('Gagal menambahkan anak');
-    })
-    .catch(() => alert('Gagal menambahkan anak'));
-});
-
-function hapusAnak(siswaId) {
-    if(!confirm('Hapus relasi anak dengan orang tua?')) return;
-    fetch('index.php?action=admin_remove_siswa_orangtua', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `siswa_id=${encodeURIComponent(siswaId)}&orangtua_id=${encodeURIComponent(currentOrangtuaId)}`
-    })
-    .then(res => res.json())
-    .then(resp => {
-        if(resp.success) {
-            loadAnakTerdaftar(currentOrangtuaId);
-            loadAnakTersedia();
-        } else alert('Gagal menghapus anak');
-    })
-    .catch(() => alert('Gagal menghapus anak'));
-}
-
-// Close modal when clicking outside
-document.getElementById('kelolaAnakModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeKelolaAnakModal();
-    }
-});
-</script>
