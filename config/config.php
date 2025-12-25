@@ -18,6 +18,15 @@ define('MAX_RADIUS', 100);
 define('DEFAULT_LATITUDE', -7.7956);
 define('DEFAULT_LONGITUDE', 110.3695);
 
+// Email Configuration untuk SwiftMailer
+define('EMAIL_HOST', 'smtp.gmail.com'); // Ganti dengan SMTP server Anda
+define('EMAIL_PORT', 465); // 465 untuk SSL (lebih stabil jika 587 diblokir)
+define('EMAIL_ENCRYPTION', 'ssl'); // 'ssl' untuk port 465
+define('EMAIL_USERNAME', 'kristinluthfi@gmail.com'); // Email pengirim
+define('EMAIL_PASSWORD', 'fbuk xfdr aogc qlmg'); // App password atau password email
+define('EMAIL_FROM', 'kristinluthfi@gmail.com'); // Email pengirim
+define('EMAIL_FROM_NAME', 'Sistem Presensi SMK'); // Nama pengirim
+
 // Fungsi helper
 function isLoggedIn() {
     return isset($_SESSION['user_id']);

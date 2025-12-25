@@ -6,6 +6,8 @@
 // - hasPresensiInSession: mencegah duplikat presensi per sesi
 // - fungsi laporan dan statistik terkait presensi
 require_once 'Database.php';
+require_once __DIR__ . '/BukuIndukModel.php';
+require_once __DIR__ . '/../services/EmailService.php';
 
 class PresensiModel {
     private $db;
@@ -659,6 +661,10 @@ class PresensiModel {
         $this->db->bind(':sesi_id', $sesi_id);
         $absentStudents = $this->db->resultSet();
         
+        // Initialize email service and buku induk model
+        $emailService = new EmailService();
+        $bukuIndukModel = new BukuIndukModel();
+        
         $count = 0;
         foreach ($absentStudents as $student) {
             $data = [
@@ -674,6 +680,24 @@ class PresensiModel {
             ];
             if ($this->recordPresensiSekolah($data)) {
                 $count++;
+                
+                // Kirim email notifikasi ke orang tua
+                try {
+                    $parentContact = $bukuIndukModel->getParentContact($student->id);
+                    if ($parentContact && !empty($parentContact['email'])) {
+                        $tanggal = date('Y-m-d');
+                        $waktu = $sesiInfo->waktu_tutup ?? date('Y-m-d H:i:s');
+                        $emailService->sendAlphaNotificationSekolah(
+                            $parentContact['email'],
+                            $student->nama,
+                            $tanggal,
+                            $waktu
+                        );
+                    }
+                } catch (Exception $e) {
+                    // Log error tapi jangan hentikan proses
+                    error_log('Failed to send alpha notification email: ' . $e->getMessage());
+                }
             }
         }
         
@@ -709,6 +733,10 @@ class PresensiModel {
         $this->db->bind(':sesi_id', $sesi_id);
         $absentStudents = $this->db->resultSet();
         
+        // Initialize email service and buku induk model
+        $emailService = new EmailService();
+        $bukuIndukModel = new BukuIndukModel();
+        
         $count = 0;
         foreach ($absentStudents as $student) {
             $data = [
@@ -725,6 +753,26 @@ class PresensiModel {
             ];
             if ($this->recordPresensiKelas($data)) {
                 $count++;
+                
+                // Kirim email notifikasi ke orang tua
+                try {
+                    $parentContact = $bukuIndukModel->getParentContact($student->siswa_id);
+                    if ($parentContact && !empty($parentContact['email'])) {
+                        $tanggal = date('Y-m-d');
+                        $waktu = $sesiInfo->waktu_tutup ?? date('Y-m-d H:i:s');
+                        $namaKelas = $sesiInfo->nama_kelas ?? 'Kelas';
+                        $emailService->sendAlphaNotificationKelas(
+                            $parentContact['email'],
+                            $student->nama,
+                            $namaKelas,
+                            $tanggal,
+                            $waktu
+                        );
+                    }
+                } catch (Exception $e) {
+                    // Log error tapi jangan hentikan proses
+                    error_log('Failed to send alpha notification email: ' . $e->getMessage());
+                }
             }
         }
         
