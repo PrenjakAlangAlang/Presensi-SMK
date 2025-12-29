@@ -13,11 +13,11 @@ $protectedRoutes = [
     'admin_update_user', 'admin_export_excel', 'admin_export_pdf',
     'admin_kesiswaan_dashboard', 'admin_kesiswaan_buku_induk', 'admin_kesiswaan_presensi_sekolah',
     'admin_kesiswaan_create_presensi_sekolah', 'admin_kesiswaan_extend_presensi_sekolah', 'admin_kesiswaan_close_presensi_sekolah',
-    'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk',
+    'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk', 'admin_kesiswaan_delete_dokumen',
     'admin_kesiswaan_laporan', 'admin_kesiswaan_export_excel', 'admin_kesiswaan_export_pdf',
     'guru_dashboard', 'guru_kelas', 'guru_laporan',
     'siswa_dashboard', 'siswa_presensi', 'siswa_riwayat',
-    'siswa_buku_induk', 'siswa_save_buku_induk'
+    'siswa_buku_induk', 'siswa_save_buku_induk', 'siswa_delete_dokumen'
 ];
 
 if (in_array($action, $protectedRoutes) && !isset($_SESSION['user_id'])) {
@@ -187,6 +187,12 @@ switch($action) {
         $ak->saveBukuInduk();
         break;
 
+    case 'admin_kesiswaan_delete_dokumen':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->deleteDokumen();
+        break;
+
     case 'admin_kesiswaan_presensi_sekolah':
         require_once '../app/controllers/AdminKesiswaanController.php';
         $ak = new AdminKesiswaanController();
@@ -271,6 +277,12 @@ switch($action) {
         require_once '../app/controllers/SiswaController.php';
         $siswa = new SiswaController();
         $siswa->saveBukuInduk();
+        break;
+    
+    case 'siswa_delete_dokumen':
+        require_once '../app/controllers/SiswaController.php';
+        $siswa = new SiswaController();
+        $siswa->deleteDokumen();
         break;
         
     case 'submit_presensi_sekolah':

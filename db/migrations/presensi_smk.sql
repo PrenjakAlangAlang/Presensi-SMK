@@ -56,6 +56,21 @@ INSERT INTO `buku_induk` (`id`, `user_id`, `nama`, `nis`, `nisn`, `tempat_lahir`
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `buku_induk_dokumen`
+--
+
+CREATE TABLE `buku_induk_dokumen` (
+  `id` int NOT NULL,
+  `buku_induk_id` int NOT NULL,
+  `nama_file` varchar(255) NOT NULL,
+  `path_file` varchar(500) NOT NULL,
+  `keterangan` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `kelas`
 --
 
@@ -376,8 +391,13 @@ ALTER TABLE `buku_induk`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uniq_user_buku_induk` (`user_id`);
 
+---- Indexes for table `buku_induk_dokumen`
 --
--- Indexes for table `kelas`
+ALTER TABLE `buku_induk_dokumen`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `buku_induk_id` (`buku_induk_id`);
+
+---- Indexes for table `kelas`
 --
 ALTER TABLE `kelas`
   ADD PRIMARY KEY (`id`),
@@ -455,6 +475,12 @@ ALTER TABLE `buku_induk`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `buku_induk_dokumen`
+--
+ALTER TABLE `buku_induk_dokumen`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `kelas`
 --
 ALTER TABLE `kelas`
@@ -517,6 +543,12 @@ ALTER TABLE `users`
 --
 ALTER TABLE `buku_induk`
   ADD CONSTRAINT `fk_buku_induk_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `buku_induk_dokumen`
+--
+ALTER TABLE `buku_induk_dokumen`
+  ADD CONSTRAINT `fk_buku_induk_dokumen` FOREIGN KEY (`buku_induk_id`) REFERENCES `buku_induk` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `kelas`

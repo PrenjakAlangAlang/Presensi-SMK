@@ -49,6 +49,54 @@ class BukuIndukModel {
         return null;
     }
 
+    /**
+     * Get all documents for a specific buku induk
+     * @param int $bukuIndukId
+     * @return array
+     */
+    public function getDokumen($bukuIndukId) {
+        $this->db->query('SELECT * FROM buku_induk_dokumen WHERE buku_induk_id = :buku_induk_id ORDER BY created_at DESC');
+        $this->db->bind(':buku_induk_id', $bukuIndukId);
+        return $this->db->resultSet();
+    }
+
+    /**
+     * Add a document to buku induk
+     * @param array $data
+     * @return bool
+     */
+    public function addDokumen($data) {
+        $this->db->query('INSERT INTO buku_induk_dokumen (buku_induk_id, nama_file, path_file, keterangan) 
+                          VALUES (:buku_induk_id, :nama_file, :path_file, :keterangan)');
+        $this->db->bind(':buku_induk_id', $data['buku_induk_id']);
+        $this->db->bind(':nama_file', $data['nama_file']);
+        $this->db->bind(':path_file', $data['path_file']);
+        $this->db->bind(':keterangan', $data['keterangan'] ?? null);
+        return $this->db->execute();
+    }
+
+    /**
+     * Delete a document by id
+     * @param int $id
+     * @return bool
+     */
+    public function deleteDokumen($id) {
+        $this->db->query('DELETE FROM buku_induk_dokumen WHERE id = :id');
+        $this->db->bind(':id', $id);
+        return $this->db->execute();
+    }
+
+    /**
+     * Get document by id
+     * @param int $id
+     * @return object|null
+     */
+    public function getDokumenById($id) {
+        $this->db->query('SELECT * FROM buku_induk_dokumen WHERE id = :id');
+        $this->db->bind(':id', $id);
+        return $this->db->single();
+    }
+
     public function upsert($data) {
         // Jika record sudah ada untuk user_id -> update, jika belum -> insert
         $existing = $this->getByUserId($data['user_id']);

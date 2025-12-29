@@ -217,6 +217,10 @@ class SiswaController {
     public function bukuInduk() {
         $user_id = $_SESSION['user_id'];
         $record = $this->bukuIndukModel->getByUserId($user_id);
+        $dokumen = [];
+        if ($record) {
+            $dokumen = $this->bukuIndukModel->getDokumen($record->id);
+        }
         require_once __DIR__ . '/../views/siswa/buku_induk.php';
     }
 
@@ -252,11 +256,71 @@ class SiswaController {
         }
 
         if($this->bukuIndukModel->upsert($data)) {
+            // Get the buku induk record to get its ID
+            $record = $this->bukuIndukModel->getByUserId($user_id);
+            
+            // Handle multiple PDF uploads
+            if(isset($_FILES['dokumen_files']) && !empty($_FILES['dokumen_files']['name'][0])) {
+                $fileCount = count($_FILES['dokumen_files']['name']);
+                for($i = 0; $i < $fileCount; $i++) {
+                    if($_FILES['dokumen_files']['error'][$i] === UPLOAD_ERR_OK) {
+                        $file = [
+                            'name' => $_FILES['dokumen_files']['name'][$i],
+                            'type' => $_FILES['dokumen_files']['type'][$i],
+                            'tmp_name' => $_FILES['dokumen_files']['tmp_name'][$i],
+                            'error' => $_FILES['dokumen_files']['error'][$i],
+                            'size' => $_FILES['dokumen_files']['size'][$i]
+                        ];
+                        
+                        $upload = $this->handlePdfUpload($file);
+                        if($upload['success']) {
+                            $keterangan = isset($_POST['keterangan'][$i]) ? trim($_POST['keterangan'][$i]) : null;
+                            $this->bukuIndukModel->addDokumen([
+                                'buku_induk_id' => $record->id,
+                                'nama_file' => $file['name'],
+                                'path_file' => $upload['path'],
+                                'keterangan' => $keterangan
+                            ]);
+                        }
+                    }
+                }
+            }
+            
             $_SESSION['success'] = 'Data buku induk diperbarui.';
         } else {
             $_SESSION['error'] = 'Gagal menyimpan data.';
         }
 
+        header('Location: ' . BASE_URL . '/public/index.php?action=siswa_buku_induk');
+        exit();
+    }
+
+    public function deleteDokumen() {
+        if($_SERVER['REQUEST_METHOD'] !== 'POST') return;
+        
+        $id = $_POST['dokumen_id'] ?? null;
+        if(!$id) {
+            $_SESSION['error'] = 'ID dokumen tidak valid.';
+        } else {
+            $dokumen = $this->bukuIndukModel->getDokumenById($id);
+            if($dokumen) {
+                // Delete file from server
+                $filePath = str_replace(BASE_URL . '/public/', __DIR__ . '/../../public/', $dokumen->path_file);
+                if(file_exists($filePath)) {
+                    unlink($filePath);
+                }
+                
+                // Delete from database
+                if($this->bukuIndukModel->deleteDokumen($id)) {
+                    $_SESSION['success'] = 'Dokumen berhasil dihapus.';
+                } else {
+                    $_SESSION['error'] = 'Gagal menghapus dokumen.';
+                }
+            } else {
+                $_SESSION['error'] = 'Dokumen tidak ditemukan.';
+            }
+        }
+        
         header('Location: ' . BASE_URL . '/public/index.php?action=siswa_buku_induk');
         exit();
     }
