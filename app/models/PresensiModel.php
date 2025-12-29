@@ -75,6 +75,22 @@ class PresensiModel {
         return $this->db->resultSet();
     }
     
+    public function getPresensiSekolahByUserPeriode($user_id, $startDate, $endDate = null) {
+        if ($endDate) {
+            $sql = 'SELECT * FROM presensi_sekolah WHERE user_id = :user_id AND DATE(waktu) BETWEEN :start_date AND :end_date ORDER BY waktu DESC';
+            $this->db->query($sql);
+            $this->db->bind(':user_id', $user_id);
+            $this->db->bind(':start_date', $startDate);
+            $this->db->bind(':end_date', $endDate);
+        } else {
+            $sql = 'SELECT * FROM presensi_sekolah WHERE user_id = :user_id AND DATE(waktu) = :tanggal ORDER BY waktu DESC';
+            $this->db->query($sql);
+            $this->db->bind(':user_id', $user_id);
+            $this->db->bind(':tanggal', $startDate);
+        }
+        return $this->db->resultSet();
+    }
+    
     public function getPresensiKelasByUser($user_id, $limit = null) {
         $sql = 'SELECT pk.*, k.nama_kelas 
                 FROM presensi_kelas pk 
@@ -88,6 +104,30 @@ class PresensiModel {
         
         $this->db->query($sql);
         $this->db->bind(':user_id', $user_id);
+        return $this->db->resultSet();
+    }
+    
+    public function getPresensiKelasByUserPeriode($user_id, $startDate, $endDate = null) {
+        if ($endDate) {
+            $sql = 'SELECT pk.*, k.nama_kelas 
+                    FROM presensi_kelas pk 
+                    INNER JOIN kelas k ON pk.kelas_id = k.id 
+                    WHERE pk.user_id = :user_id AND DATE(pk.waktu) BETWEEN :start_date AND :end_date 
+                    ORDER BY pk.waktu DESC';
+            $this->db->query($sql);
+            $this->db->bind(':user_id', $user_id);
+            $this->db->bind(':start_date', $startDate);
+            $this->db->bind(':end_date', $endDate);
+        } else {
+            $sql = 'SELECT pk.*, k.nama_kelas 
+                    FROM presensi_kelas pk 
+                    INNER JOIN kelas k ON pk.kelas_id = k.id 
+                    WHERE pk.user_id = :user_id AND DATE(pk.waktu) = :tanggal 
+                    ORDER BY pk.waktu DESC';
+            $this->db->query($sql);
+            $this->db->bind(':user_id', $user_id);
+            $this->db->bind(':tanggal', $startDate);
+        }
         return $this->db->resultSet();
     }
     

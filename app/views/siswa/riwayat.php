@@ -1,11 +1,86 @@
 <?php
 $page_title = "Riwayat Presensi";
 require_once __DIR__ . '/../layouts/header.php';
+
+// Get current filter values
+$periode = $_GET['periode'] ?? 'bulanan';
+$tanggal = $_GET['tanggal'] ?? date('Y-m-d');
+$minggu = $_GET['minggu'] ?? date('W');
+$bulan = $_GET['bulan'] ?? date('m');
+$tahun = $_GET['tahun'] ?? date('Y');
 ?>
 
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-800">Riwayat Presensi</h2>
     <p class="text-gray-600">Lihat history kehadiran Anda di sekolah dan kelas</p>
+</div>
+
+<!-- Filter Periode -->
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Pilih Periode -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Periode</label>
+            <select id="periodeSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="harian" <?php echo $periode === 'harian' ? 'selected' : ''; ?>>Harian</option>
+                <option value="mingguan" <?php echo $periode === 'mingguan' ? 'selected' : ''; ?>>Mingguan</option>
+                <option value="bulanan" <?php echo $periode === 'bulanan' ? 'selected' : ''; ?>>Bulanan</option>
+            </select>
+        </div>
+        
+        <!-- Filter Harian -->
+        <div id="filterHarian" class="<?php echo $periode !== 'harian' ? 'hidden' : ''; ?>">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
+            <input type="date" id="tanggalInput" value="<?php echo $tanggal; ?>" 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        
+        <!-- Filter Mingguan -->
+        <div id="filterMingguan" class="<?php echo $periode !== 'mingguan' ? 'hidden' : ''; ?> md:col-span-2">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Minggu</label>
+                    <input type="number" id="mingguInput" value="<?php echo $minggu; ?>" min="1" max="53"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                    <input type="number" id="tahunMingguInput" value="<?php echo $tahun; ?>" min="2020" max="2099"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filter Bulanan -->
+        <div id="filterBulanan" class="<?php echo $periode !== 'bulanan' ? 'hidden' : ''; ?> md:col-span-2">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                    <select id="bulanInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <?php
+                        $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                        for ($i = 1; $i <= 12; $i++) {
+                            $selected = $bulan == str_pad($i, 2, '0', STR_PAD_LEFT) ? 'selected' : '';
+                            echo "<option value='" . str_pad($i, 2, '0', STR_PAD_LEFT) . "' $selected>" . $bulan_names[$i-1] . "</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                    <input type="number" id="tahunBulanInput" value="<?php echo $tahun; ?>" min="2020" max="2099"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tombol Filter -->
+        <div class="flex items-end">
+            <button onclick="applyFilter()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center justify-center">
+                <i class="fas fa-filter mr-2"></i>Terapkan
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Statistik Ringkas -->
@@ -46,7 +121,19 @@ require_once __DIR__ . '/../layouts/header.php';
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
     <!-- Grafik Kehadiran -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6">Grafik Kehadiran Bulan Ini</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-6">
+            Grafik Kehadiran 
+            <?php 
+            if ($periode === 'harian') {
+                echo date('d M Y', strtotime($tanggal));
+            } elseif ($periode === 'mingguan') {
+                echo 'Minggu ' . $minggu . ' Tahun ' . $tahun;
+            } else {
+                $bulan_names = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                echo $bulan_names[$bulan - 1] . ' ' . $tahun;
+            }
+            ?>
+        </h3>
         <div class="h-64">
             <canvas id="monthlyChart"></canvas>
         </div>
@@ -198,7 +285,19 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <!-- Ringkasan Bulanan -->
 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">Ringkasan Bulanan</h3>
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+        Ringkasan 
+        <?php 
+        if ($periode === 'harian') {
+            echo date('d M Y', strtotime($tanggal));
+        } elseif ($periode === 'mingguan') {
+            echo 'Minggu ' . $minggu . ' Tahun ' . $tahun;
+        } else {
+            $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            echo $bulan_names[$bulan - 1] . ' ' . $tahun;
+        }
+        ?>
+    </h3>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="text-center p-4 bg-gray-50 rounded-lg">
             <div class="text-2xl font-bold text-blue-600"><?php echo $statistik->hadir ?? '0'; ?></div>
@@ -226,15 +325,52 @@ require_once __DIR__ . '/../layouts/header.php';
 </div>
 
 <script>
+// Period filter functions
+function applyFilter() {
+    const periode = document.getElementById('periodeSelect').value;
+    let url = '<?php echo BASE_URL; ?>/public/index.php?action=siswa_riwayat&periode=' + periode;
+    
+    if (periode === 'harian') {
+        const tanggal = document.getElementById('tanggalInput').value;
+        url += '&tanggal=' + tanggal;
+    } else if (periode === 'mingguan') {
+        const minggu = document.getElementById('mingguInput').value;
+        const tahun = document.getElementById('tahunMingguInput').value;
+        url += '&minggu=' + minggu + '&tahun=' + tahun;
+    } else {
+        const bulan = document.getElementById('bulanInput').value;
+        const tahun = document.getElementById('tahunBulanInput').value;
+        url += '&bulan=' + bulan + '&tahun=' + tahun;
+    }
+    
+    window.location.href = url;
+}
+
+document.getElementById('periodeSelect').addEventListener('change', function() {
+    const periode = this.value;
+    
+    document.getElementById('filterHarian').classList.add('hidden');
+    document.getElementById('filterMingguan').classList.add('hidden');
+    document.getElementById('filterBulanan').classList.add('hidden');
+    
+    if (periode === 'harian') {
+        document.getElementById('filterHarian').classList.remove('hidden');
+    } else if (periode === 'mingguan') {
+        document.getElementById('filterMingguan').classList.remove('hidden');
+    } else {
+        document.getElementById('filterBulanan').classList.remove('hidden');
+    }
+});
+
 // Grafik Bulanan
 const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
 const monthlyChart = new Chart(monthlyCtx, {
     type: 'bar',
     data: {
-        labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+        labels: <?php echo json_encode($chartData['labels']); ?>,
         datasets: [{
-            label: 'Hari Hadir',
-            data: [4, 5, 4, 5],
+            label: 'Kehadiran',
+            data: <?php echo json_encode($chartData['values']); ?>,
             backgroundColor: '#3b82f6',
             borderColor: '#3b82f6',
             borderWidth: 1
@@ -246,7 +382,6 @@ const monthlyChart = new Chart(monthlyCtx, {
         scales: {
             y: {
                 beginAtZero: true,
-                max: 7,
                 ticks: {
                     stepSize: 1
                 }
