@@ -170,53 +170,109 @@ $tahun = $_GET['tahun'] ?? date('Y');
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead>
-                    <tr class="bg-gray-50">
-                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Tanggal</th>
-                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Waktu</th>
-                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Lokasi</th>
-                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Keterangan</th>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">No</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Tanggal</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Waktu</th>
+                        <!--
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Status</th>
+                        -->
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jenis</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Alasan</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Detail</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     <?php if(!empty($presensiSekolah)): ?>
-                        <?php foreach($presensiSekolah as $presensi): ?>
+                        <?php $no = 1; foreach($presensiSekolah as $presensi): ?>
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 text-gray-600">
+                            <td class="px-6 py-4 text-sm text-gray-900"><?php echo $no++; ?></td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
                                 <?php echo date('d M Y', strtotime($presensi->waktu)); ?>
                             </td>
-                            <td class="px-4 py-3 text-gray-600">
+                            <td class="px-6 py-4 text-sm text-gray-700">
                                 <?php echo date('H:i', strtotime($presensi->waktu)); ?>
                             </td>
-                            <td class="px-4 py-3">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
-                                    <?php echo $presensi->status == 'valid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
-                                    <?php echo $presensi->status == 'valid' ? 'Valid' : 'Invalid'; ?>
+                            <!--
+                            <td class="px-6 py-4">
+                                <?php 
+                                $statusBadgeClass = 'bg-gray-100 text-gray-800';
+                                $statusIcon = 'fa-question';
+                                $statusText = 'Belum';
+                                
+                                if($presensi->status === 'valid') {
+                                    $statusBadgeClass = 'bg-green-100 text-green-800';
+                                    $statusIcon = 'fa-check-circle';
+                                    $statusText = 'Valid';
+                                } else if($presensi->status === 'invalid') {
+                                    $statusBadgeClass = 'bg-red-100 text-red-800';
+                                    $statusIcon = 'fa-times-circle';
+                                    $statusText = 'Tidak Valid';
+                                }
+                                ?>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium <?php echo $statusBadgeClass; ?>">
+                                    <i class="fas <?php echo $statusIcon; ?> mr-1"></i>
+                                    <?php echo $statusText; ?>
                                 </span>
                             </td>
-                            <td class="px-4 py-3">
-                                <?php if($presensi->status == 'valid'): ?>
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        <i class="fas fa-map-marker-alt mr-1"></i>
-                                        Dalam Radius
-                                    </span>
-                                <?php else: ?>
-                                    <span class="text-gray-400">-</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="px-4 py-3 text-gray-600">
+                            -->
+                            <td class="px-6 py-4">
                                 <?php 
                                 $jenis = $presensi->jenis ?? 'hadir';
-                                echo $jenis == 'hadir' ? 'Presensi Sekolah' : ucfirst($jenis);
+                                $jenisBadgeClass = 'bg-green-100 text-green-800';
+                                $jenisIcon = 'fa-check';
+                                
+                                if($jenis === 'izin') {
+                                    $jenisBadgeClass = 'bg-yellow-100 text-yellow-800';
+                                    $jenisIcon = 'fa-envelope';
+                                } else if($jenis === 'sakit') {
+                                    $jenisBadgeClass = 'bg-orange-100 text-orange-800';
+                                    $jenisIcon = 'fa-first-aid';
+                                } else if($jenis === 'alpha') {
+                                    $jenisBadgeClass = 'bg-red-100 text-red-800';
+                                    $jenisIcon = 'fa-times';
+                                }
                                 ?>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium <?php echo $jenisBadgeClass; ?>">
+                                    <i class="fas <?php echo $jenisIcon; ?> mr-1"></i>
+                                    <?php echo ucfirst($jenis); ?>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700">
+                                <?php 
+                                if($jenis === 'hadir') {
+                                    echo $presensi->jarak ? round($presensi->jarak, 2) . ' m' : '-';
+                                } else {
+                                    echo '-';
+                                }
+                                ?>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                <?php 
+                                if(!empty($presensi->alasan)) {
+                                    echo '<span class="line-clamp-2" title="' . htmlspecialchars($presensi->alasan) . '">' . 
+                                         htmlspecialchars(substr($presensi->alasan, 0, 50)) . 
+                                         (strlen($presensi->alasan) > 50 ? '...' : '') . 
+                                         '</span>';
+                                } else {
+                                    echo '-';
+                                }
+                                ?>
+                            </td>
+                            <td class="px-6 py-4">
+                                <button onclick='lihatDetailRiwayat(<?php echo json_encode($presensi); ?>)' 
+                                        class="text-blue-600 hover:text-blue-800 transition-colors p-2 rounded-lg hover:bg-blue-50">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="px-4 py-8 text-center text-gray-500">
-                                <i class="fas fa-inbox text-3xl mb-2 text-gray-300"></i>
-                                <p>Belum ada riwayat presensi sekolah</p>
+                            <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                                <i class="fas fa-inbox text-4xl mb-3 text-gray-400"></i>
+                                <p class="text-sm">Belum ada data presensi sekolah untuk periode ini</p>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -230,50 +286,113 @@ $tahun = $_GET['tahun'] ?? date('Y');
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead>
-                    <tr class="bg-gray-50">
-                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Tanggal</th>
-                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kelas</th>
-                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Waktu</th>
-                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Lokasi</th>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">No</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Tanggal</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Kelas</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Waktu</th>
+                        <!--
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Status</th>
+                        -->
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jenis</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Alasan</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Detail</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     <?php if(!empty($presensiKelas)): ?>
-                        <?php foreach($presensiKelas as $presensi): ?>
+                        <?php $no = 1; foreach($presensiKelas as $presensi): ?>
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 text-gray-600">
+                            <td class="px-6 py-4 text-sm text-gray-900"><?php echo $no++; ?></td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
                                 <?php echo date('d M Y', strtotime($presensi->waktu)); ?>
                             </td>
-                            <td class="px-4 py-3 text-gray-800 font-medium">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-800">
                                 <?php echo htmlspecialchars($presensi->nama_kelas ?? 'Kelas'); ?>
                             </td>
-                            <td class="px-4 py-3 text-gray-600">
+                            <td class="px-6 py-4 text-sm text-gray-700">
                                 <?php echo date('H:i', strtotime($presensi->waktu)); ?>
                             </td>
-                            <td class="px-4 py-3">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
-                                    <?php echo $presensi->status == 'valid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
-                                    <?php echo $presensi->status == 'valid' ? 'Valid' : 'Invalid'; ?>
+                            <!--
+                            <td class="px-6 py-4">
+                                <?php 
+                                $statusBadgeClass = 'bg-gray-100 text-gray-800';
+                                $statusIcon = 'fa-question';
+                                $statusText = 'Belum';
+                                
+                                if($presensi->status === 'valid') {
+                                    $statusBadgeClass = 'bg-green-100 text-green-800';
+                                    $statusIcon = 'fa-check-circle';
+                                    $statusText = 'Valid';
+                                } else if($presensi->status === 'invalid') {
+                                    $statusBadgeClass = 'bg-red-100 text-red-800';
+                                    $statusIcon = 'fa-times-circle';
+                                    $statusText = 'Tidak Valid';
+                                }
+                                ?>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium <?php echo $statusBadgeClass; ?>">
+                                    <i class="fas <?php echo $statusIcon; ?> mr-1"></i>
+                                    <?php echo $statusText; ?>
                                 </span>
                             </td>
-                            <td class="px-4 py-3">
-                                <?php if($presensi->status == 'valid'): ?>
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        <i class="fas fa-map-marker-alt mr-1"></i>
-                                        Valid
-                                    </span>
-                                <?php else: ?>
-                                    <span class="text-gray-400">-</span>
-                                <?php endif; ?>
+                            -->
+                            <td class="px-6 py-4">
+                                <?php 
+                                $jenis = $presensi->jenis ?? 'hadir';
+                                $jenisBadgeClass = 'bg-green-100 text-green-800';
+                                $jenisIcon = 'fa-check';
+                                
+                                if($jenis === 'izin') {
+                                    $jenisBadgeClass = 'bg-yellow-100 text-yellow-800';
+                                    $jenisIcon = 'fa-envelope';
+                                } else if($jenis === 'sakit') {
+                                    $jenisBadgeClass = 'bg-orange-100 text-orange-800';
+                                    $jenisIcon = 'fa-first-aid';
+                                } else if($jenis === 'alpha') {
+                                    $jenisBadgeClass = 'bg-red-100 text-red-800';
+                                    $jenisIcon = 'fa-times';
+                                }
+                                ?>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium <?php echo $jenisBadgeClass; ?>">
+                                    <i class="fas <?php echo $jenisIcon; ?> mr-1"></i>
+                                    <?php echo ucfirst($jenis); ?>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700">
+                                <?php 
+                                if($jenis === 'hadir') {
+                                    echo $presensi->jarak ? round($presensi->jarak, 2) . ' m' : '-';
+                                } else {
+                                    echo '-';
+                                }
+                                ?>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                <?php 
+                                if(!empty($presensi->alasan)) {
+                                    echo '<span class="line-clamp-2" title="' . htmlspecialchars($presensi->alasan) . '">' . 
+                                         htmlspecialchars(substr($presensi->alasan, 0, 50)) . 
+                                         (strlen($presensi->alasan) > 50 ? '...' : '') . 
+                                         '</span>';
+                                } else {
+                                    echo '-';
+                                }
+                                ?>
+                            </td>
+                            <td class="px-6 py-4">
+                                <button onclick='lihatDetailRiwayat(<?php echo json_encode($presensi); ?>)' 
+                                        class="text-blue-600 hover:text-blue-800 transition-colors p-2 rounded-lg hover:bg-blue-50">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="px-4 py-8 text-center text-gray-500">
-                                <i class="fas fa-inbox text-3xl mb-2 text-gray-300"></i>
-                                <p>Belum ada riwayat presensi kelas</p>
+                            <td colspan="9" class="px-6 py-12 text-center text-gray-500">
+                                <i class="fas fa-inbox text-4xl mb-3 text-gray-400"></i>
+                                <p class="text-sm">Belum ada data presensi kelas untuk periode ini</p>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -346,13 +465,147 @@ function applyFilter() {
     window.location.href = url;
 }
 
+// Tab switching
+function switchTab(tab) {
+    // Hide all content
+    document.getElementById('content-sekolah').classList.add('hidden');
+    document.getElementById('content-kelas').classList.add('hidden');
+    
+    // Remove active state from all tabs
+    document.getElementById('tab-sekolah').classList.remove('border-blue-500', 'text-blue-600');
+    document.getElementById('tab-sekolah').classList.add('border-transparent', 'text-gray-500');
+    document.getElementById('tab-kelas').classList.remove('border-blue-500', 'text-blue-600');
+    document.getElementById('tab-kelas').classList.add('border-transparent', 'text-gray-500');
+    
+    // Show selected content and activate tab
+    if (tab === 'sekolah') {
+        document.getElementById('content-sekolah').classList.remove('hidden');
+        document.getElementById('tab-sekolah').classList.add('border-blue-500', 'text-blue-600');
+        document.getElementById('tab-sekolah').classList.remove('border-transparent', 'text-gray-500');
+    } else {
+        document.getElementById('content-kelas').classList.remove('hidden');
+        document.getElementById('tab-kelas').classList.add('border-blue-500', 'text-blue-600');
+        document.getElementById('tab-kelas').classList.remove('border-transparent', 'text-gray-500');
+    }
+}
+
+// Modal untuk detail riwayat
+function lihatDetailRiwayat(data) {
+    const modal = document.createElement('div');
+    modal.id = 'detailRiwayatModal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    
+    const jenis = data.jenis || 'hadir';
+    let jenisBadge = '';
+    if(jenis === 'hadir') {
+        jenisBadge = '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"><i class="fas fa-check mr-1"></i> Hadir</span>';
+    } else if(jenis === 'izin') {
+        jenisBadge = '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><i class="fas fa-envelope mr-1"></i> Izin</span>';
+    } else if(jenis === 'sakit') {
+        jenisBadge = '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800"><i class="fas fa-first-aid mr-1"></i> Sakit</span>';
+    } else if(jenis === 'alpha') {
+        jenisBadge = '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"><i class="fas fa-times mr-1"></i> Alpha</span>';
+    }
+    
+    let statusBadge = '';
+    if(data.status === 'valid') {
+        statusBadge = '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"><i class="fas fa-check-circle mr-1"></i> Valid</span>';
+    } else if(data.status === 'invalid') {
+        statusBadge = '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"><i class="fas fa-times-circle mr-1"></i> Tidak Valid</span>';
+    }
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-800">Detail Presensi</h3>
+                    <button onclick="closeDetailRiwayatModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Tanggal</p>
+                        <p class="text-gray-900 font-medium">${new Date(data.waktu).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Waktu</p>
+                        <p class="text-gray-900 font-medium">${new Date(data.waktu).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Status Validasi</p>
+                        <p>${statusBadge}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Jenis Kehadiran</p>
+                        <p>${jenisBadge}</p>
+                    </div>
+                </div>
+                
+                ${jenis === 'hadir' ? `
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Jarak dari Sekolah</p>
+                    <p class="text-gray-900 font-medium">${data.jarak ? Math.round(data.jarak * 100) / 100 + ' meter' : '-'}</p>
+                </div>
+                ` : ''}
+                
+                ${data.alasan ? `
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Alasan</p>
+                    <p class="text-gray-900">${data.alasan}</p>
+                </div>
+                ` : ''}
+                
+                ${data.foto_bukti ? `
+                <div>
+                    <p class="text-sm text-gray-600 mb-2">Bukti</p>
+                    <a href="${data.foto_bukti}" target="_blank" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        Lihat Bukti
+                    </a>
+                </div>
+                ` : ''}
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end">
+                <button onclick="closeDetailRiwayatModal()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close on click outside
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeDetailRiwayatModal();
+        }
+    });
+}
+
+function closeDetailRiwayatModal() {
+    const modal = document.getElementById('detailRiwayatModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Period selector change handler
 document.getElementById('periodeSelect').addEventListener('change', function() {
     const periode = this.value;
     
+    // Hide all filters
     document.getElementById('filterHarian').classList.add('hidden');
     document.getElementById('filterMingguan').classList.add('hidden');
     document.getElementById('filterBulanan').classList.add('hidden');
     
+    // Show selected filter
     if (periode === 'harian') {
         document.getElementById('filterHarian').classList.remove('hidden');
     } else if (periode === 'mingguan') {
@@ -424,28 +677,6 @@ const percentageChart = new Chart(percentageCtx, {
     }
 });
 
-// Tab switching function
-function switchTab(tabName) {
-    // Hide all content
-    document.getElementById('content-sekolah').classList.add('hidden');
-    document.getElementById('content-kelas').classList.add('hidden');
-    
-    // Remove active state from all tabs
-    document.getElementById('tab-sekolah').classList.remove('border-blue-500', 'text-blue-600');
-    document.getElementById('tab-sekolah').classList.add('border-transparent', 'text-gray-500');
-    document.getElementById('tab-kelas').classList.remove('border-blue-500', 'text-blue-600');
-    document.getElementById('tab-kelas').classList.add('border-transparent', 'text-gray-500');
-    
-    // Show selected content and set active tab
-    document.getElementById('content-' + tabName).classList.remove('hidden');
-    document.getElementById('tab-' + tabName).classList.add('border-blue-500', 'text-blue-600');
-    document.getElementById('tab-' + tabName).classList.remove('border-transparent', 'text-gray-500');
-}
-
-// Initialize with sekolah tab active
-document.addEventListener('DOMContentLoaded', function() {
-    switchTab('sekolah');
-});
 </script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

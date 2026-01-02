@@ -172,7 +172,7 @@ require_once __DIR__ . '/../layouts/header.php';
     <!-- Quick Actions -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-4">
             <a href="index.php?action=siswa_presensi" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 text-center transition-colors">
                 <i class="fas fa-fingerprint text-blue-600 text-2xl mb-2"></i>
                 <p class="text-sm font-medium text-blue-800">Presensi</p>
@@ -184,10 +184,6 @@ require_once __DIR__ . '/../layouts/header.php';
             <a href="index.php?action=siswa_buku_induk" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 text-center transition-colors">
                 <i class="fas fa-id-card text-orange-600 text-2xl mb-2"></i>
                 <p class="text-sm font-medium text-orange-800">Buku Induk</p>
-            </a>
-            <a href="#" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 text-center transition-colors">
-                <i class="fas fa-user text-purple-600 text-2xl mb-2"></i>
-                <p class="text-sm font-medium text-purple-800">Profil</p>
             </a>
         </div>
     </div>
