@@ -55,15 +55,15 @@ require_once __DIR__ . '/../layouts/header.php';
             <input type="text" name="nama_ibu" class="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon Orang Tua</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon Orang Tua/ Wali</label>
             <input type="text" name="no_telp_ortu" class="w-full border rounded-lg px-4 py-2" placeholder="08xxxxxxxxxx" />
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email Orang Tua</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email Orang Tua/ Wali</label>
             <input type="email" name="email_ortu" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" />
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen PDF (opsional)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen KTP (*PDF)</label>
             <input type="file" name="dokumen_pdf" accept="application/pdf" class="w-full" />
             <input type="hidden" name="existing_pdf" id="existing_pdf" />
         </div>

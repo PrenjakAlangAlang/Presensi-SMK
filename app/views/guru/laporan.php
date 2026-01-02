@@ -164,7 +164,13 @@ $presentase = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
     </div>
 </div>
 
-
+<!-- Grafik Distribusi Kehadiran -->
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-8 no-print">
+    <h3 class="text-lg font-semibold text-gray-800 mb-6">Distribusi Kehadiran</h3>
+    <div class="h-80">
+        <canvas id="attendanceDistributionChart"></canvas>
+    </div>
+</div>
 
 <!-- Header Cetak (hanya muncul saat print) -->
 <div class="print-only" style="display: none;">
@@ -500,6 +506,61 @@ function showNotification(type, message) {
         notification.remove();
     }, 3000);
 }
+
+<?php if($selected_kelas): ?>
+// Grafik Distribusi Kehadiran - Data Real dari PHP
+const distributionCtx = document.getElementById('attendanceDistributionChart');
+if (distributionCtx) {
+    const distributionChart = new Chart(distributionCtx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Hadir', 'Izin', 'Sakit', 'Alpha'],
+            datasets: [{
+                data: [
+                    <?php echo $hadir; ?>,
+                    <?php echo $izin; ?>,
+                    <?php echo $sakit; ?>,
+                    <?php echo $alpha; ?>
+                ],
+                backgroundColor: [
+                    '#10B981', // Green - Hadir
+                    '#F59E0B', // Yellow - Izin
+                    '#EF4444', // Red - Sakit
+                    '#6B7280'  // Gray - Alpha
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = <?php echo $totalSiswa; ?>;
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return label + ': ' + value + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+<?php endif; ?>
 
 // Print styles
 </script>

@@ -132,7 +132,8 @@ class AdminController {
             $data = [
                 'nama_kelas' => $_POST['nama_kelas'],
                 'tahun_ajaran' => $_POST['tahun_ajaran'],
-                'wali_kelas' => $_POST['wali_kelas'] ?? null
+                'wali_kelas' => $_POST['wali_kelas'] ?? null,
+                'jadwal' => $_POST['jadwal'] ?? null
             ];
 
             if($this->kelasModel->createKelas($data)) {
@@ -154,7 +155,8 @@ class AdminController {
                 'id' => $_POST['id'],
                 'nama_kelas' => $_POST['nama_kelas'],
                 'tahun_ajaran' => $_POST['tahun_ajaran'],
-                'wali_kelas' => $_POST['wali_kelas'] ?? null
+                'wali_kelas' => $_POST['wali_kelas'] ?? null,
+                'jadwal' => $_POST['jadwal'] ?? null
             ];
 
             if($this->kelasModel->updateKelas($data)) {

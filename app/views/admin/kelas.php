@@ -61,6 +61,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Nama Kelas</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Tahun Ajaran</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Wali Kelas</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jadwal Kelas</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jumlah Siswa</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Status</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Aksi</th>
@@ -90,6 +91,12 @@ require_once __DIR__ . '/../layouts/header.php';
                             <span class="text-gray-400">-</span>
                         <?php endif; ?>
                     </td>
+                    <td class="px-6 py-4">
+                        <span class="text-gray-700 text-sm">
+                            <i class="fas fa-clock text-gray-500 mr-1"></i>
+                            <?php echo htmlspecialchars($k->jadwal ?? 'Belum diatur'); ?>
+                        </span>
+                    </td>
                     <td class="px-6 py-4 text-gray-600">
                         <?php 
                         $jumlahSiswa = count($kelasModel->getSiswaInKelas($k->id));
@@ -108,6 +115,7 @@ require_once __DIR__ . '/../layouts/header.php';
                                                         data-nama_kelas="<?php echo htmlspecialchars($k->nama_kelas, ENT_QUOTES); ?>"
                                                         data-tahun_ajaran="<?php echo htmlspecialchars($k->tahun_ajaran, ENT_QUOTES); ?>"
                                                         data-wali_kelas="<?php echo $k->wali_kelas; ?>"
+                                                        data-jadwal="<?php echo htmlspecialchars($k->jadwal ?? '', ENT_QUOTES); ?>"
                                                         onclick="openEditKelasModal(this)" 
                                                         class="text-blue-600 hover:text-blue-800 transition-colors p-2 rounded-lg hover:bg-blue-50">
                                                         <i class="fas fa-edit"></i>
@@ -158,6 +166,12 @@ require_once __DIR__ . '/../layouts/header.php';
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jadwal</label>
+                    <input type="text" name="jadwal" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                           placeholder="Contoh: Senin, 08:00 - 09:30">
+                </div>
             </div>
             <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
                 <button type="button" onclick="closeAddKelasModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
@@ -198,6 +212,12 @@ require_once __DIR__ . '/../layouts/header.php';
                             <option value="<?php echo $g->id; ?>"><?php echo htmlspecialchars($g->nama); ?></option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jadwal</label>
+                    <input type="text" name="jadwal" id="edit_kelas_jadwal" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                           placeholder="Contoh: Senin, 08:00 - 09:30">
                 </div>
             </div>
             <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
@@ -273,11 +293,13 @@ function openEditKelasModal(button) {
     var nama = button.getAttribute('data-nama_kelas');
     var tahun = button.getAttribute('data-tahun_ajaran');
     var wali = button.getAttribute('data-wali_kelas');
+    var jadwal = button.getAttribute('data-jadwal');
 
     document.getElementById('edit_kelas_id').value = id;
     document.getElementById('edit_kelas_nama').value = nama;
     document.getElementById('edit_kelas_tahun').value = tahun;
     document.getElementById('edit_kelas_wali').value = wali;
+    document.getElementById('edit_kelas_jadwal').value = jadwal;
 
     document.getElementById('editKelasModal').classList.remove('hidden');
 }

@@ -47,15 +47,63 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
         </div>
         <div class="text-center py-4">
-            <div class="text-3xl font-bold text-gray-800 mb-2">-</div>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                <i class="fas fa-clock mr-1"></i>
-                Belum Presensi
-            </span>
+            <?php if($presensiHariIni): ?>
+                <div class="text-3xl font-bold text-gray-800 mb-2"><?php echo date('H:i', strtotime($presensiHariIni->waktu)); ?></div>
+                <?php 
+                $jenis = $presensiHariIni->jenis ?? 'hadir';
+                $status = $presensiHariIni->status ?? 'valid';
+                
+                // Determine badge styling based on type and status
+                if($jenis == 'hadir' && $status == 'valid') {
+                    $badgeClass = 'bg-green-100 text-green-800';
+                    $icon = 'fa-check-circle';
+                    $label = 'Hadir - Valid';
+                } elseif($jenis == 'hadir' && $status == 'invalid') {
+                    $badgeClass = 'bg-red-100 text-red-800';
+                    $icon = 'fa-exclamation-circle';
+                    $label = 'Hadir - Lokasi Invalid';
+                } elseif($jenis == 'izin') {
+                    $badgeClass = 'bg-yellow-100 text-yellow-800';
+                    $icon = 'fa-envelope';
+                    $label = 'Izin';
+                } elseif($jenis == 'sakit') {
+                    $badgeClass = 'bg-orange-100 text-orange-800';
+                    $icon = 'fa-first-aid';
+                    $label = 'Sakit';
+                } elseif($jenis == 'alpha') {
+                    $badgeClass = 'bg-gray-100 text-gray-800';
+                    $icon = 'fa-times-circle';
+                    $label = 'Alpha';
+                } else {
+                    $badgeClass = 'bg-gray-100 text-gray-600';
+                    $icon = 'fa-question-circle';
+                    $label = ucfirst($jenis);
+                }
+                ?>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <?php echo $badgeClass; ?>">
+                    <i class="fas <?php echo $icon; ?> mr-1"></i>
+                    <?php echo $label; ?>
+                </span>
+                <?php if($presensiHariIni->alasan): ?>
+                    <p class="text-sm text-gray-600 mt-2"><?php echo htmlspecialchars($presensiHariIni->alasan); ?></p>
+                <?php endif; ?>
+            <?php else: ?>
+                <div class="text-3xl font-bold text-gray-800 mb-2">-</div>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                    <i class="fas fa-clock mr-1"></i>
+                    Belum Presensi
+                </span>
+            <?php endif; ?>
         </div>
-        <a href="index.php?action=siswa_presensi" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg transition-colors block">
-            <i class="fas fa-fingerprint mr-2"></i>Lakukan Presensi
-        </a>
+        <?php if(!$presensiHariIni): ?>
+            <a href="index.php?action=siswa_presensi" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg transition-colors block">
+                <i class="fas fa-fingerprint mr-2"></i>Lakukan Presensi
+            </a>
+        <?php else: ?>
+            <a href="index.php?action=siswa_riwayat" class="w-full bg-gray-600 hover:bg-gray-700 text-white text-center py-2 px-4 rounded-lg transition-colors block">
+                <i class="fas fa-history mr-2"></i>Lihat Riwayat
+            </a>
+        <?php endif; ?>
     </div>
 
     <!-- Kelas Aktif -->
@@ -65,22 +113,30 @@ require_once __DIR__ . '/../layouts/header.php';
                 <i class="fas fa-chalkboard text-purple-600 text-xl"></i>
             </div>
             <div>
-                <h3 class="text-lg font-semibold text-gray-800">Kelas Aktif</h3>
-                <p class="text-gray-600 text-sm">Jadwal hari ini</p>
+                <h3 class="text-lg font-semibold text-gray-800">Kelas Anda</h3>
+                <p class="text-gray-600 text-sm">Jadwal kelas</p>
             </div>
         </div>
         <div class="space-y-3">
-            <?php foreach($kelas as $k): ?>
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                    <p class="font-medium text-gray-800"><?php echo $k->nama_kelas; ?></p>
-                    <p class="text-sm text-gray-600">08:00 - 09:30</p>
+            <?php if(!empty($kelas)): ?>
+                <?php foreach($kelas as $k): ?>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="font-medium text-gray-800"><?php echo htmlspecialchars($k->nama_kelas); ?></p>
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-clock text-gray-500 mr-1"></i>
+                            <?php echo htmlspecialchars($k->jadwal ?? 'Jadwal belum diatur'); ?>
+                        </p>
+                    </div>
+                    
                 </div>
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Aktif
-                </span>
-            </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="text-center py-4 text-gray-500">
+                    <i class="fas fa-info-circle mb-2"></i>
+                    <p class="text-sm">Anda belum terdaftar di kelas manapun</p>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

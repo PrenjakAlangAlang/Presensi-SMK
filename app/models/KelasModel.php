@@ -32,23 +32,25 @@ class KelasModel {
     
     public function createKelas($data) {
         // Buat kelas baru
-        $this->db->query('INSERT INTO kelas (nama_kelas, tahun_ajaran, wali_kelas) 
-                         VALUES (:nama_kelas, :tahun_ajaran, :wali_kelas)');
+        $this->db->query('INSERT INTO kelas (nama_kelas, tahun_ajaran, wali_kelas, jadwal) 
+                         VALUES (:nama_kelas, :tahun_ajaran, :wali_kelas, :jadwal)');
         $this->db->bind(':nama_kelas', $data['nama_kelas']);
         $this->db->bind(':tahun_ajaran', $data['tahun_ajaran']);
         $this->db->bind(':wali_kelas', $data['wali_kelas']);
+        $this->db->bind(':jadwal', $data['jadwal'] ?? null);
         
         return $this->db->execute();
     }
     
     public function updateKelas($data) {
         // Perbarui data kelas
-        $this->db->query('UPDATE kelas SET nama_kelas = :nama_kelas, tahun_ajaran = :tahun_ajaran, wali_kelas = :wali_kelas 
+        $this->db->query('UPDATE kelas SET nama_kelas = :nama_kelas, tahun_ajaran = :tahun_ajaran, wali_kelas = :wali_kelas, jadwal = :jadwal 
                          WHERE id = :id');
         $this->db->bind(':id', $data['id']);
         $this->db->bind(':nama_kelas', $data['nama_kelas']);
         $this->db->bind(':tahun_ajaran', $data['tahun_ajaran']);
         $this->db->bind(':wali_kelas', $data['wali_kelas']);
+        $this->db->bind(':jadwal', $data['jadwal'] ?? null);
         
         return $this->db->execute();
     }

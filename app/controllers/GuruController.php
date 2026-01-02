@@ -27,10 +27,16 @@ class GuruController {
         $guru_id = $_SESSION['user_id'];
         $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
         $totalSiswa = 0;
+        $presensiAktif = 0;
         
         foreach($kelasSaya as $kelas) {
             $siswa = $this->kelasModel->getSiswaInKelas($kelas->id);
             $totalSiswa += count($siswa);
+            
+            // Hitung kelas dengan sesi presensi aktif
+            if($this->presensiSesiModel->isSessionActive($kelas->id)) {
+                $presensiAktif++;
+            }
         }
         
         // Ambil presensi terbaru untuk semua kelas yang diajar guru

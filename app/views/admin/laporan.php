@@ -62,46 +62,6 @@ require_once __DIR__ . '/../layouts/header.php';
     </form>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-    <!-- Statistik Cards -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
-        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <i class="fas fa-users text-green-600 text-2xl"></i>
-        </div>
-        <?php 
-        $total_siswa = isset($statistik->total_siswa) ? $statistik->total_siswa : 0;
-        $hadir = isset($statistik->hadir) ? $statistik->hadir : 0;
-        $persentase = $total_siswa > 0 ? round(($hadir / $total_siswa) * 100) : 0;
-        ?>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $persentase; ?>%</h3>
-        <p class="text-gray-600 text-sm">Rata-rata Kehadiran</p>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
-        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <i class="fas fa-user-check text-blue-600 text-2xl"></i>
-        </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo isset($statistik->hadir) ? $statistik->hadir : 0; ?></h3>
-        <p class="text-gray-600 text-sm">Siswa Hadir</p>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
-        <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <i class="fas fa-user-clock text-yellow-600 text-2xl"></i>
-        </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo isset($statistik->izin) ? $statistik->izin : 0; ?></h3>
-        <p class="text-gray-600 text-sm">Siswa Izin</p>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
-        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <i class="fas fa-user-times text-red-600 text-2xl"></i>
-        </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo isset($statistik->alpha) ? $statistik->alpha : 0; ?></h3>
-        <p class="text-gray-600 text-sm">Siswa Alpha</p>
-    </div>
-</div>
-
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
     <!-- Ringkasan Kehadiran Hari Ini -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">

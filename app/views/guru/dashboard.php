@@ -8,7 +8,7 @@ require_once __DIR__ . '/../layouts/header.php';
     <p class="text-gray-600">Monitor kelas dan presensi siswa</p>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
     <!-- Statistik Cards -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div class="flex items-center justify-between">
@@ -40,33 +40,20 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-sm">Kehadiran Hari Ini</p>
-                <h3 class="text-2xl font-bold text-gray-800 mt-1">82%</h3>
-            </div>
-            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-fingerprint text-orange-600 text-xl"></i>
-            </div>
-        </div>
-        <div class="mt-4">
-            <span class="text-green-600 text-sm font-medium">+3% dari kemarin</span>
-        </div>
-    </div>
+    
 
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-500 text-sm">Presensi Aktif</p>
-                <h3 class="text-2xl font-bold text-gray-800 mt-1">2</h3>
+                <h3 class="text-2xl font-bold text-gray-800 mt-1"><?php echo $presensiAktif; ?></h3>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <i class="fas fa-clock text-purple-600 text-xl"></i>
             </div>
         </div>
         <div class="mt-4">
-            <span class="text-green-600 text-sm font-medium">Kelas dibuka</span>
+            <span class="<?php echo $presensiAktif > 0 ? 'text-green-600' : 'text-gray-600'; ?> text-sm font-medium"><?php echo $presensiAktif > 0 ? 'Kelas dibuka' : 'Tidak ada kelas aktif'; ?></span>
         </div>
     </div>
 </div>
@@ -159,7 +146,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         <td class="px-4 py-3 text-gray-600">
                             <?php 
                             // Jika izin atau sakit, tidak ada validasi lokasi
-                            if(isset($aktivitas->jenis) && ($aktivitas->jenis == 'izin' || $aktivitas->jenis == 'sakit')): 
+                            if(isset($aktivitas->jenis) && ($aktivitas->jenis == 'izin' || $aktivitas->jenis == 'sakit' || $aktivitas->jenis == 'alpha')): 
                             ?>
                                 <span class="text-gray-400">-</span>
                             <?php elseif($aktivitas->status == 'valid'): ?>

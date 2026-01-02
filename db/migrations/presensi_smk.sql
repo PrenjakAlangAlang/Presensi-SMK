@@ -78,17 +78,16 @@ CREATE TABLE `kelas` (
   `id` int NOT NULL,
   `nama_kelas` varchar(100) NOT NULL,
   `tahun_ajaran` varchar(20) DEFAULT NULL,
-  `wali_kelas` int DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `wali_kelas` int DEFAULT NULL,  `jadwal` varchar(100) DEFAULT NULL,  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `kelas`
 --
 
-INSERT INTO `kelas` (`id`, `nama_kelas`, `tahun_ajaran`, `wali_kelas`, `created_at`) VALUES
-(1, 'XI RPL 1', '2025/2026', 2, '2025-10-31 07:43:25'),
-(3, 'XII Multimedia', '2025/2026', 2, '2025-11-07 07:14:50');
+INSERT INTO `kelas` (`id`, `nama_kelas`, `tahun_ajaran`, `wali_kelas`, `jadwal`, `created_at`) VALUES
+(1, 'XI RPL 1', '2025/2026', 2, 'Senin, 08:00 - 09:30', '2025-10-31 07:43:25'),
+(3, 'XII Multimedia', '2025/2026', 2, 'Rabu, 10:00 - 11:30', '2025-11-07 07:14:50');
 
 -- --------------------------------------------------------
 

@@ -18,8 +18,11 @@ require_once __DIR__ . '/../layouts/header.php';
                 </div>
                 <div>
                     <h3 class="font-semibold text-gray-800 text-lg"><?php echo $kelas->nama_kelas; ?></h3>
-                    <p class="text-gray-600 text-sm"><?php echo $kelas->tahun_ajaran; ?></p>
-                </div>
+                    <p class="text-gray-600 text-sm"><?php echo $kelas->tahun_ajaran; ?></p>                    <?php if(!empty($kelas->jadwal)): ?>
+                    <p class="text-gray-500 text-xs mt-1">
+                        <i class="fas fa-clock mr-1"></i><?php echo htmlspecialchars($kelas->jadwal); ?>
+                    </p>
+                    <?php endif; ?>                </div>
             </div>
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                 Aktif
@@ -30,18 +33,6 @@ require_once __DIR__ . '/../layouts/header.php';
             <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Total Siswa:</span>
                 <span class="font-medium text-gray-800"><?php echo isset($kelas->total_siswa) ? $kelas->total_siswa : count($kelas->siswa); ?> siswa</span>
-            </div>
-            <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Hadir Hari Ini:</span>
-                <span class="font-medium text-green-600">
-                    <?php 
-                    $hadir = 0;
-                    foreach($kelas->presensi_hari_ini as $presensi) {
-                        if($presensi->status == 'valid') $hadir++;
-                    }
-                    echo $hadir . ' siswa';
-                    ?>
-                </span>
             </div>
             <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Presensi Dibuka:</span>

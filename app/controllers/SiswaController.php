@@ -29,7 +29,8 @@ class SiswaController {
         $user_id = $_SESSION['user_id'];
         $statistik = $this->presensiModel->getStatistikKehadiran($user_id);
         $presensiTerakhir = $this->presensiModel->getPresensiSekolahByUser($user_id, 5);
-        $kelas = $this->kelasModel->getAllKelas();
+        $presensiHariIni = $this->presensiModel->getPresensiHariIni($user_id);
+        $kelas = $this->kelasModel->getKelasBySiswa($user_id);
         
     require_once __DIR__ . '/../views/siswa/dashboard.php';
     }
@@ -58,7 +59,7 @@ class SiswaController {
         
         // Get statistik based on period
         if ($periode === 'harian') {
-            $statistik = $this->presensiModel->getStatistikPresensiSekolah($tanggal);
+            $statistik = $this->presensiModel->getStatistikPresensiSekolah($tanggal, null, null, $user_id);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUserPeriode($user_id, $tanggal, null);
             $presensiKelas = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $tanggal, null);
         } elseif ($periode === 'mingguan') {
@@ -68,7 +69,7 @@ class SiswaController {
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUserPeriode($user_id, $startDate, $endDate);
             $presensiKelas = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $startDate, $endDate);
         } else {
-            $statistik = $this->presensiModel->getStatistikPresensiSekolah(null, $bulan, $tahun);
+            $statistik = $this->presensiModel->getStatistikPresensiSekolah(null, $bulan, $tahun, $user_id);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUser($user_id, 100);
             $presensiKelas = $this->presensiModel->getPresensiKelasByUser($user_id, 100);
             
