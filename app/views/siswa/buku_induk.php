@@ -52,7 +52,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <input type="email" name="email_ortu" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" value="<?php echo htmlspecialchars($record->email_ortu ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen PDF (opsional)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen KTP (*PDF)</label>
                 <input type="file" name="dokumen_pdf" accept="application/pdf" class="w-full" />
                 <input type="hidden" name="existing_pdf" value="<?php echo htmlspecialchars($record->dokumen_pdf ?? '', ENT_QUOTES); ?>" />
                 <?php if(!empty($record->dokumen_pdf)): ?>

@@ -116,11 +116,47 @@ require_once __DIR__ . '/../layouts/header.php';
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Kelas</label>
                     <select id="kelasSelect" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition">
-                        <option value="">Pilih Kelas</option>
+                        <option value="">-- Pilih Kelas yang Akan Diikuti --</option>
                         <?php foreach($kelas as $k): ?>
-                            <option value="<?php echo $k->id; ?>"><?php echo htmlspecialchars($k->nama_kelas); ?></option>
+                            <option value="<?php echo $k->id; ?>" 
+                                    data-nama="<?php echo htmlspecialchars($k->nama_kelas); ?>"
+                                    data-tahun="<?php echo htmlspecialchars($k->tahun_ajaran ?? '-'); ?>"
+                                    data-wali="<?php echo htmlspecialchars($k->wali_kelas_nama ?? 'Belum ditentukan'); ?>"
+                                    data-jadwal="<?php echo htmlspecialchars($k->jadwal ?? 'Belum diatur'); ?>">
+                                <?php echo htmlspecialchars($k->nama_kelas); ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+
+                <!-- Info Kelas Detail (ditampilkan setelah kelas dipilih) -->
+                <div id="kelasDetailCard" class="hidden">
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 border border-green-200">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-chalkboard-teacher text-white text-2xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 id="kelasDetailNama" class="text-lg font-bold text-gray-800 mb-1">-</h3>
+                                <p id="kelasDetailTahun" class="text-sm text-gray-600 mb-3">-</p>
+                                
+                                <div class="grid grid-cols-1 gap-2 text-sm">
+                                    <div class="flex items-center text-gray-700">
+                                        <i class="fas fa-user-tie w-5 text-green-600"></i>
+                                        <span class="ml-2"><strong>Wali Kelas:</strong> <span id="kelasDetailWali">-</span></span>
+                                    </div>
+                                    <div class="flex items-center text-gray-700">
+                                        <i class="fas fa-clock w-5 text-green-600"></i>
+                                        <span class="ml-2"><strong>Jadwal:</strong> <span id="kelasDetailJadwal">-</span></span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-info-circle w-5 text-green-600"></i>
+                                        <span class="ml-2"><strong>Status Sesi:</strong> <span id="statusKelas" class="font-semibold">-</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Jenis Presensi Kelas -->
@@ -147,19 +183,10 @@ require_once __DIR__ . '/../layouts/header.php';
                     <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, atau PDF. Maks 2MB</p>
                 </div>
 
-                <div class="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <h4 class="font-medium text-green-800 mb-2">Informasi Kelas</h4>
-                    <div class="text-sm text-green-700 space-y-1">
-                        <div><strong>Guru:</strong> <span id="guruInfo">-</span></div>
-                        <div><strong>Waktu:</strong> <span id="waktuKelas">-</span></div>
-                        <div><strong>Status:</strong> <span id="statusKelas" class="text-yellow-600">Belum dipilih</span></div>
-                    </div>
-                </div>
-
                 <button id="presensiKelasBtn" 
                         onclick="submitPresensiKelas()" 
                         disabled
-                        class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allied text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg">
+                        class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg shadow-lg">
                     <i class="fas fa-chalkboard-teacher"></i>
                     <span>Presensi Kelas</span>
                 </button>
@@ -190,15 +217,6 @@ require_once __DIR__ . '/../layouts/header.php';
                             <div class="w-4 h-4 border-2 border-blue-500 bg-blue-100 rounded-full"></div>
                             <span>Radius Presensi (100m)</span>
                         </div>
-                    </div>
-                </div>
-                <div class="p-4 bg-blue-50 rounded-lg">
-                    <h4 class="font-medium text-blue-800 mb-2">Informasi Sistem</h4>
-                    <div class="text-sm text-blue-700 space-y-2">
-                        <p><strong>Algoritma:</strong> Haversine Formula</p>
-                        <p><strong>Radius:</strong> 100 meter</p>
-                        <p><strong>Teknologi:</strong> GPS + Geotagging</p>
-                        <p><strong>Akurasi:</strong> ± 10 meter</p>
                     </div>
                 </div>
             </div>
@@ -687,8 +705,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Untuk izin/sakit, tidak perlu validasi lokasi - enable button jika kelas dipilih dan ada sesi
             if (selectedKelas && kelasSesi[selectedKelas]) {
                 presensiKelasBtn.disabled = false;
-                document.getElementById('statusKelas').textContent = 'Siap submit ' + this.value;
-                document.getElementById('statusKelas').className = 'text-green-600';
+                document.getElementById('statusKelas').textContent = 'Sesi Aktif';
+                document.getElementById('statusKelas').className = 'text-green-600 font-semibold';
             }
         } else {
             formAlasan.classList.add('hidden');
@@ -700,12 +718,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedKelas && kelasSesi[selectedKelas] && userLocation) {
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
                 presensiKelasBtn.disabled = distance > 100;
-                document.getElementById('statusKelas').textContent = distance <= 100 ? 'Siap presensi' : 'Di luar radius';
-                document.getElementById('statusKelas').className = distance <= 100 ? 'text-green-600' : 'text-red-600';
+                document.getElementById('statusKelas').textContent = distance <= 100 ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
+                document.getElementById('statusKelas').className = distance <= 100 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
             } else {
                 presensiKelasBtn.disabled = true;
-                document.getElementById('statusKelas').textContent = userLocation ? 'Siap presensi' : 'Menunggu lokasi';
-                document.getElementById('statusKelas').className = userLocation ? 'text-yellow-600' : 'text-yellow-600';
+                document.getElementById('statusKelas').textContent = !userLocation ? 'Menunggu lokasi GPS...' : 'Tidak ada sesi aktif';
+                document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
             }
         }
     });
@@ -741,33 +759,55 @@ document.addEventListener('DOMContentLoaded', function() {
         const selected = this.value;
         const presensiKelasBtn = document.getElementById('presensiKelasBtn');
         const jenisPresensi = document.getElementById('jenisPresensiKelas').value;
+        const kelasDetailCard = document.getElementById('kelasDetailCard');
 
         if (!selected) {
             presensiKelasBtn.disabled = true;
+            kelasDetailCard.classList.add('hidden');
             document.getElementById('statusKelas').textContent = 'Belum dipilih';
-            document.getElementById('statusKelas').className = 'text-yellow-600';
+            document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
             return;
         }
+
+        // Tampilkan detail kelas yang dipilih
+        const selectedOption = this.options[this.selectedIndex];
+        const kelasNama = selectedOption.getAttribute('data-nama');
+        const kelasTahun = selectedOption.getAttribute('data-tahun');
+        const kelasWali = selectedOption.getAttribute('data-wali');
+        const kelasJadwal = selectedOption.getAttribute('data-jadwal');
+
+        document.getElementById('kelasDetailNama').textContent = kelasNama;
+        document.getElementById('kelasDetailTahun').textContent = 'Tahun Ajaran: ' + kelasTahun;
+        document.getElementById('kelasDetailWali').textContent = kelasWali;
+        document.getElementById('kelasDetailJadwal').textContent = kelasJadwal;
+        kelasDetailCard.classList.remove('hidden');
 
         // enable only if session active
         const sesiAktif = kelasSesi[selected] || false;
         if (!sesiAktif) {
             presensiKelasBtn.disabled = true;
             document.getElementById('statusKelas').textContent = 'Tidak ada sesi aktif';
-            document.getElementById('statusKelas').className = 'text-red-600';
+            document.getElementById('statusKelas').className = 'text-red-600 font-semibold';
             return;
         }
 
         // Jika izin/sakit, tidak perlu validasi lokasi
         if (jenisPresensi === 'izin' || jenisPresensi === 'sakit') {
             presensiKelasBtn.disabled = false;
-            document.getElementById('statusKelas').textContent = 'Siap submit ' + jenisPresensi;
-            document.getElementById('statusKelas').className = 'text-green-600';
+            document.getElementById('statusKelas').textContent = 'Sesi Aktif';
+            document.getElementById('statusKelas').className = 'text-green-600 font-semibold';
         } else {
-            // Untuk hadir, perlu validasi lokasi
-            presensiKelasBtn.disabled = !userLocation;
-            document.getElementById('statusKelas').textContent = userLocation ? 'Siap presensi' : 'Menunggu lokasi';
-            document.getElementById('statusKelas').className = userLocation ? 'text-green-600' : 'text-yellow-600';
+            // Untuk hadir, harus ada lokasi dan dalam radius
+            if (!userLocation) {
+                presensiKelasBtn.disabled = true;
+                document.getElementById('statusKelas').textContent = 'Menunggu lokasi GPS...';
+                document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
+            } else {
+                const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
+                presensiKelasBtn.disabled = distance > 100;
+                document.getElementById('statusKelas').textContent = distance <= 100 ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
+                document.getElementById('statusKelas').className = distance <= 100 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+            }
         }
     });
 });
