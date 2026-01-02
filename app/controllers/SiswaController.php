@@ -60,16 +60,19 @@ class SiswaController {
         // Get statistik based on period
         if ($periode === 'harian') {
             $statistik = $this->presensiModel->getStatistikPresensiSekolah($tanggal, null, null, $user_id);
+            $statistikKelas = $this->presensiModel->getStatistikPresensiKelas($tanggal, null, null, $user_id);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUserPeriode($user_id, $tanggal, null);
             $presensiKelas = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $tanggal, null);
         } elseif ($periode === 'mingguan') {
             $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
             $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
             $statistik = $this->getStatistikMingguan($user_id, $startDate, $endDate);
+            $statistikKelas = $this->getStatistikMingguanKelas($user_id, $startDate, $endDate);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUserPeriode($user_id, $startDate, $endDate);
             $presensiKelas = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $startDate, $endDate);
         } else {
             $statistik = $this->presensiModel->getStatistikPresensiSekolah(null, $bulan, $tahun, $user_id);
+            $statistikKelas = $this->presensiModel->getStatistikPresensiKelas(null, $bulan, $tahun, $user_id);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUser($user_id, 100);
             $presensiKelas = $this->presensiModel->getPresensiKelasByUser($user_id, 100);
             
@@ -84,6 +87,7 @@ class SiswaController {
         
         // Get chart data based on period
         $chartData = $this->getChartData($user_id, $periode, $tanggal, $minggu, $bulan, $tahun);
+        $chartDataKelas = $this->getChartDataKelas($user_id, $periode, $tanggal, $minggu, $bulan, $tahun);
         
         require_once __DIR__ . '/../views/siswa/riwayat.php';
     }
@@ -417,6 +421,22 @@ class SiswaController {
         return $db->single();
     }
     
+    private function getStatistikMingguanKelas($user_id, $startDate, $endDate) {
+        $db = new Database();
+        $db->query('SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = "valid" AND jenis = "hadir" THEN 1 ELSE 0 END) as hadir,
+                    SUM(CASE WHEN jenis = "izin" THEN 1 ELSE 0 END) as izin,
+                    SUM(CASE WHEN jenis = "sakit" THEN 1 ELSE 0 END) as sakit,
+                    SUM(CASE WHEN jenis = "alpha" THEN 1 ELSE 0 END) as alpha
+                    FROM presensi_kelas 
+                    WHERE user_id = :user_id AND DATE(waktu) BETWEEN :start_date AND :end_date');
+        $db->bind(':user_id', $user_id);
+        $db->bind(':start_date', $startDate);
+        $db->bind(':end_date', $endDate);
+        return $db->single();
+    }
+    
     private function getChartData($user_id, $periode, $tanggal, $minggu, $bulan, $tahun) {
         $db = new Database();
         $data = [];
@@ -481,6 +501,91 @@ class SiswaController {
             
             $db->query('SELECT DAY(waktu) as hari, COUNT(*) as jumlah 
                        FROM presensi_sekolah 
+                       WHERE user_id = :user_id AND MONTH(waktu) = :bulan AND YEAR(waktu) = :tahun AND (status = "valid" OR jenis IN ("izin", "sakit"))
+                       GROUP BY DAY(waktu)');
+            $db->bind(':user_id', $user_id);
+            $db->bind(':bulan', $bulan);
+            $db->bind(':tahun', $tahun);
+            $results = $db->resultSet();
+            
+            foreach ($results as $row) {
+                $weekNum = ceil($row->hari / 7) - 1;
+                if ($weekNum >= 0 && $weekNum < 5) {
+                    $values[$weekNum] += $row->jumlah;
+                }
+            }
+            
+            $data['labels'] = $labels;
+            $data['values'] = $values;
+        }
+        
+        return $data;
+    }
+    
+    private function getChartDataKelas($user_id, $periode, $tanggal, $minggu, $bulan, $tahun) {
+        $db = new Database();
+        $data = [];
+        
+        if ($periode === 'harian') {
+            // Show hourly data for the day
+            $labels = [];
+            $values = [];
+            for ($i = 0; $i < 24; $i++) {
+                $labels[] = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
+                $values[] = 0;
+            }
+            
+            $db->query('SELECT HOUR(waktu) as jam, COUNT(*) as jumlah 
+                       FROM presensi_kelas 
+                       WHERE user_id = :user_id AND DATE(waktu) = :tanggal 
+                       GROUP BY HOUR(waktu)');
+            $db->bind(':user_id', $user_id);
+            $db->bind(':tanggal', $tanggal);
+            $results = $db->resultSet();
+            
+            foreach ($results as $row) {
+                $values[$row->jam] = $row->jumlah;
+            }
+            
+            $data['labels'] = $labels;
+            $data['values'] = $values;
+            
+        } elseif ($periode === 'mingguan') {
+            // Show daily data for the week
+            $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
+            $labels = [];
+            $values = [];
+            
+            for ($i = 0; $i < 7; $i++) {
+                $date = date('Y-m-d', strtotime($startDate . ' +' . $i . ' days'));
+                $dayName = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                $labels[] = $dayName[date('w', strtotime($date))];
+                
+                $db->query('SELECT COUNT(*) as jumlah 
+                           FROM presensi_kelas 
+                           WHERE user_id = :user_id AND DATE(waktu) = :tanggal AND (status = "valid" OR jenis IN ("izin", "sakit"))');
+                $db->bind(':user_id', $user_id);
+                $db->bind(':tanggal', $date);
+                $result = $db->single();
+                $values[] = $result->jumlah ?? 0;
+            }
+            
+            $data['labels'] = $labels;
+            $data['values'] = $values;
+            
+        } else {
+            // Show weekly data for the month
+            $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
+            $labels = [];
+            $values = [];
+            
+            for ($week = 1; $week <= 5; $week++) {
+                $labels[] = 'Minggu ' . $week;
+                $values[] = 0;
+            }
+            
+            $db->query('SELECT DAY(waktu) as hari, COUNT(*) as jumlah 
+                       FROM presensi_kelas 
                        WHERE user_id = :user_id AND MONTH(waktu) = :bulan AND YEAR(waktu) = :tahun AND (status = "valid" OR jenis IN ("izin", "sakit"))
                        GROUP BY DAY(waktu)');
             $db->bind(':user_id', $user_id);

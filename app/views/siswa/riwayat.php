@@ -84,7 +84,7 @@ $tahun = $_GET['tahun'] ?? date('Y');
 </div>
 
 <!-- Statistik Ringkas -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<div id="statistik-sekolah" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
         <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <i class="fas fa-calendar-check text-green-600 text-xl"></i>
@@ -118,32 +118,99 @@ $tahun = $_GET['tahun'] ?? date('Y');
     </div>
 </div>
 
+<!-- Statistik Ringkas Kelas -->
+<div id="statistik-kelas" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 hidden">
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
+        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-calendar-check text-green-600 text-xl"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $statistikKelas->hadir ?? '0'; ?></h3>
+        <p class="text-gray-600 text-sm">Hadir</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
+        <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-envelope text-yellow-600 text-xl"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $statistikKelas->izin ?? '0'; ?></h3>
+        <p class="text-gray-600 text-sm">Izin</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
+        <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-first-aid text-orange-600 text-xl"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $statistikKelas->sakit ?? '0'; ?></h3>
+        <p class="text-gray-600 text-sm">Sakit</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
+        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-times text-red-600 text-xl"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1"><?php echo $statistikKelas->alpha ?? '0'; ?></h3>
+        <p class="text-gray-600 text-sm">Alpha</p>
+    </div>
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-    <!-- Grafik Kehadiran -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6">
-            Grafik Kehadiran 
-            <?php 
-            if ($periode === 'harian') {
-                echo date('d M Y', strtotime($tanggal));
-            } elseif ($periode === 'mingguan') {
-                echo 'Minggu ' . $minggu . ' Tahun ' . $tahun;
-            } else {
-                $bulan_names = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-                echo $bulan_names[$bulan - 1] . ' ' . $tahun;
-            }
-            ?>
-        </h3>
-        <div class="h-64">
-            <canvas id="monthlyChart"></canvas>
+    <!-- Grafik Kehadiran Sekolah -->
+    <div id="grafik-sekolah" class="contents">
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">
+                Grafik Kehadiran Sekolah
+                <?php 
+                if ($periode === 'harian') {
+                    echo date('d M Y', strtotime($tanggal));
+                } elseif ($periode === 'mingguan') {
+                    echo 'Minggu ' . $minggu . ' Tahun ' . $tahun;
+                } else {
+                    $bulan_names = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                    echo $bulan_names[$bulan - 1] . ' ' . $tahun;
+                }
+                ?>
+            </h3>
+            <div class="h-64">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Presentase Kehadiran Sekolah -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">Presentase Kehadiran Sekolah</h3>
+            <div class="h-64">
+                <canvas id="percentageChart"></canvas>
+            </div>
         </div>
     </div>
 
-    <!-- Presentase Kehadiran -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6">Presentase Kehadiran</h3>
-        <div class="h-64">
-            <canvas id="percentageChart"></canvas>
+    <!-- Grafik Kehadiran Kelas -->
+    <div id="grafik-kelas" class="contents hidden">
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">
+                Grafik Kehadiran Kelas
+                <?php 
+                if ($periode === 'harian') {
+                    echo date('d M Y', strtotime($tanggal));
+                } elseif ($periode === 'mingguan') {
+                    echo 'Minggu ' . $minggu . ' Tahun ' . $tahun;
+                } else {
+                    $bulan_names = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                    echo $bulan_names[$bulan - 1] . ' ' . $tahun;
+                }
+                ?>
+            </h3>
+            <div class="h-64">
+                <canvas id="monthlyChartKelas"></canvas>
+            </div>
+        </div>
+
+        <!-- Presentase Kehadiran Kelas -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">Presentase Kehadiran Kelas</h3>
+            <div class="h-64">
+                <canvas id="percentageChartKelas"></canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -402,46 +469,7 @@ $tahun = $_GET['tahun'] ?? date('Y');
     </div>
 </div>
 
-<!-- Ringkasan Bulanan -->
-<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">
-        Ringkasan 
-        <?php 
-        if ($periode === 'harian') {
-            echo date('d M Y', strtotime($tanggal));
-        } elseif ($periode === 'mingguan') {
-            echo 'Minggu ' . $minggu . ' Tahun ' . $tahun;
-        } else {
-            $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-            echo $bulan_names[$bulan - 1] . ' ' . $tahun;
-        }
-        ?>
-    </h3>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="text-center p-4 bg-gray-50 rounded-lg">
-            <div class="text-2xl font-bold text-blue-600"><?php echo $statistik->hadir ?? '0'; ?></div>
-            <div class="text-sm text-gray-600">Hari Hadir</div>
-        </div>
-        <div class="text-center p-4 bg-gray-50 rounded-lg">
-            <div class="text-2xl font-bold text-green-600">
-                <?php 
-                $total = $statistik->total ?? 1;
-                $hadir = $statistik->hadir ?? 0;
-                echo $total > 0 ? round(($hadir / $total) * 100) : 0;
-                ?>%
-            </div>
-            <div class="text-sm text-gray-600">Presentase</div>
-        </div>
-        <div class="text-center p-4 bg-gray-50 rounded-lg">
-            <div class="text-2xl font-bold text-yellow-600"><?php echo ($statistik->izin ?? 0) + ($statistik->sakit ?? 0); ?></div>
-            <div class="text-sm text-gray-600">Izin & Sakit</div>
-        </div>
-        <div class="text-center p-4 bg-gray-50 rounded-lg">
-            <div class="text-2xl font-bold text-red-600"><?php echo $statistik->alpha ?? '0'; ?></div>
-            <div class="text-sm text-gray-600">Tidak Hadir</div>
-        </div>
-    </div>
-</div>
+
 
 <script>
 // Period filter functions
@@ -471,6 +499,14 @@ function switchTab(tab) {
     document.getElementById('content-sekolah').classList.add('hidden');
     document.getElementById('content-kelas').classList.add('hidden');
     
+    // Hide/show statistik
+    document.getElementById('statistik-sekolah').classList.add('hidden');
+    document.getElementById('statistik-kelas').classList.add('hidden');
+    
+    // Hide/show grafik
+    document.getElementById('grafik-sekolah').classList.add('hidden');
+    document.getElementById('grafik-kelas').classList.add('hidden');
+    
     // Remove active state from all tabs
     document.getElementById('tab-sekolah').classList.remove('border-blue-500', 'text-blue-600');
     document.getElementById('tab-sekolah').classList.add('border-transparent', 'text-gray-500');
@@ -480,10 +516,14 @@ function switchTab(tab) {
     // Show selected content and activate tab
     if (tab === 'sekolah') {
         document.getElementById('content-sekolah').classList.remove('hidden');
+        document.getElementById('statistik-sekolah').classList.remove('hidden');
+        document.getElementById('grafik-sekolah').classList.remove('hidden');
         document.getElementById('tab-sekolah').classList.add('border-blue-500', 'text-blue-600');
         document.getElementById('tab-sekolah').classList.remove('border-transparent', 'text-gray-500');
     } else {
         document.getElementById('content-kelas').classList.remove('hidden');
+        document.getElementById('statistik-kelas').classList.remove('hidden');
+        document.getElementById('grafik-kelas').classList.remove('hidden');
         document.getElementById('tab-kelas').classList.add('border-blue-500', 'text-blue-600');
         document.getElementById('tab-kelas').classList.remove('border-transparent', 'text-gray-500');
     }
@@ -655,6 +695,68 @@ const percentageChart = new Chart(percentageCtx, {
                 <?php echo $statistik->izin ?? 0; ?>,
                 <?php echo $statistik->sakit ?? 0; ?>,
                 <?php echo $statistik->alpha ?? 0; ?>
+            ],
+            backgroundColor: [
+                '#10b981',
+                '#f59e0b',
+                '#ef4444',
+                '#6b7280'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Grafik Bulanan Kelas
+const monthlyCtxKelas = document.getElementById('monthlyChartKelas').getContext('2d');
+const monthlyChartKelas = new Chart(monthlyCtxKelas, {
+    type: 'bar',
+    data: {
+        labels: <?php echo json_encode($chartDataKelas['labels']); ?>,
+        datasets: [{
+            label: 'Kehadiran',
+            data: <?php echo json_encode($chartDataKelas['values']); ?>,
+            backgroundColor: '#8b5cf6',
+            borderColor: '#8b5cf6',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Grafik Presentase Kelas
+const percentageCtxKelas = document.getElementById('percentageChartKelas').getContext('2d');
+const percentageChartKelas = new Chart(percentageCtxKelas, {
+    type: 'doughnut',
+    data: {
+        labels: ['Hadir', 'Izin', 'Sakit', 'Alpha'],
+        datasets: [{
+            data: [
+                <?php echo $statistikKelas->hadir ?? 0; ?>,
+                <?php echo $statistikKelas->izin ?? 0; ?>,
+                <?php echo $statistikKelas->sakit ?? 0; ?>,
+                <?php echo $statistikKelas->alpha ?? 0; ?>
             ],
             backgroundColor: [
                 '#10b981',

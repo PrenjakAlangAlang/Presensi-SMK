@@ -401,6 +401,99 @@ class PresensiModel {
         return $this->db->single();
     }
     
+    public function getStatistikPresensiKelas($tanggal = null, $bulan = null, $tahun = null, $user_id = null) {
+        if ($tanggal) {
+            // Statistik untuk tanggal tertentu
+            if ($user_id) {
+                // Statistik untuk user tertentu
+                $sql = 'SELECT 
+                        1 as total_siswa,
+                        SUM(CASE WHEN pk.status = "valid" AND pk.jenis = "hadir" THEN 1 ELSE 0 END) as hadir,
+                        SUM(CASE WHEN pk.jenis = "izin" THEN 1 ELSE 0 END) as izin,
+                        SUM(CASE WHEN pk.jenis = "sakit" THEN 1 ELSE 0 END) as sakit,
+                        SUM(CASE WHEN pk.jenis = "alpha" THEN 1 ELSE 0 END) as alpha
+                        FROM presensi_kelas pk
+                        WHERE pk.user_id = :user_id AND DATE(pk.waktu) = :tanggal';
+                $this->db->query($sql);
+                $this->db->bind(':user_id', $user_id);
+                $this->db->bind(':tanggal', $tanggal);
+            } else {
+                // Statistik untuk semua siswa
+                $sql = 'SELECT 
+                        COUNT(DISTINCT u.id) as total_siswa,
+                        COUNT(DISTINCT CASE WHEN pk.status = "valid" AND pk.jenis = "hadir" THEN pk.user_id END) as hadir,
+                        COUNT(DISTINCT CASE WHEN pk.jenis = "izin" THEN pk.user_id END) as izin,
+                        COUNT(DISTINCT CASE WHEN pk.jenis = "sakit" THEN pk.user_id END) as sakit,
+                        COUNT(DISTINCT CASE WHEN pk.jenis = "alpha" THEN pk.user_id END) as alpha
+                        FROM users u
+                        LEFT JOIN presensi_kelas pk ON u.id = pk.user_id AND DATE(pk.waktu) = :tanggal
+                        WHERE u.role = "siswa"';
+                $this->db->query($sql);
+                $this->db->bind(':tanggal', $tanggal);
+            }
+        } elseif ($bulan && $tahun) {
+            // Statistik untuk bulan tertentu
+            if ($user_id) {
+                // Statistik untuk user tertentu
+                $sql = 'SELECT 
+                        1 as total_siswa,
+                        SUM(CASE WHEN pk.status = "valid" AND pk.jenis = "hadir" THEN 1 ELSE 0 END) as hadir,
+                        SUM(CASE WHEN pk.jenis = "izin" THEN 1 ELSE 0 END) as izin,
+                        SUM(CASE WHEN pk.jenis = "sakit" THEN 1 ELSE 0 END) as sakit,
+                        SUM(CASE WHEN pk.jenis = "alpha" THEN 1 ELSE 0 END) as alpha
+                        FROM presensi_kelas pk
+                        WHERE pk.user_id = :user_id AND MONTH(pk.waktu) = :bulan AND YEAR(pk.waktu) = :tahun';
+                $this->db->query($sql);
+                $this->db->bind(':user_id', $user_id);
+                $this->db->bind(':bulan', $bulan);
+                $this->db->bind(':tahun', $tahun);
+            } else {
+                // Statistik untuk semua siswa
+                $sql = 'SELECT 
+                        COUNT(DISTINCT u.id) as total_siswa,
+                        COUNT(DISTINCT CASE WHEN pk.status = "valid" AND pk.jenis = "hadir" THEN pk.user_id END) as hadir,
+                        COUNT(DISTINCT CASE WHEN pk.jenis = "izin" THEN pk.user_id END) as izin,
+                        COUNT(DISTINCT CASE WHEN pk.jenis = "sakit" THEN pk.user_id END) as sakit,
+                        COUNT(DISTINCT CASE WHEN pk.jenis = "alpha" THEN pk.user_id END) as alpha
+                        FROM users u
+                        LEFT JOIN presensi_kelas pk ON u.id = pk.user_id AND MONTH(pk.waktu) = :bulan AND YEAR(pk.waktu) = :tahun
+                        WHERE u.role = "siswa"';
+                $this->db->query($sql);
+                $this->db->bind(':bulan', $bulan);
+                $this->db->bind(':tahun', $tahun);
+            }
+        } else {
+            // Default: statistik hari ini
+            if ($user_id) {
+                // Statistik untuk user tertentu
+                $sql = 'SELECT 
+                        1 as total_siswa,
+                        SUM(CASE WHEN pk.status = "valid" AND pk.jenis = "hadir" THEN 1 ELSE 0 END) as hadir,
+                        SUM(CASE WHEN pk.jenis = "izin" THEN 1 ELSE 0 END) as izin,
+                        SUM(CASE WHEN pk.jenis = "sakit" THEN 1 ELSE 0 END) as sakit,
+                        SUM(CASE WHEN pk.jenis = "alpha" THEN 1 ELSE 0 END) as alpha
+                        FROM presensi_kelas pk
+                        WHERE pk.user_id = :user_id AND DATE(pk.waktu) = CURDATE()';
+                $this->db->query($sql);
+                $this->db->bind(':user_id', $user_id);
+            } else {
+                // Statistik untuk semua siswa
+                $sql = 'SELECT 
+                        COUNT(DISTINCT u.id) as total_siswa,
+                        COUNT(DISTINCT CASE WHEN pk.status = "valid" AND pk.jenis = "hadir" THEN pk.user_id END) as hadir,
+                        COUNT(DISTINCT CASE WHEN pk.jenis = "izin" THEN pk.user_id END) as izin,
+                        COUNT(DISTINCT CASE WHEN pk.jenis = "sakit" THEN pk.user_id END) as sakit,
+                        COUNT(DISTINCT CASE WHEN pk.jenis = "alpha" THEN pk.user_id END) as alpha
+                        FROM users u
+                        LEFT JOIN presensi_kelas pk ON u.id = pk.user_id AND DATE(pk.waktu) = CURDATE()
+                        WHERE u.role = "siswa"';
+                $this->db->query($sql);
+            }
+        }
+        
+        return $this->db->single();
+    }
+    
     public function ajukanIzin($data) {
         $this->db->query('INSERT INTO izin_siswa (siswa_id, tanggal, jenis_izin, alasan, foto_bukti,  waktu_pengajuan) 
                          VALUES (:siswa_id, :tanggal, :jenis_izin, :alasan, :foto_bukti,  :waktu_pengajuan)');
