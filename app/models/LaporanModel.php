@@ -36,8 +36,28 @@ class LaporanModel {
      */
     public function getLaporanByKelas($kelas_id) {
         // Ambil daftar laporan kemajuan untuk satu kelas, terbaru terlebih dahulu
-        $this->db->query('SELECT * FROM laporan_kemajuan WHERE kelas_id = :kelas_id ORDER BY created_at DESC');
+        $this->db->query('SELECT lk.*, u.nama as guru_nama 
+                         FROM laporan_kemajuan lk
+                         LEFT JOIN users u ON lk.guru_id = u.id
+                         WHERE lk.kelas_id = :kelas_id 
+                         ORDER BY lk.created_at DESC');
         $this->db->bind(':kelas_id', $kelas_id);
+        return $this->db->resultSet();
+    }
+
+    /**
+     * Get laporan kemajuan for a specific class with date range filter
+     */
+    public function getLaporanByKelasWithDateRange($kelas_id, $startDate, $endDate) {
+        $this->db->query('SELECT lk.*, u.nama as guru_nama 
+                         FROM laporan_kemajuan lk
+                         LEFT JOIN users u ON lk.guru_id = u.id
+                         WHERE lk.kelas_id = :kelas_id 
+                         AND lk.tanggal BETWEEN :start_date AND :end_date
+                         ORDER BY lk.tanggal DESC, lk.created_at DESC');
+        $this->db->bind(':kelas_id', $kelas_id);
+        $this->db->bind(':start_date', $startDate);
+        $this->db->bind(':end_date', $endDate);
         return $this->db->resultSet();
     }
 }

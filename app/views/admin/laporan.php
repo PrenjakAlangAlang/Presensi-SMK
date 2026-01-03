@@ -138,6 +138,82 @@ require_once __DIR__ . '/../layouts/header.php';
     </form>
 </div>
 
+<?php if ($tipe_laporan === 'kelas' && $kelas_id && isset($laporan_kemajuan) && count($laporan_kemajuan) > 0): ?>
+<!-- Laporan Kemajuan Section -->
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-800">
+            <i class="fas fa-clipboard-list mr-2"></i>Laporan Kemajuan (Sesi)
+        </h3>
+        <span class="text-sm text-gray-500">
+            <i class="fas fa-calendar-alt mr-1"></i>
+            <?php 
+            if ($periode === 'harian') {
+                echo date('d F Y', strtotime($tanggal));
+            } elseif ($periode === 'mingguan') {
+                echo 'Minggu ke-' . $minggu . ' Tahun ' . $tahun;
+            } else {
+                $bulan_names = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                echo $bulan_names[intval($bulan)] . ' ' . $tahun;
+            }
+            ?>
+        </span>
+    </div>
+    <div class="text-sm text-gray-600 mb-4">
+        <i class="fas fa-info-circle mr-1"></i>
+        Menampilkan <?php echo count($laporan_kemajuan); ?> laporan kemajuan
+    </div>
+    <div class="space-y-3">
+        <?php foreach($laporan_kemajuan as $l): ?>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p class="text-sm font-medium text-gray-800">
+                        <i class="fas fa-calendar-day mr-1 text-blue-600"></i>
+                        <?php echo date('d F Y', strtotime($l->tanggal)); ?>
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        <i class="fas fa-user mr-1"></i>
+                        Oleh: <?php echo htmlspecialchars($l->guru_nama ?? 'Guru'); ?>
+                    </p>
+                </div>
+                <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                    <i class="fas fa-clock mr-1"></i>
+                    <?php echo date('H:i', strtotime($l->created_at)); ?>
+                </span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-gray-200">
+                <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                    <?php echo nl2br(htmlspecialchars($l->catatan)); ?>
+                </p>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php elseif ($tipe_laporan === 'kelas' && $kelas_id && (!isset($laporan_kemajuan) || count($laporan_kemajuan) === 0)): ?>
+<!-- Empty State -->
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
+    <div class="text-center py-8">
+        <i class="fas fa-clipboard-list text-gray-300 text-4xl mb-3"></i>
+        <h3 class="text-lg font-semibold text-gray-600 mb-2">Tidak Ada Laporan Kemajuan</h3>
+        <p class="text-sm text-gray-500">
+            Belum ada laporan kemajuan untuk periode 
+            <?php 
+            if ($periode === 'harian') {
+                echo date('d F Y', strtotime($tanggal));
+            } elseif ($periode === 'mingguan') {
+                echo 'Minggu ke-' . $minggu . ' Tahun ' . $tahun;
+            } else {
+                $bulan_names = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                echo $bulan_names[intval($bulan)] . ' ' . $tahun;
+            }
+            ?>
+        </p>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
     <!-- Ringkasan Kehadiran Hari Ini -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -713,21 +789,27 @@ function closeDetailPresensiModal() {
 }
 
 function exportToPDF() {
+    const periode = '<?php echo $periode ?? 'bulanan'; ?>';
+    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
+    const minggu = '<?php echo $minggu ?? date('W'); ?>';
     const bulan = '<?php echo $bulan ?? date('m'); ?>';
     const tahun = '<?php echo $tahun ?? date('Y'); ?>';
     const status = '<?php echo $filter_status ?? ''; ?>';
     const tipe = '<?php echo $tipe_laporan ?? 'sekolah'; ?>';
     const kelasId = '<?php echo $kelas_id ?? ''; ?>';
-    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_export_pdf&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId, '_blank');
+    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_export_pdf&periode=' + periode + '&tanggal=' + tanggal + '&minggu=' + minggu + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId, '_blank');
 }
 
 function exportToExcel() {
+    const periode = '<?php echo $periode ?? 'bulanan'; ?>';
+    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
+    const minggu = '<?php echo $minggu ?? date('W'); ?>';
     const bulan = '<?php echo $bulan ?? date('m'); ?>';
     const tahun = '<?php echo $tahun ?? date('Y'); ?>';
     const status = '<?php echo $filter_status ?? ''; ?>';
     const tipe = '<?php echo $tipe_laporan ?? 'sekolah'; ?>';
     const kelasId = '<?php echo $kelas_id ?? ''; ?>';
-    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_export_excel&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId;
+    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_export_excel&periode=' + periode + '&tanggal=' + tanggal + '&minggu=' + minggu + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId;
 }
 
 // Close modal when clicking outside
