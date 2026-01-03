@@ -8,59 +8,135 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-800">Laporan Presensi</h2>
-    <p class="text-gray-600">Analisis dan monitoring kehadiran seluruh siswa</p>
+    <p class="text-gray-600">
+        Analisis dan monitoring kehadiran seluruh siswa - 
+        <span class="font-semibold text-blue-600">
+            <?php 
+            $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            $periode_display = $periode ?? 'bulanan';
+            if ($periode_display === 'harian') {
+                echo date('d ', strtotime($tanggal ?? date('Y-m-d'))) . $bulan_names[intval(date('m', strtotime($tanggal ?? date('Y-m-d')))) - 1] . ' ' . date('Y', strtotime($tanggal ?? date('Y-m-d')));
+            } elseif ($periode_display === 'mingguan') {
+                echo 'Minggu ke-' . ($minggu ?? date('W')) . ' Tahun ' . ($tahun ?? date('Y'));
+            } else {
+                echo $bulan_names[intval($bulan ?? date('m')) - 1] . ' ' . ($tahun ?? date('Y'));
+            }
+            ?>
+        </span>
+    </p>
+</div>
+
+<!-- Tab Navigation -->
+<div class="mb-6">
+    <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8">
+            <a href="?action=admin_kesiswaan_laporan&tipe=sekolah&bulan=<?php echo $bulan ?? date('m'); ?>&tahun=<?php echo $tahun ?? date('Y'); ?>" 
+               class="<?php echo (!isset($_GET['tipe']) || $_GET['tipe'] == 'sekolah') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?> whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                <i class="fas fa-school mr-2"></i>Presensi Sekolah
+            </a>
+            <a href="?action=admin_kesiswaan_laporan&tipe=kelas&bulan=<?php echo $bulan ?? date('m'); ?>&tahun=<?php echo $tahun ?? date('Y'); ?><?php echo isset($_GET['kelas_id']) ? '&kelas_id='.$_GET['kelas_id'] : ''; ?>" 
+               class="<?php echo (isset($_GET['tipe']) && $_GET['tipe'] == 'kelas') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?> whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                <i class="fas fa-chalkboard mr-2"></i>Presensi Kelas
+            </a>
+        </nav>
+    </div>
 </div>
 
 <!-- Filter Section -->
 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
     <h3 class="text-lg font-semibold text-gray-800 mb-4">Filter Laporan</h3>
-    <form method="GET" action="<?php echo BASE_URL; ?>/public/index.php" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <form method="GET" action="<?php echo BASE_URL; ?>/public/index.php" class="space-y-4">
         <input type="hidden" name="action" value="admin_kesiswaan_laporan">
+        <input type="hidden" name="tipe" value="<?php echo $tipe_laporan; ?>">
         
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
-            <select name="tanggal" id="filterTanggal" onchange="loadSesiByTanggal()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <?php if (!empty($tanggal_list)): ?>
-                    <?php foreach($tanggal_list as $tgl): ?>
-                        <option value="<?php echo $tgl->tanggal; ?>" <?php echo (isset($_GET['tanggal']) && $_GET['tanggal'] == $tgl->tanggal) || (!isset($_GET['tanggal']) && $tgl->tanggal == $tanggal) ? 'selected' : ''; ?>>
-                            <?php echo date('d F Y', strtotime($tgl->tanggal)); ?>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Pilih Periode -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Periode</label>
+                <select id="periodeSelect" name="periode" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="harian" <?php echo (isset($periode) && $periode === 'harian') ? 'selected' : ''; ?>>Harian</option>
+                    <option value="mingguan" <?php echo (isset($periode) && $periode === 'mingguan') ? 'selected' : ''; ?>>Mingguan</option>
+                    <option value="bulanan" <?php echo (!isset($periode) || $periode === 'bulanan') ? 'selected' : ''; ?>>Bulanan</option>
+                </select>
+            </div>
+            
+            <!-- Filter Harian -->
+            <div id="filterHarian" class="<?php echo (!isset($periode) || $periode !== 'harian') ? 'hidden' : ''; ?>">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
+                <input type="date" name="tanggal" value="<?php echo $tanggal ?? date('Y-m-d'); ?>" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            
+            <!-- Filter Mingguan -->
+            <div id="filterMingguan" class="<?php echo (!isset($periode) || $periode !== 'mingguan') ? 'hidden' : ''; ?> md:col-span-2">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Minggu</label>
+                        <input type="number" name="minggu" value="<?php echo $minggu ?? date('W'); ?>" min="1" max="53"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                        <input type="number" name="tahun" value="<?php echo $tahun ?? date('Y'); ?>" min="2020" max="2099"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filter Bulanan -->
+            <div id="filterBulanan" class="<?php echo (!isset($periode) || $periode !== 'bulanan') ? 'hidden' : ''; ?> md:col-span-2">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                        <select name="bulan" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <?php
+                            $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                            for ($i = 1; $i <= 12; $i++) {
+                                $bulan_value = str_pad($i, 2, '0', STR_PAD_LEFT);
+                                $selected = (isset($bulan) && $bulan == $bulan_value) ? 'selected' : '';
+                                echo "<option value='$bulan_value' $selected>" . $bulan_names[$i-1] . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                        <input type="number" name="tahun" value="<?php echo $tahun ?? date('Y'); ?>" min="2020" max="2099" 
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+            </div>
+        
+            <?php if ($tipe_laporan === 'kelas'): ?>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Kelas</label>
+                <select name="kelas_id" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    <option value="">Pilih Kelas</option>
+                    <?php foreach($kelas_list as $kls): ?>
+                        <option value="<?php echo $kls->id; ?>" <?php echo (isset($_GET['kelas_id']) && $_GET['kelas_id'] == $kls->id) ? 'selected' : ''; ?>>
+                            <?php echo $kls->nama_kelas; ?>
                         </option>
                     <?php endforeach; ?>
-                <?php else: ?>
-                    <option value="<?php echo date('Y-m-d'); ?>">Tidak ada data presensi</option>
-                <?php endif; ?>
-            </select>
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Sesi Presensi</label>
-            <select name="sesi_id" id="filterSesi" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Semua Sesi</option>
-                <?php if (!empty($sessions)): ?>
-                    <?php foreach($sessions as $s): ?>
-                        <option value="<?php echo $s->id; ?>" <?php echo (isset($_GET['sesi_id']) && $_GET['sesi_id'] == $s->id) ? 'selected' : ''; ?>>
-                            Sesi <?php echo date('H:i', strtotime($s->waktu_buka)); ?> - <?php echo $s->waktu_tutup ? date('H:i', strtotime($s->waktu_tutup)) : 'Buka'; ?>
-                        </option>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </select>
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select name="status" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="" <?php echo (!isset($_GET['status']) || $_GET['status'] == '') ? 'selected' : ''; ?>>Semua Status</option>
-                <option value="valid" <?php echo (isset($_GET['status']) && $_GET['status'] == 'valid') ? 'selected' : ''; ?>>Hadir</option>
-                <option value="izin" <?php echo (isset($_GET['status']) && $_GET['status'] == 'izin') ? 'selected' : ''; ?>>Izin</option>
-                <option value="sakit" <?php echo (isset($_GET['status']) && $_GET['status'] == 'sakit') ? 'selected' : ''; ?>>Sakit</option>
-                <option value="alpha" <?php echo (isset($_GET['status']) && $_GET['status'] == 'alpha') ? 'selected' : ''; ?>>Alpha</option>
-            </select>
-        </div>
-        
-        <div class="flex items-end">
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition-colors">
-                <i class="fas fa-filter mr-2"></i>Terapkan Filter
-            </button>
+                </select>
+            </div>
+            <?php endif; ?>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select name="status" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="" <?php echo (!isset($_GET['status']) || $_GET['status'] == '') ? 'selected' : ''; ?>>Semua Status</option>
+                    <option value="hadir" <?php echo (isset($_GET['status']) && $_GET['status'] == 'hadir') ? 'selected' : ''; ?>>Hadir</option>
+                    <option value="izin" <?php echo (isset($_GET['status']) && $_GET['status'] == 'izin') ? 'selected' : ''; ?>>Izin</option>
+                    <option value="sakit" <?php echo (isset($_GET['status']) && $_GET['status'] == 'sakit') ? 'selected' : ''; ?>>Sakit</option>
+                    <option value="alpha" <?php echo (isset($_GET['status']) && $_GET['status'] == 'alpha') ? 'selected' : ''; ?>>Alpha</option>
+                </select>
+            </div>
+            
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition-colors">
+                    <i class="fas fa-filter mr-2"></i>Terapkan Filter
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -179,21 +255,26 @@ require_once __DIR__ . '/../layouts/header.php';
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-200">
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Nama Siswa</th>
+                    <?php if ($tipe_laporan === 'kelas'): ?>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Kelas</th>
+                    <?php endif; ?>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Tanggal</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Waktu</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Status</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Keterangan</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Aksi</th>
+                    <?php if ($tipe_laporan === 'sekolah'): ?>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Edit</th>
+                    <?php endif; ?>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
                 <?php if (empty($presensi)): ?>
                 <tr>
-                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="<?php echo $tipe_laporan === 'kelas' ? '8' : '8'; ?>" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
-                        <p>Tidak ada data presensi untuk tanggal yang dipilih</p>
+                        <p>Tidak ada data presensi untuk <?php echo $tipe_laporan === 'kelas' ? 'kelas dan ' : ''; ?>tanggal yang dipilih</p>
                     </td>
                 </tr>
                 <?php else: ?>
@@ -212,6 +293,11 @@ require_once __DIR__ . '/../layouts/header.php';
                                 </div>
                             </div>
                         </td>
+                        <?php if ($tipe_laporan === 'kelas'): ?>
+                        <td class="px-6 py-4 text-gray-600">
+                            <?php echo isset($p->nama_kelas) ? htmlspecialchars($p->nama_kelas) : '-'; ?>
+                        </td>
+                        <?php endif; ?>
                         <?php 
                         $waktuTs = (isset($p->waktu) && $p->waktu) ? strtotime($p->waktu) : null;
                         ?>
@@ -271,6 +357,7 @@ require_once __DIR__ . '/../layouts/header.php';
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
+                        <?php if ($tipe_laporan === 'sekolah'): ?>
                         <td class="px-6 py-4">
                             <?php 
                             $jenis = isset($p->jenis) ? $p->jenis : 'hadir';
@@ -282,6 +369,7 @@ require_once __DIR__ . '/../layouts/header.php';
                                 <i class="fas fa-edit"></i>
                             </button>
                         </td>
+                        <?php endif; ?>
                     </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -348,7 +436,6 @@ require_once __DIR__ . '/../layouts/header.php';
 <script>
 // Data presensi dari PHP untuk modal detail
 const presensiData = <?php echo json_encode(isset($presensi) ? $presensi : []); ?>;
-const allSessions = <?php echo json_encode(isset($all_sessions) ? $all_sessions : []); ?>;
 
 function editPresensiSekolah(siswa_id, nama, jenis, alasan, foto_bukti) {
     document.getElementById('edit_siswa_id').value = siswa_id;
@@ -448,30 +535,6 @@ function submitEditPresensiSekolah(event) {
     });
     
     return false;
-}
-
-function loadSesiByTanggal() {
-    const tanggal = document.getElementById('filterTanggal').value;
-    const sesiSelect = document.getElementById('filterSesi');
-    
-    // Clear existing options except first
-    sesiSelect.innerHTML = '<option value="">Semua Sesi</option>';
-    
-    // Filter sessions by selected date
-    const filteredSessions = allSessions.filter(s => {
-        const sessionDate = s.waktu_buka.split(' ')[0];
-        return sessionDate === tanggal;
-    });
-    
-    // Add filtered sessions to dropdown
-    filteredSessions.forEach(s => {
-        const option = document.createElement('option');
-        option.value = s.id;
-        const waktuBuka = new Date(s.waktu_buka).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'});
-        const waktuTutup = s.waktu_tutup ? new Date(s.waktu_tutup).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'}) : 'Buka';
-        option.textContent = `Sesi ${waktuBuka} - ${waktuTutup}`;
-        sesiSelect.appendChild(option);
-    });
 }
 
 function lihatDetailPresensi(siswaId) {
@@ -586,16 +649,41 @@ function lihatDetailPresensi(siswaId) {
 }
 
 function exportToPDF() {
-    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
+    const bulan = '<?php echo $bulan ?? date('m'); ?>';
+    const tahun = '<?php echo $tahun ?? date('Y'); ?>';
     const status = '<?php echo $filter_status ?? ''; ?>';
-    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_export_pdf&tanggal=' + tanggal + '&status=' + status, '_blank');
+    const tipe = '<?php echo $tipe_laporan ?? 'sekolah'; ?>';
+    const kelasId = '<?php echo $kelas_id ?? ''; ?>';
+    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_export_pdf&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId, '_blank');
 }
 
 function exportToExcel() {
-    const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
+    const bulan = '<?php echo $bulan ?? date('m'); ?>';
+    const tahun = '<?php echo $tahun ?? date('Y'); ?>';
     const status = '<?php echo $filter_status ?? ''; ?>';
-    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_export_excel&tanggal=' + tanggal + '&status=' + status;
+    const tipe = '<?php echo $tipe_laporan ?? 'sekolah'; ?>';
+    const kelasId = '<?php echo $kelas_id ?? ''; ?>';
+    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_export_excel&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId;
 }
+
+// Period selector change handler
+document.getElementById('periodeSelect').addEventListener('change', function() {
+    const periode = this.value;
+    
+    // Hide all filters
+    document.getElementById('filterHarian').classList.add('hidden');
+    document.getElementById('filterMingguan').classList.add('hidden');
+    document.getElementById('filterBulanan').classList.add('hidden');
+    
+    // Show selected filter
+    if (periode === 'harian') {
+        document.getElementById('filterHarian').classList.remove('hidden');
+    } else if (periode === 'mingguan') {
+        document.getElementById('filterMingguan').classList.remove('hidden');
+    } else {
+        document.getElementById('filterBulanan').classList.remove('hidden');
+    }
+});
 
 // Grafik Distribusi Kehadiran - Data Real dari PHP
 const distributionCtx = document.getElementById('attendanceDistributionChart').getContext('2d');

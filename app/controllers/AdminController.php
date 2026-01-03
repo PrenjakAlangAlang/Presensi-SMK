@@ -234,45 +234,136 @@ class AdminController {
     }
     
     public function laporan() {
-        // Halaman laporan admin - presensi sekolah
-        // Ambil list tanggal yang tersedia
-        $tanggal_list = $this->presensiModel->getTanggalPresensiSekolah();
+        // Halaman laporan admin - presensi sekolah dan kelas
+        // Ambil tipe laporan (sekolah atau kelas)
+        $tipe_laporan = $_GET['tipe'] ?? 'sekolah';
         
-        // Ambil parameter dari GET, default ke tanggal pertama yang tersedia atau hari ini
-        if (!empty($tanggal_list)) {
-            $default_tanggal = $tanggal_list[0]->tanggal;
-        } else {
-            $default_tanggal = date('Y-m-d');
-        }
-        $tanggal = $_GET['tanggal'] ?? $default_tanggal;
+        // Ambil list kelas untuk dropdown
+        $kelas_list = $this->kelasModel->getAllKelas();
+        
+        // Ambil parameter filter periode
+        $periode = $_GET['periode'] ?? 'bulanan';
+        $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
+        $minggu = $_GET['minggu'] ?? date('W');
+        $bulan = $_GET['bulan'] ?? date('m');
+        $tahun = $_GET['tahun'] ?? date('Y');
+        $kelas_id = $_GET['kelas_id'] ?? null;
         $filter_status = $_GET['status'] ?? null;
-        $sesi_id = $_GET['sesi_id'] ?? null;
         
-        // Ambil semua sesi untuk dropdown dan filter berdasarkan tanggal
-        $all_sessions = $this->presensiSekolahSesiModel->getSessions();
-        $sessions = [];
-        if ($tanggal) {
-            foreach($all_sessions as $s) {
-                $session_date = date('Y-m-d', strtotime($s->waktu_buka));
-                if ($session_date == $tanggal) {
-                    $sessions[] = $s;
-                }
-            }
+        // Calculate date range based on periode
+        if ($periode === 'harian') {
+            $startDate = $tanggal;
+            $endDate = $tanggal;
+        } elseif ($periode === 'mingguan') {
+            $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
+            $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
+        } else {
+            // bulanan - first and last day of month
+            $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
+            $endDate = date('Y-m-t', strtotime($startDate));
         }
         
         // Pagination settings
-        $limit = 10; // Items per page
+        $limit = 50; // Items per page
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $page = max(1, $page); // Ensure page is at least 1
         $offset = ($page - 1) * $limit;
         
-        // Get total count
-        $total_records = $this->presensiModel->countLaporanPresensiSekolah($tanggal, $sesi_id, $filter_status);
-        $total_pages = ceil($total_records / $limit);
-        
-        // Ambil data presensi sekolah dan statistik
-        $presensi = $this->presensiModel->getLaporanPresensiSekolah($tanggal, $sesi_id, $filter_status, $limit, $offset);
-        $statistik = $this->presensiModel->getStatistikPresensiSekolah($tanggal);
+        if ($tipe_laporan === 'kelas') {
+            // Laporan presensi kelas
+            if ($kelas_id) {
+                // Get all presensi kelas for the period
+                $db = new Database();
+                $db->query('SELECT pk.*, u.nama, u.email, k.nama_kelas
+                            FROM presensi_kelas pk
+                            JOIN users u ON pk.user_id = u.id
+                            JOIN kelas k ON pk.kelas_id = k.id
+                            WHERE pk.kelas_id = :kelas_id 
+                            AND DATE(pk.waktu) BETWEEN :start_date AND :end_date
+                            ORDER BY pk.waktu DESC');
+                $db->bind(':kelas_id', $kelas_id);
+                $db->bind(':start_date', $startDate);
+                $db->bind(':end_date', $endDate);
+                $all_presensi = $db->resultSet();
+                
+                // Apply status filter if provided
+                if ($filter_status) {
+                    $all_presensi = array_filter($all_presensi, function($p) use ($filter_status) {
+                        return $p->jenis == $filter_status;
+                    });
+                }
+                
+                $total_records = count($all_presensi);
+                $total_pages = ceil($total_records / $limit);
+                
+                // Paginate
+                $presensi = array_slice($all_presensi, $offset, $limit);
+                
+                // Get statistics from filtered data
+                $statistik = new stdClass();
+                $statistik->total_siswa = count($all_presensi);
+                $statistik->hadir = 0;
+                $statistik->izin = 0;
+                $statistik->sakit = 0;
+                $statistik->alpha = 0;
+                
+                foreach ($all_presensi as $p) {
+                    if (isset($p->jenis)) {
+                        if ($p->jenis == 'hadir') $statistik->hadir++;
+                        elseif ($p->jenis == 'izin') $statistik->izin++;
+                        elseif ($p->jenis == 'sakit') $statistik->sakit++;
+                        elseif ($p->jenis == 'alpha') $statistik->alpha++;
+                    }
+                }
+            } else {
+                $presensi = [];
+                $statistik = null;
+                $total_records = 0;
+                $total_pages = 0;
+            }
+        } else {
+            // Laporan presensi sekolah (default)
+            // Get all presensi sekolah for the period
+            $db = new Database();
+            $db->query('SELECT ps.*, u.nama, u.email 
+                        FROM presensi_sekolah ps 
+                        JOIN users u ON ps.user_id = u.id 
+                        WHERE DATE(ps.waktu) BETWEEN :start_date AND :end_date
+                        ORDER BY ps.waktu DESC');
+            $db->bind(':start_date', $startDate);
+            $db->bind(':end_date', $endDate);
+            $all_presensi_sekolah = $db->resultSet();
+            
+            // Apply status filter if provided
+            if ($filter_status) {
+                $all_presensi_sekolah = array_filter($all_presensi_sekolah, function($p) use ($filter_status) {
+                    return $p->jenis == $filter_status;
+                });
+            }
+            
+            // Calculate statistics
+            $statistik = new stdClass();
+            $statistik->total_siswa = count($all_presensi_sekolah);
+            $statistik->hadir = 0;
+            $statistik->izin = 0;
+            $statistik->sakit = 0;
+            $statistik->alpha = 0;
+            
+            foreach ($all_presensi_sekolah as $p) {
+                if (isset($p->jenis)) {
+                    if ($p->jenis == 'hadir') $statistik->hadir++;
+                    elseif ($p->jenis == 'izin') $statistik->izin++;
+                    elseif ($p->jenis == 'sakit') $statistik->sakit++;
+                    elseif ($p->jenis == 'alpha') $statistik->alpha++;
+                }
+            }
+            
+            $total_records = count($all_presensi_sekolah);
+            $total_pages = ceil($total_records / $limit);
+            
+            // Paginate
+            $presensi = array_slice($all_presensi_sekolah, $offset, $limit);
+        }
         
     require_once __DIR__ . '/../views/admin/laporan.php';
     }
@@ -337,16 +428,73 @@ class AdminController {
     }
 
     public function exportExcel() {
-        $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
+        $bulan = $_GET['bulan'] ?? date('m');
+        $tahun = $_GET['tahun'] ?? date('Y');
         $filter_status = $_GET['status'] ?? null;
+        $tipe = $_GET['tipe'] ?? 'sekolah';
+        $kelas_id = $_GET['kelas_id'] ?? null;
         
         // Get all data (no pagination for export)
-        $presensi = $this->presensiModel->getLaporanPresensiSekolah($tanggal, null, $filter_status);
-        $statistik = $this->presensiModel->getStatistikPresensiSekolah($tanggal);
+        if ($tipe === 'kelas' && $kelas_id) {
+            $db = new Database();
+            $db->query('SELECT pk.*, u.nama, u.email, k.nama_kelas
+                        FROM presensi_kelas pk
+                        JOIN users u ON pk.user_id = u.id
+                        JOIN kelas k ON pk.kelas_id = k.id
+                        WHERE pk.kelas_id = :kelas_id 
+                        AND MONTH(pk.waktu) = :bulan 
+                        AND YEAR(pk.waktu) = :tahun
+                        ORDER BY pk.waktu DESC');
+            $db->bind(':kelas_id', $kelas_id);
+            $db->bind(':bulan', $bulan);
+            $db->bind(':tahun', $tahun);
+            $presensi = $db->resultSet();
+            
+            $kelas_info = $this->kelasModel->getKelasById($kelas_id);
+            $report_title = 'Laporan Presensi Kelas ' . ($kelas_info ? $kelas_info->nama_kelas : $kelas_id);
+            
+            // Calculate statistics from actual data
+            $statistik = new stdClass();
+            $statistik->total_siswa = count($presensi);
+            $statistik->hadir = 0;
+            $statistik->izin = 0;
+            $statistik->sakit = 0;
+            $statistik->alpha = 0;
+            foreach ($presensi as $p) {
+                if (isset($p->jenis)) {
+                    if ($p->jenis == 'hadir') $statistik->hadir++;
+                    elseif ($p->jenis == 'izin') $statistik->izin++;
+                    elseif ($p->jenis == 'sakit') $statistik->sakit++;
+                    elseif ($p->jenis == 'alpha') $statistik->alpha++;
+                }
+            }
+        } else {
+            $db = new Database();
+            $db->query('SELECT ps.*, u.nama, u.email 
+                        FROM presensi_sekolah ps 
+                        JOIN users u ON ps.user_id = u.id 
+                        WHERE MONTH(ps.waktu) = :bulan AND YEAR(ps.waktu) = :tahun
+                        ORDER BY ps.waktu DESC');
+            $db->bind(':bulan', $bulan);
+            $db->bind(':tahun', $tahun);
+            $presensi = $db->resultSet();
+            
+            // Apply status filter if provided
+            if ($filter_status) {
+                $presensi = array_filter($presensi, function($p) use ($filter_status) {
+                    return $p->jenis == $filter_status;
+                });
+            }
+            
+            $report_title = 'Laporan Presensi Sekolah';
+            $statistik = $this->presensiModel->getStatistikPresensiSekolah(null, $bulan, $tahun, null);
+            }
         
         // Set headers for Excel download
+        $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $bulan_name = $bulan_names[intval($bulan) - 1];
         header('Content-Type: application/vnd.ms-excel');
-        header('Content-Disposition: attachment; filename="Laporan_Presensi_' . $tanggal . '.xls"');
+        header('Content-Disposition: attachment; filename="Laporan_Presensi_' . $bulan_name . '_' . $tahun . '.xls"');
         header('Pragma: no-cache');
         header('Expires: 0');
         
@@ -354,8 +502,8 @@ class AdminController {
         echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">';
         echo '<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>';
         echo '<body>';
-        echo '<h2>Laporan Presensi Sekolah</h2>';
-        echo '<p>Tanggal: ' . date('d F Y', strtotime($tanggal)) . '</p>';
+        echo '<h2>' . $report_title . '</h2>';
+        echo '<p>Periode: ' . $bulan_name . ' ' . $tahun . '</p>';
         echo '<br>';
         
         // Statistik Summary
@@ -382,6 +530,9 @@ class AdminController {
         echo '<th>No</th>';
         echo '<th>Nama Siswa</th>';
         echo '<th>Email</th>';
+        if ($tipe === 'kelas') {
+            echo '<th>Kelas</th>';
+        }
         echo '<th>Tanggal</th>';
         echo '<th>Waktu</th>';
         echo '<th>Status</th>';
@@ -396,6 +547,9 @@ class AdminController {
             echo '<td>' . $no++ . '</td>';
             echo '<td>' . htmlspecialchars($p->nama ?? '') . '</td>';
             echo '<td>' . htmlspecialchars($p->email ?? '') . '</td>';
+            if ($tipe === 'kelas') {
+                echo '<td>' . htmlspecialchars($p->nama_kelas ?? '') . '</td>';
+            }
             
             $waktuTs = (isset($p->waktu) && $p->waktu) ? strtotime($p->waktu) : null;
             echo '<td>' . ($waktuTs ? date('d M Y', $waktuTs) : '-') . '</td>';
@@ -423,19 +577,77 @@ class AdminController {
     }
 
     public function exportPDF() {
-        $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
+        $bulan = $_GET['bulan'] ?? date('m');
+        $tahun = $_GET['tahun'] ?? date('Y');
         $filter_status = $_GET['status'] ?? null;
+        $tipe = $_GET['tipe'] ?? 'sekolah';
+        $kelas_id = $_GET['kelas_id'] ?? null;
         
         // Get all data (no pagination for export)
-        $presensi = $this->presensiModel->getLaporanPresensiSekolah($tanggal, null, $filter_status);
-        $statistik = $this->presensiModel->getStatistikPresensiSekolah($tanggal);
+        if ($tipe === 'kelas' && $kelas_id) {
+            $db = new Database();
+            $db->query('SELECT pk.*, u.nama, u.email, k.nama_kelas
+                        FROM presensi_kelas pk
+                        JOIN users u ON pk.user_id = u.id
+                        JOIN kelas k ON pk.kelas_id = k.id
+                        WHERE pk.kelas_id = :kelas_id 
+                        AND MONTH(pk.waktu) = :bulan 
+                        AND YEAR(pk.waktu) = :tahun
+                        ORDER BY pk.waktu DESC');
+            $db->bind(':kelas_id', $kelas_id);
+            $db->bind(':bulan', $bulan);
+            $db->bind(':tahun', $tahun);
+            $presensi = $db->resultSet();
+            
+            $kelas_info = $this->kelasModel->getKelasById($kelas_id);
+            $report_title = 'Laporan Presensi Kelas ' . ($kelas_info ? $kelas_info->nama_kelas : $kelas_id);
+            
+            // Calculate statistics from actual data
+            $statistik = new stdClass();
+            $statistik->total_siswa = count($presensi);
+            $statistik->hadir = 0;
+            $statistik->izin = 0;
+            $statistik->sakit = 0;
+            $statistik->alpha = 0;
+            foreach ($presensi as $p) {
+                if (isset($p->jenis)) {
+                    if ($p->jenis == 'hadir') $statistik->hadir++;
+                    elseif ($p->jenis == 'izin') $statistik->izin++;
+                    elseif ($p->jenis == 'sakit') $statistik->sakit++;
+                    elseif ($p->jenis == 'alpha') $statistik->alpha++;
+                }
+            }
+        } else {
+            $db = new Database();
+            $db->query('SELECT ps.*, u.nama, u.email 
+                        FROM presensi_sekolah ps 
+                        JOIN users u ON ps.user_id = u.id 
+                        WHERE MONTH(ps.waktu) = :bulan AND YEAR(ps.waktu) = :tahun
+                        ORDER BY ps.waktu DESC');
+            $db->bind(':bulan', $bulan);
+            $db->bind(':tahun', $tahun);
+            $presensi = $db->resultSet();
+            
+            // Apply status filter if provided
+            if ($filter_status) {
+                $presensi = array_filter($presensi, function($p) use ($filter_status) {
+                    return $p->jenis == $filter_status;
+                });
+            }
+            
+            $report_title = 'Laporan Presensi Sekolah';
+            $statistik = $this->presensiModel->getStatistikPresensiSekolah(null, $bulan, $tahun, null);
+        }
+        
+        $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $bulan_name = $bulan_names[intval($bulan) - 1];
         
         // For PDF, we'll create a print-friendly HTML page
         ?><!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Laporan Presensi - <?php echo date('d F Y', strtotime($tanggal)); ?></title>
+    <title><?php echo $report_title; ?> - <?php echo $bulan_name . ' ' . $tahun; ?></title>
     <style>
         @media print {
             body { margin: 0; }
@@ -485,8 +697,8 @@ class AdminController {
 <body>
     <button class="print-btn no-print" onclick="window.print()">Cetak / Simpan PDF</button>
     
-    <h1>Laporan Presensi Sekolah</h1>
-    <h3>Tanggal: <?php echo date('d F Y', strtotime($tanggal)); ?></h3>
+    <h1><?php echo $report_title; ?></h1>
+    <h3>Periode: <?php echo $bulan_name . ' ' . $tahun; ?></h3>
     
     <h2>Ringkasan Kehadiran</h2>
     <div>
@@ -522,6 +734,9 @@ class AdminController {
                 <th>No</th>
                 <th>Nama Siswa</th>
                 <th>Email</th>
+                <?php if ($tipe === 'kelas'): ?>
+                <th>Kelas</th>
+                <?php endif; ?>
                 <th>Tanggal</th>
                 <th>Waktu</th>
                 <th>Status</th>
@@ -540,6 +755,9 @@ class AdminController {
                 <td><?php echo $no++; ?></td>
                 <td><?php echo htmlspecialchars($p->nama ?? ''); ?></td>
                 <td><?php echo htmlspecialchars($p->email ?? ''); ?></td>
+                <?php if ($tipe === 'kelas'): ?>
+                <td><?php echo htmlspecialchars($p->nama_kelas ?? ''); ?></td>
+                <?php endif; ?>
                 <td><?php echo $waktuTs ? date('d M Y', $waktuTs) : '-'; ?></td>
                 <td><?php echo $waktuTs ? date('H:i', $waktuTs) : '-'; ?></td>
                 <td>
