@@ -383,6 +383,31 @@ require_once __DIR__ . '/../layouts/header.php';
             <?php 
             $start = $offset + 1;
             $end = min($offset + count($presensi), $total_records);
+            
+            // Build query string with all filters
+            $query_params = [
+                'action' => 'admin_kesiswaan_laporan',
+                'tipe' => $tipe_laporan ?? 'sekolah',
+                'periode' => $periode ?? 'bulanan',
+                'bulan' => $bulan ?? date('m'),
+                'tahun' => $tahun ?? date('Y'),
+                'status' => $filter_status ?? ''
+            ];
+            
+            if (isset($tanggal)) {
+                $query_params['tanggal'] = $tanggal;
+            }
+            if (isset($minggu)) {
+                $query_params['minggu'] = $minggu;
+            }
+            if (isset($_GET['sesi_id'])) {
+                $query_params['sesi_id'] = $_GET['sesi_id'];
+            }
+            if (isset($kelas_id) && $kelas_id) {
+                $query_params['kelas_id'] = $kelas_id;
+            }
+            
+            $base_query = http_build_query($query_params);
             ?>
             Menampilkan <?php echo $start; ?>-<?php echo $end; ?> dari <?php echo $total_records; ?> data
         </div>
@@ -390,7 +415,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <?php if ($total_pages > 1): ?>
                 <!-- Previous Button -->
                 <?php if ($page > 1): ?>
-                    <a href="?action=admin_kesiswaan_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&sesi_id=<?php echo urlencode($_GET['sesi_id'] ?? ''); ?>&page=<?php echo $page - 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+                    <a href="?<?php echo $base_query; ?>&page=<?php echo $page - 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
                         <i class="fas fa-chevron-left"></i>
                     </a>
                 <?php else: ?>
@@ -409,13 +434,13 @@ require_once __DIR__ . '/../layouts/header.php';
                     <?php if ($i == $page): ?>
                         <span class="px-3 py-2 bg-blue-600 text-white rounded-lg"><?php echo $i; ?></span>
                     <?php else: ?>
-                        <a href="?action=admin_kesiswaan_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&sesi_id=<?php echo urlencode($_GET['sesi_id'] ?? ''); ?>&page=<?php echo $i; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"><?php echo $i; ?></a>
+                        <a href="?<?php echo $base_query; ?>&page=<?php echo $i; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"><?php echo $i; ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
 
                 <!-- Next Button -->
                 <?php if ($page < $total_pages): ?>
-                    <a href="?action=admin_kesiswaan_laporan&tanggal=<?php echo urlencode($tanggal); ?>&status=<?php echo urlencode($filter_status ?? ''); ?>&sesi_id=<?php echo urlencode($_GET['sesi_id'] ?? ''); ?>&page=<?php echo $page + 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+                    <a href="?<?php echo $base_query; ?>&page=<?php echo $page + 1; ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
                         <i class="fas fa-chevron-right"></i>
                     </a>
                 <?php else: ?>
