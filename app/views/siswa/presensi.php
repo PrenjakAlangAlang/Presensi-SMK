@@ -737,7 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 sessionAlreadyPresenced = !!json.already_presenced;
                 if (json.active) {
                     const session = json.session;
-                    document.getElementById('statusKelas').textContent = 'Sesi Sekolah: ' + (session.is_manual ? 'Manual' : 'Auto');
+                    document.getElementById('statusKelas').textContent = 'Sesi Sekolah: Aktif';
                     if (sessionAlreadyPresenced) {
                         document.getElementById('statusKelas').textContent += ' — Sudah presensi';
                     }

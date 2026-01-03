@@ -167,7 +167,7 @@ class AdminKesiswaanController {
             $waktu_tutup = $_POST['waktu_tutup'];
             $note = $_POST['note'] ?? null;
             $created_by = $_SESSION['user_id'] ?? null;
-            $id = $this->presensiSekolahSesiModel->createSession($waktu_buka, $waktu_tutup, $created_by, 1, $note);
+            $id = $this->presensiSekolahSesiModel->createSession($waktu_buka, $waktu_tutup, $created_by, $note);
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$id, 'id' => $id]);
             exit;

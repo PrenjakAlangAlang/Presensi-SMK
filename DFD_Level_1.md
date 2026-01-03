@@ -530,7 +530,7 @@ Menyimpan data presensi siswa per kelas.
 - Proses 5 PRESENSI_SEKOLAH_SESI]**
 Menyimpan sesi presensi sekolah harian.
 
-**Fields:** id, waktu_buka, waktu_tutup, status, is_manual, created_by, note, created_at
+**Fields:** id, waktu_buka, waktu_tutup, status, created_by, note, created_at
 
 **Diakses oleh:**
 - Proses 3.1 (Read: cek sesi aktif)

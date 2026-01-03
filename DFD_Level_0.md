@@ -393,7 +393,7 @@
 
 **Proses:**
 1. Cek waktu sistem vs jadwal buka sesi
-2. Auto-create sesi dengan flag is_manual=0
+2. Auto-create sesi presensi sekolah
 3. Set status='aktif', created_by=NULL (system)
 
 **Output:**
@@ -411,7 +411,7 @@
 
 **Proses:**
 1. Validasi tidak ada sesi aktif lain
-2. Insert sesi baru dengan is_manual=1
+2. Insert sesi baru ke presensi_sekolah_sesi
 3. Set created_by = admin user_id
 
 **Output:**
@@ -1145,7 +1145,7 @@ Sistem menggunakan endpoints JSON untuk operasi AJAX:
 │                  │         │ - waktu_buka           │
 │ - siswa_id       │         │ - waktu_tutup          │
 │ - sesi_id        │         │ - status               │
-│ - tanggal        │         │ - is_manual            │
+│ - tanggal        │         │ - created_by           │
 │ - status         │         └────────────────────────┘
 │ - latitude       │
 │ - longitude      │

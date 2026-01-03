@@ -25,7 +25,6 @@ require_once __DIR__ . '/../layouts/header.php';
                         <th class="px-6 py-3">ID</th>
                         <th class="px-6 py-3">Waktu Buka</th>
                         <th class="px-6 py-3">Waktu Tutup</th>
-                        <th class="px-6 py-3">Manual?</th>
                         <th class="px-6 py-3">Status</th>
                         <th class="px-6 py-3">Aksi</th>
                     </tr>
@@ -36,7 +35,6 @@ require_once __DIR__ . '/../layouts/header.php';
                         <td class="px-6 py-4"><?php echo $s->id; ?></td>
                         <td class="px-6 py-4"><?php echo $s->waktu_buka; ?></td>
                         <td class="px-6 py-4"><?php echo $s->waktu_tutup; ?></td>
-                        <td class="px-6 py-4"><?php echo $s->is_manual ? 'Ya' : 'Auto'; ?></td>
                         <td class="px-6 py-4"><?php echo $s->status; ?></td>
                         <td class="px-6 py-4">
                             <div class="flex space-x-2">

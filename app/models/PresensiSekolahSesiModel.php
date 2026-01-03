@@ -20,11 +20,10 @@ class PresensiSekolahSesiModel {
     }
 
     // Buat sesi baru (manual atau auto)
-    public function createSession($waktu_buka, $waktu_tutup, $created_by = null, $is_manual = 0, $note = null) {
-        $this->db->query('INSERT INTO presensi_sekolah_sesi (waktu_buka, waktu_tutup, status, is_manual, created_by, note) VALUES (:wb, :wt, "open", :is_manual, :created_by, :note)');
+    public function createSession($waktu_buka, $waktu_tutup, $created_by = null, $note = null) {
+        $this->db->query('INSERT INTO presensi_sekolah_sesi (waktu_buka, waktu_tutup, status, created_by, note) VALUES (:wb, :wt, "open", :created_by, :note)');
         $this->db->bind(':wb', $waktu_buka);
         $this->db->bind(':wt', $waktu_tutup);
-        $this->db->bind(':is_manual', $is_manual);
         $this->db->bind(':created_by', $created_by);
         $this->db->bind(':note', $note);
         if ($this->db->execute()) {
