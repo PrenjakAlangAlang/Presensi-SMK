@@ -55,6 +55,10 @@ require_once __DIR__ . '/../layouts/header.php';
             <input type="text" name="nama_ibu" class="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Wali</label>
+            <input type="text" name="nama_wali" class="w-full border rounded-lg px-4 py-2" />
+        </div>
+        <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon Orang Tua/ Wali</label>
             <input type="text" name="no_telp_ortu" class="w-full border rounded-lg px-4 py-2" placeholder="08xxxxxxxxxx" />
         </div>
@@ -103,6 +107,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-4 py-3">Alamat</th>
                     <th class="px-4 py-3">Nama Ayah</th>
                     <th class="px-4 py-3">Nama Ibu</th>
+                    <th class="px-4 py-3">Nama Wali</th>
                     <th class="px-4 py-3">No. Telp Ortu</th>
                     <th class="px-4 py-3">Email Ortu</th>
                     <th class="px-4 py-3">Dokumen</th>
@@ -119,6 +124,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         <td class="px-4 py-3 max-w-xs truncate" title="<?php echo htmlspecialchars($r->alamat); ?>"><?php echo htmlspecialchars($r->alamat); ?></td>
                         <td class="px-4 py-3"><?php echo !empty($r->nama_ayah) ? htmlspecialchars($r->nama_ayah) : '-'; ?></td>
                         <td class="px-4 py-3"><?php echo !empty($r->nama_ibu) ? htmlspecialchars($r->nama_ibu) : '-'; ?></td>
+                        <td class="px-4 py-3"><?php echo !empty($r->nama_wali) ? htmlspecialchars($r->nama_wali) : '-'; ?></td>
                         <td class="px-4 py-3"><?php echo !empty($r->no_telp_ortu) ? htmlspecialchars($r->no_telp_ortu) : '-'; ?></td>
                         <td class="px-4 py-3"><?php echo !empty($r->email_ortu) ? htmlspecialchars($r->email_ortu) : '-'; ?></td>
                         <td class="px-4 py-3">
@@ -146,6 +152,7 @@ require_once __DIR__ . '/../layouts/header.php';
                                     data-alamat="<?php echo htmlspecialchars($r->alamat, ENT_QUOTES); ?>"
                                     data-nama-ayah="<?php echo htmlspecialchars($r->nama_ayah ?? '', ENT_QUOTES); ?>"
                                     data-nama-ibu="<?php echo htmlspecialchars($r->nama_ibu ?? '', ENT_QUOTES); ?>"
+                                    data-nama-wali="<?php echo htmlspecialchars($r->nama_wali ?? '', ENT_QUOTES); ?>"
                                     data-no-telp="<?php echo htmlspecialchars($r->no_telp_ortu ?? '', ENT_QUOTES); ?>"
                                     data-email="<?php echo htmlspecialchars($r->email_ortu ?? '', ENT_QUOTES); ?>"
                                     data-dokumen="<?php echo htmlspecialchars($r->dokumen_pdf ?? '', ENT_QUOTES); ?>">
@@ -154,7 +161,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         </td>
                     </tr>
                 <?php endforeach; else: ?>
-                    <tr><td colspan="11" class="px-4 py-4 text-center text-gray-500">Belum ada data.</td></tr>
+                    <tr><td colspan="12" class="px-4 py-4 text-center text-gray-500">Belum ada data.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -217,6 +224,7 @@ editButtons.forEach(btn => {
         form.alamat.value = btn.dataset.alamat;
         form.nama_ayah.value = btn.dataset.namaAyah || '';
         form.nama_ibu.value = btn.dataset.namaIbu || '';
+        form.nama_wali.value = btn.dataset.namaWali || '';
         form.no_telp_ortu.value = btn.dataset.noTelp || '';
         form.email_ortu.value = btn.dataset.email || '';
         document.getElementById('existing_pdf').value = btn.dataset.dokumen;

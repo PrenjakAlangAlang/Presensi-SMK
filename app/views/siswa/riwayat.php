@@ -246,7 +246,6 @@ $tahun = $_GET['tahun'] ?? date('Y');
                         -->
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jenis</th>
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
-                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Alasan</th>
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Detail</th>
                     </tr>
                 </thead>
@@ -310,18 +309,6 @@ $tahun = $_GET['tahun'] ?? date('Y');
                                 <?php 
                                 if($jenis === 'hadir') {
                                     echo $presensi->jarak ? round($presensi->jarak, 2) . ' m' : '-';
-                                } else {
-                                    echo '-';
-                                }
-                                ?>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">
-                                <?php 
-                                if(!empty($presensi->alasan)) {
-                                    echo '<span class="line-clamp-2" title="' . htmlspecialchars($presensi->alasan) . '">' . 
-                                         htmlspecialchars(substr($presensi->alasan, 0, 50)) . 
-                                         (strlen($presensi->alasan) > 50 ? '...' : '') . 
-                                         '</span>';
                                 } else {
                                     echo '-';
                                 }

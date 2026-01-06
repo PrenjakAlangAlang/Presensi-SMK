@@ -71,6 +71,7 @@ class AdminKesiswaanController {
             'alamat' => trim($_POST['alamat']),
             'nama_ayah' => isset($_POST['nama_ayah']) ? trim($_POST['nama_ayah']) : null,
             'nama_ibu' => isset($_POST['nama_ibu']) ? trim($_POST['nama_ibu']) : null,
+            'nama_wali' => isset($_POST['nama_wali']) ? trim($_POST['nama_wali']) : null,
             'no_telp_ortu' => isset($_POST['no_telp_ortu']) ? trim($_POST['no_telp_ortu']) : null,
             'email_ortu' => isset($_POST['email_ortu']) ? trim($_POST['email_ortu']) : null,
             'dokumen_pdf' => null

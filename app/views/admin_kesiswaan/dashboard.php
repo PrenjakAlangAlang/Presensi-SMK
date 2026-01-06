@@ -8,7 +8,7 @@ require_once __DIR__ . '/../layouts/header.php';
     <p class="text-gray-600">Pantau data siswa dan sesi presensi sekolah</p>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
             <div>
@@ -20,6 +20,7 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
         </div>
     </div>
+    <!--
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
             <div>
@@ -31,6 +32,7 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
         </div>
     </div>
+-->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
             <div>
@@ -74,7 +76,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     </td>
                 </tr>
                 <?php else: ?>
-                    <?php foreach(array_slice($sessions,0,5) as $s): ?>
+                    <?php foreach(array_slice($sessions, $offset, 5) as $s): ?>
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4">
                             <div class="flex items-center space-x-3">

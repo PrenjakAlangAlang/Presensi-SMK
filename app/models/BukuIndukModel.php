@@ -107,8 +107,8 @@ class BukuIndukModel {
     }
 
     public function create($data) {
-        $this->db->query('INSERT INTO buku_induk (user_id, nama, nis, nisn, tempat_lahir, tanggal_lahir, alamat, nama_ayah, nama_ibu, no_telp_ortu, email_ortu, dokumen_pdf)
-                          VALUES (:user_id, :nama, :nis, :nisn, :tempat_lahir, :tanggal_lahir, :alamat, :nama_ayah, :nama_ibu, :no_telp_ortu, :email_ortu, :dokumen_pdf)');
+        $this->db->query('INSERT INTO buku_induk (user_id, nama, nis, nisn, tempat_lahir, tanggal_lahir, alamat, nama_ayah, nama_ibu, nama_wali, no_telp_ortu, email_ortu, dokumen_pdf)
+                          VALUES (:user_id, :nama, :nis, :nisn, :tempat_lahir, :tanggal_lahir, :alamat, :nama_ayah, :nama_ibu, :nama_wali, :no_telp_ortu, :email_ortu, :dokumen_pdf)');
         $this->db->bind(':user_id', $data['user_id']);
         $this->bindCommon($data);
         return $this->db->execute();
@@ -117,7 +117,7 @@ class BukuIndukModel {
     public function update($id, $data) {
         $this->db->query('UPDATE buku_induk SET nama = :nama, nis = :nis, nisn = :nisn, tempat_lahir = :tempat_lahir,
                           tanggal_lahir = :tanggal_lahir, alamat = :alamat, nama_ayah = :nama_ayah, nama_ibu = :nama_ibu,
-                          no_telp_ortu = :no_telp_ortu, email_ortu = :email_ortu, dokumen_pdf = :dokumen_pdf
+                          nama_wali = :nama_wali, no_telp_ortu = :no_telp_ortu, email_ortu = :email_ortu, dokumen_pdf = :dokumen_pdf
                           WHERE id = :id');
         $this->bindCommon($data);
         $this->db->bind(':id', $id);
@@ -134,6 +134,7 @@ class BukuIndukModel {
         $this->db->bind(':alamat', $data['alamat']);
         $this->db->bind(':nama_ayah', $data['nama_ayah'] ?? null);
         $this->db->bind(':nama_ibu', $data['nama_ibu'] ?? null);
+        $this->db->bind(':nama_wali', $data['nama_wali'] ?? null);
         $this->db->bind(':no_telp_ortu', $data['no_telp_ortu'] ?? null);
         $this->db->bind(':email_ortu', $data['email_ortu'] ?? null);
         $this->db->bind(':dokumen_pdf', $data['dokumen_pdf'] ?? null);
