@@ -80,6 +80,71 @@ class PresensiSekolahSesiModel {
         $this->db->bind(':tanggal', $tanggal);
         return $this->db->single();
     }
+
+    /**
+     * Auto-create sesi presensi sekolah setiap jam 7 pagi (Senin-Jumat) WIB
+     * Akan membuat sesi otomatis jika:
+     * - Hari ini adalah hari kerja (Senin-Jumat)
+     * - Sudah melewati jam 7 pagi WIB
+     * - Belum ada sesi yang dibuat untuk hari ini
+     */
+    public function autoCreateDailySesi() {
+        // Set timezone ke WIB (Asia/Jakarta)
+        date_default_timezone_set('Asia/Jakarta');
+        
+        // Cek apakah hari ini adalah hari kerja (1=Senin, 5=Jumat, 0=Minggu, 6=Sabtu)
+        $hariIni = date('w'); // 0=Minggu, 1=Senin, ..., 6=Sabtu
+        
+        // Jika bukan hari kerja (Sabtu-Minggu), skip
+        if ($hariIni == 0 || $hariIni == 6) {
+            return false;
+        }
+        
+        // Cek apakah sudah melewati jam 07:00
+        $waktuSekarang = date('H:i');
+        if ($waktuSekarang < '07:00') {
+            return false; // Belum jam 07:00
+        }
+        
+        // Cek apakah sudah ada sesi untuk hari ini
+        $tanggalHariIni = date('Y-m-d');
+        $this->db->query('SELECT * FROM presensi_sekolah_sesi WHERE DATE(waktu_buka) = :tanggal');
+        $this->db->bind(':tanggal', $tanggalHariIni);
+        $sesiHariIni = $this->db->resultSet();
+        
+        // Jika sudah ada sesi hari ini, skip
+        if (!empty($sesiHariIni)) {
+            return false;
+        }
+        
+        // Buat sesi otomatis
+        // Waktu buka: Hari ini jam 07:00:00 (untuk testing)
+        // Waktu tutup: Hari ini jam 23:59:59 (bisa disesuaikan)
+        $waktuBuka = $tanggalHariIni . ' 07:00:00';
+        $waktuTutup = $tanggalHariIni . ' 23:59:59';
+        $note = 'Sesi otomatis - ' . $this->getNamaHari($hariIni);
+        
+        // Created by: NULL (sistem otomatis)
+        $sesiId = $this->createSession($waktuBuka, $waktuTutup, null, $note);
+        
+        return $sesiId ? true : false;
+    }
+    
+    /**
+     * Helper: Dapatkan nama hari dalam Bahasa Indonesia
+     */
+    private function getNamaHari($dayNumber) {
+        $namaHari = [
+            0 => 'Minggu',
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu'
+        ];
+        return $namaHari[$dayNumber] ?? '';
+    }
 }
 
 ?>

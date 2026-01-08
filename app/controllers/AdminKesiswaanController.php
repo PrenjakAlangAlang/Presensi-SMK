@@ -32,6 +32,9 @@ class AdminKesiswaanController {
     }
 
     public function dashboard() {
+        // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
+        $this->presensiSekolahSesiModel->autoCreateDailySesi();
+        
         $totalSiswa = count($this->userModel->getUsersByRole('siswa'));
         $totalGuru = count($this->userModel->getUsersByRole('guru'));
         $sessions = $this->presensiSekolahSesiModel->getSessions();
@@ -163,6 +166,8 @@ class AdminKesiswaanController {
 
     // Presensi sekolah (sama seperti admin)
     public function presensiSekolah() {
+        // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
+        $this->presensiSekolahSesiModel->autoCreateDailySesi();
         $this->presensiSekolahSesiModel->closeExpiredSessions();
         $sessions = $this->presensiSekolahSesiModel->getSessions();
         require_once __DIR__ . '/../views/admin_kesiswaan/presensi_sekolah.php';
@@ -213,6 +218,8 @@ class AdminKesiswaanController {
     }
 
     public function getPresensiSekolahStatus() {
+        // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
+        $this->presensiSekolahSesiModel->autoCreateDailySesi();
         $this->presensiSekolahSesiModel->closeExpiredSessions();
         $active = $this->presensiSekolahSesiModel->getActiveSession();
         header('Content-Type: application/json');

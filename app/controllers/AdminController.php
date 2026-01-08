@@ -34,6 +34,8 @@ class AdminController {
      * Menampilkan daftar sesi (auto dan manual) dan form CRUD sederhana
      */
     public function presensiSekolah() {
+        // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
+        $this->presensiSekolahSesiModel->autoCreateDailySesi();
         $this->presensiSekolahSesiModel->closeExpiredSessions();
         $sessions = $this->presensiSekolahSesiModel->getSessions();
         require_once __DIR__ . '/../views/admin/presensi_sekolah.php';
@@ -88,6 +90,8 @@ class AdminController {
 
     // API: status sesi sekolah (dipanggil oleh client siswa)
     public function getPresensiSekolahStatus() {
+        // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
+        $this->presensiSekolahSesiModel->autoCreateDailySesi();
         // Pastikan expired sessions ditutup dulu
         $this->presensiSekolahSesiModel->closeExpiredSessions();
         $active = $this->presensiSekolahSesiModel->getActiveSession();
@@ -107,6 +111,9 @@ class AdminController {
     }
     
     public function dashboard() {
+        // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
+        $this->presensiSekolahSesiModel->autoCreateDailySesi();
+        
         // Hitung statistik singkat untuk ditampilkan di dashboard admin
         $totalSiswa = count($this->userModel->getUsersByRole('siswa'));
         $totalGuru = count($this->userModel->getUsersByRole('guru'));
