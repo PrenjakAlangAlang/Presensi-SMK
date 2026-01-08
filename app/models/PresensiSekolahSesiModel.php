@@ -145,6 +145,46 @@ class PresensiSekolahSesiModel {
         ];
         return $namaHari[$dayNumber] ?? '';
     }
+
+    /**
+     * Hapus sesi presensi berdasarkan ID
+     */
+    public function deleteSesi($id) {
+        // Delete related presensi records first
+        $this->db->query('DELETE FROM presensi WHERE sesi_id = :id');
+        $this->db->bind(':id', $id);
+        $this->db->execute();
+        
+        // Then delete the session
+        $this->db->query('DELETE FROM presensi_sekolah_sesi WHERE id = :id');
+        $this->db->bind(':id', $id);
+        return $this->db->execute();
+    }
+
+    /**
+     * Hapus multiple sesi presensi berdasarkan array ID
+     */
+    public function deleteMultipleSesi($ids) {
+        if (empty($ids) || !is_array($ids)) {
+            return false;
+        }
+        
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        
+        // Delete related presensi records first
+        $this->db->query("DELETE FROM presensi WHERE sesi_id IN ($placeholders)");
+        foreach ($ids as $index => $id) {
+            $this->db->bind($index + 1, $id);
+        }
+        $this->db->execute();
+        
+        // Then delete the sessions
+        $this->db->query("DELETE FROM presensi_sekolah_sesi WHERE id IN ($placeholders)");
+        foreach ($ids as $index => $id) {
+            $this->db->bind($index + 1, $id);
+        }
+        return $this->db->execute();
+    }
 }
 
 ?>

@@ -9,7 +9,11 @@ require_once __DIR__ . '/../layouts/header.php';
             <h2 class="text-2xl font-bold text-gray-800">Presensi Sekolah</h2>
             <p class="text-gray-600">Kelola sesi presensi sekolah</p>
         </div>
-        <div>
+        <div class="flex space-x-2">
+            <button id="deleteSelectedBtn" onclick="deleteSelectedSessions()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hidden">
+                <i class="fas fa-trash"></i>
+                <span>Hapus Terpilih (<span id="selectedCount">0</span>)</span>
+            </button>
             <button onclick="openCreateSessionModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
                 <i class="fas fa-plus"></i>
                 <span>Buat Sesi Manual</span>
@@ -22,6 +26,12 @@ require_once __DIR__ . '/../layouts/header.php';
             <table class="w-full">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-200 text-left text-xs text-gray-600">
+                        <th class="px-6 py-3">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="selectAll" class="rounded border-gray-300" />
+                                <span>Pilih Semua</span>
+                            </div>
+                        </th>
                         <th class="px-6 py-3">ID</th>
                         <th class="px-6 py-3">Waktu Buka</th>
                         <th class="px-6 py-3">Waktu Tutup</th>
@@ -32,6 +42,9 @@ require_once __DIR__ . '/../layouts/header.php';
                 <tbody class="divide-y divide-gray-200">
                     <?php foreach($sessions as $s): ?>
                     <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <input type="checkbox" class="session-checkbox rounded border-gray-300" value="<?php echo $s->id; ?>" />
+                        </td>
                         <td class="px-6 py-4"><?php echo $s->id; ?></td>
                         <td class="px-6 py-4"><?php echo $s->waktu_buka; ?></td>
                         <td class="px-6 py-4"><?php echo $s->waktu_tutup; ?></td>
@@ -42,6 +55,9 @@ require_once __DIR__ . '/../layouts/header.php';
                                     <button data-id="<?php echo $s->id; ?>" class="close-btn text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded">Tutup</button>
                                 <?php endif; ?>
                                 <button data-id="<?php echo $s->id; ?>" data-tutup="<?php echo htmlspecialchars($s->waktu_tutup, ENT_QUOTES); ?>" class="extend-btn text-white bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded">Perpanjang</button>
+                                <button data-id="<?php echo $s->id; ?>" class="delete-btn text-white bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -181,6 +197,81 @@ document.getElementById('extendSessionForm').addEventListener('submit', function
             else alert('Gagal perpanjang');
         });
 });
+
+// Delete single session
+document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', function(){
+    if (!confirm('Hapus sesi presensi ini? Data presensi yang terkait akan ikut terhapus.')) return;
+    
+    const id = this.dataset.id;
+    const fd = new FormData();
+    fd.append('id', id);
+    fetch('index.php?action=admin_delete_presensi_sekolah', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(json => {
+            if (json.success) {
+                alert('Sesi berhasil dihapus');
+                location.reload();
+            } else {
+                alert('Gagal menghapus sesi');
+            }
+        });
+}));
+
+// Checkbox management
+const selectAllCheckbox = document.getElementById('selectAll');
+const sessionCheckboxes = document.querySelectorAll('.session-checkbox');
+const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+const selectedCountSpan = document.getElementById('selectedCount');
+
+function updateSelectedCount() {
+    const checkedBoxes = document.querySelectorAll('.session-checkbox:checked');
+    const count = checkedBoxes.length;
+    selectedCountSpan.textContent = count;
+    
+    if (count > 0) {
+        deleteSelectedBtn.classList.remove('hidden');
+    } else {
+        deleteSelectedBtn.classList.add('hidden');
+    }
+}
+
+selectAllCheckbox.addEventListener('change', function() {
+    sessionCheckboxes.forEach(cb => cb.checked = this.checked);
+    updateSelectedCount();
+});
+
+sessionCheckboxes.forEach(cb => cb.addEventListener('change', function() {
+    const allChecked = Array.from(sessionCheckboxes).every(checkbox => checkbox.checked);
+    selectAllCheckbox.checked = allChecked;
+    updateSelectedCount();
+}));
+
+// Delete selected sessions
+function deleteSelectedSessions() {
+    const checkedBoxes = document.querySelectorAll('.session-checkbox:checked');
+    const ids = Array.from(checkedBoxes).map(cb => cb.value);
+    
+    if (ids.length === 0) {
+        alert('Pilih minimal satu sesi untuk dihapus');
+        return;
+    }
+    
+    if (!confirm(`Hapus ${ids.length} sesi presensi terpilih? Data presensi yang terkait akan ikut terhapus.`)) return;
+    
+    const fd = new FormData();
+    ids.forEach(id => fd.append('ids[]', id));
+    
+    fetch('index.php?action=admin_delete_multiple_presensi_sekolah', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(json => {
+            if (json.success) {
+                alert(`${json.count} sesi berhasil dihapus`);
+                location.reload();
+            } else {
+                alert('Gagal menghapus sesi');
+            }
+        });
+}
 </script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

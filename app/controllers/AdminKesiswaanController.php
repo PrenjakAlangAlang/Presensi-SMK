@@ -889,5 +889,37 @@ class AdminKesiswaanController {
             }
         }
     }
+
+    // Hapus satu sesi presensi
+    public function deletePresensiSekolah() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $id = $_POST['id'] ?? null;
+            if ($id) {
+                $success = $this->presensiSekolahSesiModel->deleteSesi($id);
+                header('Content-Type: application/json');
+                echo json_encode(['success' => $success]);
+                exit;
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'ID tidak valid']);
+        exit;
+    }
+
+    // Hapus multiple sesi presensi
+    public function deleteMultiplePresensiSekolah() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $ids = $_POST['ids'] ?? [];
+            if (!empty($ids) && is_array($ids)) {
+                $success = $this->presensiSekolahSesiModel->deleteMultipleSesi($ids);
+                header('Content-Type: application/json');
+                echo json_encode(['success' => $success, 'count' => count($ids)]);
+                exit;
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'ID tidak valid']);
+        exit;
+    }
 }
 ?>
