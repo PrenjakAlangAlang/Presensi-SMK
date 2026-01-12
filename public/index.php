@@ -2,6 +2,12 @@
 
 // public/index.php
 // Front controller sederhana: load config, cek autentikasi, dan route ke controller sesuai action
+
+// Load environment variables
+require_once __DIR__ . '/../vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
+
 require_once '../config/config.php';
 
 // Routing sederhana

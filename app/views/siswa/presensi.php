@@ -67,10 +67,6 @@ require_once __DIR__ . '/../layouts/header.php';
                         <option value="izin">Izin</option>
                         <option value="sakit">Sakit</option>
                     </select>
-                    <p class="text-xs text-gray-500 mt-2">
-                        <i class="fas fa-info-circle"></i>
-                        <span id="infoGPSSekolah">Untuk presensi Hadir, Anda harus berada dalam radius 100m dari sekolah</span>
-                    </p>
                 </div>
 
                 <!-- Form Alasan (hidden by default) -->
@@ -92,9 +88,9 @@ require_once __DIR__ . '/../layouts/header.php';
                 </button>
 
                 <div class="text-center">
-                    <p class="text-sm text-gray-500">
+                    <p id="infoGPSSekolah" class="text-sm text-gray-500">
                         <i class="fas fa-info-circle mr-1"></i>
-                        Pastikan Anda berada dalam radius 100 meter dari sekolah
+                        Untuk presensi Hadir, Anda harus berada dalam radius <?php echo $lokasiSekolah->radius_presensi ?? MAX_RADIUS; ?>m dari sekolah
                     </p>
                 </div>
             </div>
@@ -167,10 +163,6 @@ require_once __DIR__ . '/../layouts/header.php';
                         <option value="izin">Izin</option>
                         <option value="sakit">Sakit</option>
                     </select>
-                    <p class="text-xs text-gray-500 mt-2">
-                        <i class="fas fa-info-circle"></i>
-                        <span id="infoGPSKelas">Untuk presensi Hadir, Anda harus berada dalam radius 100m dari sekolah</span>
-                    </p>
                 </div>
 
                 <!-- Form Alasan Kelas (hidden by default) -->
@@ -190,6 +182,13 @@ require_once __DIR__ . '/../layouts/header.php';
                     <i class="fas fa-chalkboard-teacher"></i>
                     <span>Presensi Kelas</span>
                 </button>
+                
+                <div class="text-center">
+                    <p id="infoGPSKelas" class="text-sm text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Untuk presensi Hadir, Anda harus berada dalam radius <?php echo $lokasiSekolah->radius_presensi ?? MAX_RADIUS; ?>m dari sekolah
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -234,6 +233,7 @@ const kelasSesi = <?php
 
 let userLocation = null;
 let schoolLocation = { lat: <?php echo $lokasiSekolah->latitude ?? DEFAULT_LATITUDE; ?>, lng: <?php echo $lokasiSekolah->longitude ?? DEFAULT_LONGITUDE; ?> };
+let radiusPresensi = <?php echo $lokasiSekolah->radius_presensi ?? MAX_RADIUS; ?>;
 let map, userMarker, schoolMarker, accuracyCircle;
 let sessionActive = false;
 let sessionAlreadyPresenced = false;
@@ -262,9 +262,9 @@ function initMap() {
         color: 'blue',
         fillColor: '#3b82f6',
         fillOpacity: 0.1,
-        radius: 100,
+        radius: radiusPresensi,
         weight: 2
-    }).addTo(map).bindPopup('Radius Presensi: 100 meter');
+    }).addTo(map).bindPopup('Radius Presensi: ' + radiusPresensi + ' meter');
 }
 
 // Get user location
@@ -322,7 +322,7 @@ function updateLocationStatus() {
         schoolLocation.lng
     );
     
-    const isValid = distance <= 100;
+    const isValid = distance <= radiusPresensi;
     const statusElement = document.getElementById('locationStatus');
     const validElement = document.getElementById('locationValid');
     const distanceElement = document.getElementById('distanceInfo');
@@ -677,11 +677,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Kembalikan teks tombol ke "Presensi Sekolah"
             presensiSekolahBtn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
             // Kembalikan info GPS
-            infoGPSSekolah.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius 100m dari sekolah';
+            infoGPSSekolah.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius ' + radiusPresensi + 'm dari sekolah';
             // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
             if (sessionActive && !sessionAlreadyPresenced && userLocation) {
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
-                presensiSekolahBtn.disabled = distance > 100;
+                presensiSekolahBtn.disabled = distance > radiusPresensi;
             } else {
                 presensiSekolahBtn.disabled = true;
             }
@@ -713,13 +713,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Kembalikan teks tombol ke "Presensi Kelas"
             presensiKelasBtn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
             // Kembalikan info GPS
-            infoGPSKelas.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius 100m dari sekolah';
+            infoGPSKelas.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius ' + radiusPresensi + 'm dari sekolah';
             // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
             if (selectedKelas && kelasSesi[selectedKelas] && userLocation) {
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
-                presensiKelasBtn.disabled = distance > 100;
-                document.getElementById('statusKelas').textContent = distance <= 100 ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
-                document.getElementById('statusKelas').className = distance <= 100 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+                presensiKelasBtn.disabled = distance > radiusPresensi;
+                document.getElementById('statusKelas').textContent = distance <= radiusPresensi ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
+                document.getElementById('statusKelas').className = distance <= radiusPresensi ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
             } else {
                 presensiKelasBtn.disabled = true;
                 document.getElementById('statusKelas').textContent = !userLocation ? 'Menunggu lokasi GPS...' : 'Tidak ada sesi aktif';
@@ -804,9 +804,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
             } else {
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
-                presensiKelasBtn.disabled = distance > 100;
-                document.getElementById('statusKelas').textContent = distance <= 100 ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
-                document.getElementById('statusKelas').className = distance <= 100 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+                presensiKelasBtn.disabled = distance > radiusPresensi;
+                document.getElementById('statusKelas').textContent = distance <= radiusPresensi ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
+                document.getElementById('statusKelas').className = distance <= radiusPresensi ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
             }
         }
     });

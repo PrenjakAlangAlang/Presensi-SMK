@@ -8,6 +8,7 @@
 require_once 'Database.php';
 require_once __DIR__ . '/BukuIndukModel.php';
 require_once __DIR__ . '/../services/EmailService.php';
+require_once __DIR__ . '/../services/WhatsAppService.php';
 
 class PresensiModel {
     private $db;
@@ -843,8 +844,9 @@ class PresensiModel {
         $this->db->bind(':sesi_id', $sesi_id);
         $absentStudents = $this->db->resultSet();
         
-        // Initialize email service and buku induk model
+        // Initialize email service, WhatsApp service, and buku induk model
         $emailService = new EmailService();
+        $whatsappService = new WhatsAppService();
         $bukuIndukModel = new BukuIndukModel();
         
         $count = 0;
@@ -863,12 +865,13 @@ class PresensiModel {
             if ($this->recordPresensiSekolah($data)) {
                 $count++;
                 
+                $tanggal = date('Y-m-d');
+                $waktu = $sesiInfo->waktu_tutup ?? date('Y-m-d H:i:s');
+                $parentContact = $bukuIndukModel->getParentContact($student->id);
+                
                 // Kirim email notifikasi ke orang tua
                 try {
-                    $parentContact = $bukuIndukModel->getParentContact($student->id);
                     if ($parentContact && !empty($parentContact['email'])) {
-                        $tanggal = date('Y-m-d');
-                        $waktu = $sesiInfo->waktu_tutup ?? date('Y-m-d H:i:s');
                         $emailService->sendAlphaNotificationSekolah(
                             $parentContact['email'],
                             $student->nama,
@@ -879,6 +882,21 @@ class PresensiModel {
                 } catch (Exception $e) {
                     // Log error tapi jangan hentikan proses
                     error_log('Failed to send alpha notification email: ' . $e->getMessage());
+                }
+                
+                // Kirim WhatsApp notifikasi ke orang tua
+                try {
+                    if ($parentContact && !empty($parentContact['phone'])) {
+                        $whatsappService->sendAlphaNotificationSekolah(
+                            $parentContact['phone'],
+                            $student->nama,
+                            $tanggal,
+                            $waktu
+                        );
+                    }
+                } catch (Exception $e) {
+                    // Log error tapi jangan hentikan proses
+                    error_log('Failed to send alpha notification WhatsApp: ' . $e->getMessage());
                 }
             }
         }
@@ -915,8 +933,9 @@ class PresensiModel {
         $this->db->bind(':sesi_id', $sesi_id);
         $absentStudents = $this->db->resultSet();
         
-        // Initialize email service and buku induk model
+        // Initialize email service, WhatsApp service, and buku induk model
         $emailService = new EmailService();
+        $whatsappService = new WhatsAppService();
         $bukuIndukModel = new BukuIndukModel();
         
         $count = 0;
@@ -936,13 +955,14 @@ class PresensiModel {
             if ($this->recordPresensiKelas($data)) {
                 $count++;
                 
+                $tanggal = date('Y-m-d');
+                $waktu = $sesiInfo->waktu_tutup ?? date('Y-m-d H:i:s');
+                $namaKelas = $sesiInfo->nama_kelas ?? 'Kelas';
+                $parentContact = $bukuIndukModel->getParentContact($student->siswa_id);
+                
                 // Kirim email notifikasi ke orang tua
                 try {
-                    $parentContact = $bukuIndukModel->getParentContact($student->siswa_id);
                     if ($parentContact && !empty($parentContact['email'])) {
-                        $tanggal = date('Y-m-d');
-                        $waktu = $sesiInfo->waktu_tutup ?? date('Y-m-d H:i:s');
-                        $namaKelas = $sesiInfo->nama_kelas ?? 'Kelas';
                         $emailService->sendAlphaNotificationKelas(
                             $parentContact['email'],
                             $student->nama,
@@ -954,6 +974,22 @@ class PresensiModel {
                 } catch (Exception $e) {
                     // Log error tapi jangan hentikan proses
                     error_log('Failed to send alpha notification email: ' . $e->getMessage());
+                }
+                
+                // Kirim WhatsApp notifikasi ke orang tua
+                try {
+                    if ($parentContact && !empty($parentContact['phone'])) {
+                        $whatsappService->sendAlphaNotificationKelas(
+                            $parentContact['phone'],
+                            $student->nama,
+                            $namaKelas,
+                            $tanggal,
+                            $waktu
+                        );
+                    }
+                } catch (Exception $e) {
+                    // Log error tapi jangan hentikan proses
+                    error_log('Failed to send alpha notification WhatsApp: ' . $e->getMessage());
                 }
             }
         }
