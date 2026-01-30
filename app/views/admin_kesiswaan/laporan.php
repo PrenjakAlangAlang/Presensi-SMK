@@ -387,7 +387,7 @@ require_once __DIR__ . '/../layouts/header.php';
                             <?php if (isset($p->status) && $p->status): ?>
                                 <?php if ($p->status == 'valid'): ?>
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                        <i class="fas fa-check-circle mr-1"></i> 
+                                        
                                         <?php echo isset($p->jenis) ? ucfirst($p->jenis) : 'Hadir'; ?>
                                     </span>
                                 <?php else: ?>

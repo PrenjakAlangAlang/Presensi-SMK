@@ -252,6 +252,7 @@ class AdminController {
     public function lokasi() {
         // Halaman pengaturan lokasi sekolah
         $lokasi = $this->locationModel->getLokasiSekolah();
+        $riwayat_lokasi = $this->locationModel->getRiwayatLokasi();
     require_once __DIR__ . '/../views/admin/lokasi.php';
     }
     
@@ -425,6 +426,11 @@ class AdminController {
                 'email' => $_POST['email'],
                 'role' => $_POST['role']
             ];
+            
+            // Add password to data if provided
+            if (!empty($_POST['password'])) {
+                $data['password'] = $_POST['password'];
+            }
 
             if($this->userModel->updateUser($data)) {
                 $_SESSION['success'] = 'User berhasil diperbarui!';

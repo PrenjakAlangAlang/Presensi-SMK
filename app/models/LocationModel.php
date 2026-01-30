@@ -82,5 +82,14 @@ class LocationModel {
             $lokasiSekolah->longitude
         );
     }
+    
+    public function getRiwayatLokasi() {
+        // Ambil semua riwayat perubahan lokasi, urutkan dari yang terbaru
+        $this->db->query('SELECT ls.*, u.nama as updated_by_nama 
+                         FROM lokasi_sekolah ls 
+                         LEFT JOIN users u ON ls.updated_by = u.id 
+                         ORDER BY ls.id DESC');
+        return $this->db->resultSet();
+    }
 }
 ?>

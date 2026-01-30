@@ -138,6 +138,13 @@ require_once __DIR__ . '/../layouts/header.php';
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password Baru</label>
+                    <input type="password" name="password" id="edit_user_password" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                           placeholder="Kosongkan jika tidak ingin mengubah password">
+                    <p class="text-xs text-gray-500 mt-1">Kosongkan jika tidak ingin mengubah password</p>
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
                     <select name="role" id="edit_user_role" required 
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">

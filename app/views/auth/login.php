@@ -6,11 +6,32 @@
     <title>Login - Sistem Presensi SMK Negeri 7 Yogyakarta</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .login-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-    </style>
+   <style>
+.login-bg {
+    position: relative;
+    background-color: #f0f4f8;
+    min-height: 100vh;
+}
+.login-bg::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHVAweoQjf3tZGgu8icpjOiRZXIW3FgKnxj6IDqHqKQudytavVYlVgvOgs8VNuBWEQxUELCAfq0l4EJqWZntjWl3AQar86rszko9E1a6GsfPvD0l0FFSvoljzzcsEc8VLt3N20UChRxb=s1920-w1920-h1080');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(3px);
+    -webkit-filter: blur(3px);
+    z-index: 0;
+}
+.login-bg > * {
+    position: relative;
+    z-index: 1;
+}
+</style>
 </head>
 <body class="login-bg min-h-screen flex items-center justify-center p-4">
     <div class="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:scale-105">
@@ -22,7 +43,7 @@
                     <p class="text-blue-100">Yogyakarta</p>
                 </div>
             </div>
-            <p class="text-blue-100 mt-2">Sistem Presensi Digital Berbasis Geotagging</p>
+            <p class="text-blue-100 mt-2">Sistem Presensi Digital Berbasis Geotagging dan Algoritma Haversine</p>
         </div>
         
         <div class="p-8">
@@ -92,12 +113,7 @@
                 </div>
             </div>
             -->
-            <div class="mt-6 text-center">
-                <p class="text-gray-500 text-sm">
-                    <i class="fas fa-shield-alt mr-1"></i>
-                    Sistem menggunakan validasi lokasi GPS dan algoritma Haversine
-                </p>
-            </div>
+           
         </div>
     </div>
 
