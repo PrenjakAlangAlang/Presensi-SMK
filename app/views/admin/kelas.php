@@ -373,7 +373,7 @@ function loadSiswaTersedia() {
     const select = document.getElementById('siswaSelect');
     select.innerHTML = '<option value="">Pilih Siswa</option>';
 
-    fetch('index.php?action=admin_get_siswa_tersedia')
+    fetch(`index.php?action=admin_get_siswa_tersedia&kelas_id=${currentKelasId}`)
         .then(res => res.json())
         .then(data => {
             data.forEach(siswa => {

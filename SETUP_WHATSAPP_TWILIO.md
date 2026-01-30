@@ -46,18 +46,33 @@ Untuk testing gratis, gunakan Twilio Sandbox for WhatsApp:
 
 #### B. Join Sandbox dengan WhatsApp Anda
 
+**⚠️ PENTING: Setiap nomor WhatsApp yang akan menerima notifikasi HARUS join sandbox terlebih dahulu!**
+
 1. Buka **WhatsApp** di HP Anda
 2. Buat chat baru dengan nomor: **+1 415 523 8886**
 3. Kirim pesan dengan format yang tertera di console
    - Contoh: `join carbon-taught`
+   - **Ganti dengan join code Anda sendiri** dari Twilio Console
 4. Tunggu balasan dari Twilio:
    - ✅ "**Twilio Sandbox: ✅ You are all set!**"
 5. Nomor Anda sekarang **sudah terdaftar** dan bisa menerima pesan dari sandbox
+
+**📱 Untuk Testing di Sekolah:**
+- **Minta semua orang tua siswa** join sandbox dengan cara yang sama
+- **ATAU** gunakan nomor test Anda sendiri untuk development
+- **ATAU** upgrade ke production (tidak perlu join)
+
+**Catatan Error 63015:**
+```
+Error: 63015 - Channel Sandbox can only send messages to phone numbers that have joined the Sandbox
+```
+Artinya: Nomor tujuan belum join sandbox. Sistem akan skip nomor tersebut dan lanjut proses.
 
 **Penting:** 
 - Setiap nomor yang akan menerima pesan harus join sandbox dulu
 - Sandbox gratis dan cocok untuk testing
 - Pesan akan ada prefix "Twilio Sandbox:"
+- Di production, tidak perlu join sandbox
 
 ### 4. Konfigurasi di Aplikasi
 

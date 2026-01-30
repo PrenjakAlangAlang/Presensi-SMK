@@ -218,7 +218,8 @@ class AdminController {
 
     // API: get siswa available (JSON)
     public function getSiswaTersedia() {
-        $siswa = $this->kelasModel->getAvailableSiswa();
+        $kelas_id = $_GET['kelas_id'] ?? null;
+        $siswa = $this->kelasModel->getAvailableSiswa($kelas_id);
         header('Content-Type: application/json');
         echo json_encode($siswa);
         exit;

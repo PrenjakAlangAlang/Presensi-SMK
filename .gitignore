@@ -2,7 +2,7 @@
 .env
 
 # Vendor directory
-# /vendor/
+/vendor/
 
 # Uploads folder (user generated content)
 /public/uploads/

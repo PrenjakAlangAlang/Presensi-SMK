@@ -164,7 +164,13 @@ class WhatsAppService {
                 return true;
             }
             
-            // Log error if any
+            // Handle sandbox error (63015) - number not joined sandbox
+            if (isset($responseData['code']) && $responseData['code'] == 63015) {
+                error_log('WhatsApp Sandbox Error: Nomor ' . $phoneNumber . ' belum join sandbox. Silakan kirim "join <code>" ke +1 415 523 8886');
+                return false; // Silently fail untuk development
+            }
+            
+            // Log other errors
             error_log('WhatsApp API error (HTTP ' . $httpCode . '): ' . $response);
             return false;
             

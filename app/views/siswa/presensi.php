@@ -246,8 +246,18 @@ function initMap() {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
     
-    // Add school marker
-    schoolMarker = L.marker([schoolLocation.lat, schoolLocation.lng])
+    // Create red icon for school marker
+    const redIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+    
+    // Add school marker with red icon
+    schoolMarker = L.marker([schoolLocation.lat, schoolLocation.lng], {icon: redIcon})
         .addTo(map)
         .bindPopup(`
             <div class="text-center">
@@ -260,7 +270,7 @@ function initMap() {
     // Add circle for radius
     L.circle([schoolLocation.lat, schoolLocation.lng], {
         color: 'blue',
-        fillColor: '#3b82f6',
+        fillColor: '#ff0000',
         fillOpacity: 0.1,
         radius: radiusPresensi,
         weight: 2

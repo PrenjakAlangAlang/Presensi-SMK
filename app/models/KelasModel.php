@@ -106,9 +106,17 @@ class KelasModel {
         return $this->db->execute();
     }
 
-    public function getAvailableSiswa() {
-        // Ambil siswa yang belum tergabung di kelas manapun
-        $this->db->query('SELECT * FROM users u WHERE u.role = "siswa" AND u.id NOT IN (SELECT siswa_id FROM siswa_kelas) ORDER BY u.nama');
+    public function getAvailableSiswa($kelas_id = null) {
+        // Ambil semua siswa, kecuali yang sudah ada di kelas tertentu
+        if ($kelas_id) {
+            $this->db->query('SELECT * FROM users u 
+                             WHERE u.role = "siswa" 
+                             AND u.id NOT IN (SELECT siswa_id FROM siswa_kelas WHERE kelas_id = :kelas_id)
+                             ORDER BY u.nama');
+            $this->db->bind(':kelas_id', $kelas_id);
+        } else {
+            $this->db->query('SELECT * FROM users u WHERE u.role = "siswa" ORDER BY u.nama');
+        }
         return $this->db->resultSet();
     }
     
