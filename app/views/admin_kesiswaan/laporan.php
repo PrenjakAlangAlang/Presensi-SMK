@@ -220,9 +220,9 @@ require_once __DIR__ . '/../layouts/header.php';
 
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-    <!-- Ringkasan Kehadiran Hari Ini -->
+    <!-- Ringkasan Kehadiran -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6">Ringkasan Kehadiran Hari Ini</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-6">Ringkasan Kehadiran</h3>
         <div class="space-y-4">
             <?php 
             $total_siswa = isset($statistik->total_siswa) ? $statistik->total_siswa : 0;
@@ -340,15 +340,13 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Keterangan</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Aksi</th>
-                    <?php if ($tipe_laporan === 'sekolah'): ?>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Edit</th>
-                    <?php endif; ?>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
                 <?php if (empty($presensi)): ?>
                 <tr>
-                    <td colspan="<?php echo $tipe_laporan === 'kelas' ? '8' : '8'; ?>" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="<?php echo $tipe_laporan === 'kelas' ? '9' : '9'; ?>" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>Tidak ada data presensi untuk <?php echo $tipe_laporan === 'kelas' ? 'kelas dan ' : ''; ?>tanggal yang dipilih</p>
                     </td>
@@ -429,23 +427,28 @@ require_once __DIR__ . '/../layouts/header.php';
                             <?php endif; ?>
                         </td>
                         <td class="px-6 py-4">
-                            <button onclick="lihatDetailPresensi(<?php echo $p->siswa_id; ?>)" class="text-blue-600 hover:text-blue-800 transition-colors">
+                            <button onclick="lihatDetailPresensi(<?php echo $p->id; ?>)" class="text-blue-600 hover:text-blue-800 transition-colors">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
-                        <?php if ($tipe_laporan === 'sekolah'): ?>
                         <td class="px-6 py-4">
                             <?php 
                             $jenis = isset($p->jenis) ? $p->jenis : 'hadir';
                             $alasan = isset($p->alasan) ? $p->alasan : '';
                             $foto_bukti = isset($p->foto_bukti) ? $p->foto_bukti : '';
                             ?>
-                            <button onclick="editPresensiSekolah('<?php echo $p->siswa_id; ?>', '<?php echo htmlspecialchars($p->nama ?? '', ENT_QUOTES); ?>', '<?php echo $jenis; ?>', '<?php echo htmlspecialchars($alasan, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($foto_bukti, ENT_QUOTES); ?>')" 
+                            <?php if ($tipe_laporan === 'sekolah'): ?>
+                            <button onclick="editPresensiSekolah(<?php echo $p->id; ?>, <?php echo $p->user_id; ?>, '<?php echo htmlspecialchars($p->nama ?? '', ENT_QUOTES); ?>', '<?php echo $jenis; ?>', '<?php echo htmlspecialchars($alasan, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($foto_bukti, ENT_QUOTES); ?>')" 
                                     class="text-green-600 hover:text-green-800 transition-colors">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            <?php elseif ($tipe_laporan === 'kelas'): ?>
+                            <button onclick="editPresensiKelas(<?php echo $p->id; ?>, <?php echo $p->user_id; ?>, <?php echo isset($p->kelas_id) ? $p->kelas_id : 0; ?>, '<?php echo htmlspecialchars($p->nama ?? '', ENT_QUOTES); ?>', '<?php echo $jenis; ?>', '<?php echo htmlspecialchars($alasan, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($foto_bukti, ENT_QUOTES); ?>')" 
+                                    class="text-green-600 hover:text-green-800 transition-colors">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <?php endif; ?>
                         </td>
-                        <?php endif; ?>
                     </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -531,6 +534,179 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 </div>
 
+<!-- Modal Edit Presensi Sekolah -->
+<div id="modalEditPresensiSekolah" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Ubah Status Presensi Sekolah</h3>
+            <button onclick="closeModalEdit()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <form id="formEditPresensiSekolah" onsubmit="return submitEditPresensiSekolah(event)">
+            <input type="hidden" id="edit_presensi_id" name="presensi_id">
+            <input type="hidden" id="edit_user_id" name="user_id">
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Nama Siswa
+                </label>
+                <p id="edit_nama_siswa" class="text-gray-600"></p>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_jenis">
+                    Status Kehadiran
+                </label>
+                <select id="edit_jenis" name="jenis" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" onchange="toggleEditKeteranganSekolah()">
+                    <option value="hadir">Hadir</option>
+                    <option value="izin">Izin</option>
+                    <option value="sakit">Sakit</option>
+                    <option value="alpha">Alpha</option>
+                </select>
+            </div>
+            
+            <div id="editKeteranganSekolahSection" class="hidden">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_alasan">
+                        Alasan <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="edit_alasan" name="alasan" rows="3" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan alasan izin/sakit..."></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_foto_bukti">
+                        Foto Bukti (URL)
+                    </label>
+                    <input type="text" id="edit_foto_bukti" name="foto_bukti" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan URL foto bukti...">
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeModalEdit()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Batal
+                </button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Edit Presensi Kelas -->
+<div id="modalEditPresensiKelas" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Ubah Status Presensi Kelas</h3>
+            <button onclick="closeModalEditKelas()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <form id="formEditPresensiKelas" onsubmit="return submitEditPresensiKelas(event)">
+            <input type="hidden" id="edit_kelas_presensi_id" name="presensi_id">
+            <input type="hidden" id="edit_kelas_user_id" name="user_id">
+            <input type="hidden" id="edit_kelas_kelas_id" name="kelas_id">
+            <input type="hidden" id="edit_kelas_sesi_id" name="sesi_id" value="">
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Nama Siswa
+                </label>
+                <p id="edit_kelas_nama_siswa" class="text-gray-600"></p>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_kelas_jenis">
+                    Status Kehadiran
+                </label>
+                <select id="edit_kelas_jenis" name="jenis" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" onchange="toggleEditKeteranganKelas()">
+                    <option value="hadir">Hadir</option>
+                    <option value="izin">Izin</option>
+                    <option value="sakit">Sakit</option>
+                    <option value="alpha">Alpha</option>
+                </select>
+            </div>
+            
+            <div id="editKeteranganKelasSection" class="hidden">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_kelas_alasan">
+                        Alasan <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="edit_kelas_alasan" name="alasan" rows="3" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan alasan izin/sakit..."></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_kelas_foto_bukti">
+                        Foto Bukti (URL)
+                    </label>
+                    <input type="text" id="edit_kelas_foto_bukti" name="foto_bukti" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan URL foto bukti...">
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeModalEditKelas()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Batal
+                </button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Detail Presensi -->
+<div id="detailPresensiModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Detail Presensi</h3>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Siswa</label>
+                    <p class="text-gray-800 font-medium" id="detailNama">-</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <p class="text-gray-800" id="detailEmail">-</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
+                    <p class="text-gray-800" id="detailTanggal">-</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Waktu</label>
+                    <p class="text-gray-800" id="detailWaktu">-</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <p id="detailStatus">-</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jarak</label>
+                    <p class="text-gray-800" id="detailJarak">-</p>
+                </div>
+                <div class="col-span-2" id="detailKeteranganSection" style="display: none;">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan</label>
+                    <div class="p-3 bg-gray-50 rounded-lg">
+                        <div id="detailAlasan" class="mb-2"></div>
+                        <div id="detailBukti"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="p-6 border-t border-gray-200 flex justify-end">
+            <button onclick="closeDetailPresensiModal()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -538,8 +714,9 @@ require_once __DIR__ . '/../layouts/header.php';
 // Data presensi dari PHP untuk modal detail
 const presensiData = <?php echo json_encode(isset($presensi) ? $presensi : []); ?>;
 
-function editPresensiSekolah(siswa_id, nama, jenis, alasan, foto_bukti) {
-    document.getElementById('edit_siswa_id').value = siswa_id;
+function editPresensiSekolah(presensi_id, user_id, nama, jenis, alasan, foto_bukti) {
+    document.getElementById('edit_presensi_id').value = presensi_id;
+    document.getElementById('edit_user_id').value = user_id;
     document.getElementById('edit_nama_siswa').textContent = nama;
     document.getElementById('edit_jenis').value = jenis || 'hadir';
     document.getElementById('edit_alasan').value = alasan || '';
@@ -638,60 +815,140 @@ function submitEditPresensiSekolah(event) {
     return false;
 }
 
-function lihatDetailPresensi(siswaId) {
-    // Cari data presensi berdasarkan siswa_id
-    const data = presensiData.find(p => p.siswa_id == siswaId);
+function editPresensiKelas(presensi_id, user_id, kelas_id, nama, jenis, alasan, foto_bukti) {
+    document.getElementById('edit_kelas_presensi_id').value = presensi_id;
+    document.getElementById('edit_kelas_user_id').value = user_id;
+    document.getElementById('edit_kelas_kelas_id').value = kelas_id;
+    document.getElementById('edit_kelas_nama_siswa').textContent = nama;
+    document.getElementById('edit_kelas_jenis').value = jenis || 'hadir';
+    document.getElementById('edit_kelas_alasan').value = alasan || '';
+    document.getElementById('edit_kelas_foto_bukti').value = foto_bukti || '';
+    
+    toggleEditKeteranganKelas();
+    document.getElementById('modalEditPresensiKelas').classList.remove('hidden');
+}
+
+function closeModalEditKelas() {
+    document.getElementById('modalEditPresensiKelas').classList.add('hidden');
+}
+
+function toggleEditKeteranganKelas() {
+    const jenis = document.getElementById('edit_kelas_jenis').value;
+    const keteranganSection = document.getElementById('editKeteranganKelasSection');
+    
+    if (jenis === 'izin' || jenis === 'sakit') {
+        keteranganSection.classList.remove('hidden');
+    } else {
+        keteranganSection.classList.add('hidden');
+    }
+}
+
+function submitEditPresensiKelas(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const jenis = formData.get('jenis');
+    const alasan = formData.get('alasan');
+    
+    // Validasi: jika izin/sakit, alasan harus diisi
+    if ((jenis === 'izin' || jenis === 'sakit') && !alasan) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Perhatian',
+            text: 'Alasan harus diisi untuk status izin/sakit'
+        });
+        return false;
+    }
+    
+    // Confirm before submit
+    Swal.fire({
+        title: 'Konfirmasi',
+        text: 'Apakah Anda yakin ingin mengubah status presensi siswa ini?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Ubah',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Menyimpan...',
+                text: 'Mohon tunggu',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            fetch('index.php?action=admin_kesiswaan_ubah_status_presensi_kelas', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: data.message || 'Status presensi berhasil diubah!'
+                    }).then(() => {
+                        closeModalEditKelas();
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: data.message || 'Gagal mengubah status presensi'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Terjadi kesalahan saat mengubah status'
+                });
+            });
+        }
+    });
+    
+    return false;
+}
+
+function closeDetailPresensiModal() {
+    document.getElementById('detailPresensiModal').classList.add('hidden');
+}
+
+function lihatDetailPresensi(presensiId) {
+    // Cari data presensi berdasarkan ID presensi
+    const data = presensiData.find(p => p.id == presensiId);
     
     if (!data) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Data presensi tidak ditemukan'
-        });
+        alert('Data presensi tidak ditemukan');
         return;
     }
     
-    // Buat konten modal
-    let modalContent = `
-        <div class="space-y-3 text-left">
-            <div class="border-b pb-3">
-                <p class="text-sm text-gray-600">Nama Siswa</p>
-                <p class="text-lg font-semibold text-gray-800">${data.nama || '-'}</p>
-            </div>
-            <div class="border-b pb-3">
-                <p class="text-sm text-gray-600">Email</p>
-                <p class="text-gray-800">${data.email || '-'}</p>
-            </div>
-    `;
+    // Set data ke modal
+    document.getElementById('detailNama').textContent = data.nama || '-';
+    document.getElementById('detailEmail').textContent = data.email || '-';
     
     // Format tanggal dan waktu
     if (data.waktu) {
         const waktu = new Date(data.waktu);
         const tanggalFormatted = waktu.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
         const waktuFormatted = waktu.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-        modalContent += `
-            <div class="grid grid-cols-2 gap-3 border-b pb-3">
-                <div>
-                    <p class="text-sm text-gray-600">Tanggal</p>
-                    <p class="text-gray-800">${tanggalFormatted}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Waktu</p>
-                    <p class="text-gray-800">${waktuFormatted}</p>
-                </div>
-            </div>
-        `;
+        document.getElementById('detailTanggal').textContent = tanggalFormatted;
+        document.getElementById('detailWaktu').textContent = waktuFormatted;
     } else {
-        modalContent += `
-            <div class="border-b pb-3">
-                <p class="text-sm text-gray-600">Tanggal & Waktu</p>
-                <p class="text-gray-800">-</p>
-            </div>
-        `;
+        document.getElementById('detailTanggal').textContent = '-';
+        document.getElementById('detailWaktu').textContent = '-';
     }
     
-    // Status
-    let statusBadge = '';
+    // Set status dengan badge
+    const statusElement = document.getElementById('detailStatus');
+    let statusHTML = '';
     if (data.status === 'valid') {
         const jenis = data.jenis || 'hadir';
         let statusClass = 'bg-green-100 text-green-800';
@@ -699,54 +956,48 @@ function lihatDetailPresensi(siswaId) {
         else if (jenis === 'sakit') statusClass = 'bg-orange-100 text-orange-800';
         else if (jenis === 'alpha') statusClass = 'bg-red-100 text-red-800';
         
-        statusBadge = `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
+        statusHTML = `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
             <i class="fas fa-check-circle mr-1"></i> ${jenis.charAt(0).toUpperCase() + jenis.slice(1)}
         </span>`;
     } else if (data.status === 'invalid') {
-        statusBadge = '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800"><i class="fas fa-times-circle mr-1"></i> Tidak Valid</span>';
+        statusHTML = '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800"><i class="fas fa-times-circle mr-1"></i> Tidak Valid</span>';
     } else {
-        statusBadge = '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"><i class="fas fa-minus-circle mr-1"></i> Belum Presensi</span>';
+        statusHTML = '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"><i class="fas fa-minus-circle mr-1"></i> Belum Presensi</span>';
     }
+    statusElement.innerHTML = statusHTML;
     
-    modalContent += `
-        <div class="border-b pb-3">
-            <p class="text-sm text-gray-600 mb-1">Status</p>
-            ${statusBadge}
-        </div>
-        <div class="border-b pb-3">
-            <p class="text-sm text-gray-600">Jarak</p>
-            <p class="text-gray-800">${data.jarak ? Math.round(data.jarak * 100) / 100 + ' m' : '-'}</p>
-        </div>
-    `;
+    // Set jarak
+    document.getElementById('detailJarak').textContent = data.jarak ? Math.round(data.jarak * 100) / 100 + ' m' : '-';
     
-    // Keterangan (alasan dan bukti) jika ada
+    // Set keterangan (alasan dan bukti) jika ada
+    const keteranganSection = document.getElementById('detailKeteranganSection');
+    const alasanDiv = document.getElementById('detailAlasan');
+    const buktiDiv = document.getElementById('detailBukti');
+    
     if ((data.jenis === 'izin' || data.jenis === 'sakit') && (data.alasan || data.foto_bukti)) {
-        modalContent += '<div class="bg-blue-50 p-3 rounded-lg">';
-        modalContent += '<p class="text-sm font-semibold text-gray-700 mb-2">Keterangan</p>';
+        keteranganSection.style.display = 'block';
         
+        // Set alasan
         if (data.alasan) {
-            modalContent += `<p class="text-sm text-gray-700 mb-2"><span class="font-medium">Alasan:</span><br>${data.alasan}</p>`;
+            alasanDiv.innerHTML = `<p class="text-sm text-gray-700"><span class="font-medium">Alasan:</span><br><span class="text-gray-600">${data.alasan}</span></p>`;
+        } else {
+            alasanDiv.innerHTML = '';
         }
         
+        // Set bukti
         if (data.foto_bukti) {
-            modalContent += `<a href="${data.foto_bukti}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm">
+            buktiDiv.innerHTML = `<a href="${data.foto_bukti}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm">
                 <i class="fas fa-paperclip mr-1"></i> Lihat Bukti
             </a>`;
+        } else {
+            buktiDiv.innerHTML = '';
         }
-        
-        modalContent += '</div>';
+    } else {
+        keteranganSection.style.display = 'none';
     }
     
-    modalContent += '</div>';
-    
-    // Tampilkan dengan SweetAlert
-    Swal.fire({
-        title: 'Detail Presensi',
-        html: modalContent,
-        width: '600px',
-        showCloseButton: true,
-        showConfirmButton: false
-    });
+    // Tampilkan modal
+    document.getElementById('detailPresensiModal').classList.remove('hidden');
 }
 
 function exportToPDF() {
@@ -793,48 +1044,59 @@ document.getElementById('periodeSelect').addEventListener('change', function() {
 });
 
 // Grafik Distribusi Kehadiran - Data Real dari PHP
-const distributionCtx = document.getElementById('attendanceDistributionChart').getContext('2d');
-const distributionChart = new Chart(distributionCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Hadir', 'Izin', 'Sakit', 'Alpha'],
-        datasets: [{
-            data: [
-                <?php echo isset($statistik->hadir) ? $statistik->hadir : 0; ?>,
-                <?php echo isset($statistik->izin) ? $statistik->izin : 0; ?>,
-                <?php echo isset($statistik->sakit) ? $statistik->sakit : 0; ?>,
-                <?php echo isset($statistik->alpha) ? $statistik->alpha : 0; ?>
-            ],
-            backgroundColor: [
-                '#10b981',
-                '#f59e0b',
-                '#ef4444',
-                '#6b7280'
-            ],
-            borderWidth: 2,
-            borderColor: '#fff'
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        let label = context.label || '';
-                        if (label) {
-                            label += ': ';
+<?php if (isset($statistik) && $statistik !== null && isset($statistik->total_siswa) && $statistik->total_siswa > 0): ?>
+const distributionCtx = document.getElementById('attendanceDistributionChart');
+if (distributionCtx) {
+    const distributionChart = new Chart(distributionCtx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Hadir', 'Izin', 'Sakit', 'Alpha'],
+            datasets: [{
+                data: [
+                    <?php echo isset($statistik->hadir) ? $statistik->hadir : 0; ?>,
+                    <?php echo isset($statistik->izin) ? $statistik->izin : 0; ?>,
+                    <?php echo isset($statistik->sakit) ? $statistik->sakit : 0; ?>,
+                    <?php echo isset($statistik->alpha) ? $statistik->alpha : 0; ?>
+                ],
+                backgroundColor: [
+                    '#10b981',
+                    '#f59e0b',
+                    '#ef4444',
+                    '#6b7280'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += context.parsed + ' siswa';
+                            return label;
                         }
-                        label += context.parsed + ' siswa';
-                        return label;
                     }
                 }
             }
         }
+    });
+}
+<?php endif; ?>
+
+// Close modal when clicking outside
+document.getElementById('detailPresensiModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDetailPresensiModal();
     }
 });
 </script>

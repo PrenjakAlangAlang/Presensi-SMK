@@ -44,33 +44,71 @@ class AdminController {
     // API: buat sesi presensi sekolah (manual override)
     public function createPresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $waktu_buka = $_POST['waktu_buka'];
-            $waktu_tutup = $_POST['waktu_tutup'];
+            $waktu_buka = $_POST['waktu_buka'] ?? null;
+            $waktu_tutup = $_POST['waktu_tutup'] ?? null;
             $note = $_POST['note'] ?? null;
             $created_by = $_SESSION['user_id'] ?? null;
-            $id = $this->presensiSekolahSesiModel->createSession($waktu_buka, $waktu_tutup, $created_by, $note);
+            
+            if (!$waktu_buka || !$waktu_tutup) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Waktu buka dan tutup harus diisi']);
+                exit;
+            }
+            
+            // Convert datetime-local format to MySQL datetime format if needed
+            $waktu_buka_formatted = str_replace('T', ' ', $waktu_buka);
+            $waktu_tutup_formatted = str_replace('T', ' ', $waktu_tutup);
+            if (strlen($waktu_buka_formatted) == 16) $waktu_buka_formatted .= ':00';
+            if (strlen($waktu_tutup_formatted) == 16) $waktu_tutup_formatted .= ':00';
+            
+            $id = $this->presensiSekolahSesiModel->createSession($waktu_buka_formatted, $waktu_tutup_formatted, $created_by, $note);
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$id, 'id' => $id]);
             exit;
         }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+        exit;
     }
 
     // API: extend / perpanjang sesi
     public function extendPresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id = $_POST['id'];
-            $new_waktu_tutup = $_POST['waktu_tutup'];
-            $ok = $this->presensiSekolahSesiModel->extendSession($id, $new_waktu_tutup);
+            $id = $_POST['id'] ?? null;
+            $new_waktu_tutup = $_POST['waktu_tutup'] ?? null;
+            
+            if (!$id || !$new_waktu_tutup) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'ID atau waktu tutup tidak valid']);
+                exit;
+            }
+            
+            // Convert datetime-local format to MySQL datetime format if needed
+            $waktu_tutup_formatted = str_replace('T', ' ', $new_waktu_tutup);
+            if (strlen($waktu_tutup_formatted) == 16) {
+                $waktu_tutup_formatted .= ':00';
+            }
+            
+            $ok = $this->presensiSekolahSesiModel->extendSession($id, $waktu_tutup_formatted);
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$ok]);
             exit;
         }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+        exit;
     }
 
     // API: close session (admin)
     public function closePresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id = $_POST['id'];
+            $id = $_POST['id'] ?? null;
+            
+            if (!$id) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'ID tidak valid']);
+                exit;
+            }
             
             // Mark absent students as alpha before closing
             $alphaCount = $this->presensiModel->markAbsentStudentsAsAlphaSekolah($id);
@@ -86,6 +124,9 @@ class AdminController {
             ]);
             exit;
         }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+        exit;
     }
 
     // API: status sesi sekolah (dipanggil oleh client siswa)
@@ -937,7 +978,8 @@ class AdminController {
 
     public function ubahStatusPresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $siswa_id = $_POST['siswa_id'] ?? null;
+            $presensi_id = $_POST['presensi_id'] ?? null;
+            $user_id = $_POST['user_id'] ?? null;
             $tanggal = $_POST['tanggal'] ?? date('Y-m-d');
             $jenis = $_POST['jenis'] ?? 'hadir';
             $alasan = $_POST['alasan'] ?? null;
@@ -945,32 +987,89 @@ class AdminController {
             $sesi_id = $_POST['sesi_id'] ?? null;
             
             // Validasi input
-            if (!$siswa_id) {
-                echo json_encode(['success' => false, 'message' => 'Data tidak lengkap']);
-                return;
+            if (!$presensi_id || !$user_id) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'ID presensi atau user tidak valid']);
+                exit;
             }
             
             // Validasi alasan untuk izin/sakit
             if (($jenis === 'izin' || $jenis === 'sakit') && empty($alasan)) {
+                header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Alasan harus diisi untuk status izin/sakit']);
-                return;
+                exit;
             }
             
-            // Update atau buat presensi
-            $result = $this->presensiModel->createOrUpdatePresensiSekolah(
-                $siswa_id,
-                $tanggal,
-                $jenis,
-                $alasan,
-                $foto_bukti,
-                $sesi_id
-            );
+            // Update presensi yang sudah ada berdasarkan ID
+            $db = new Database();
+            $db->query('UPDATE presensi_sekolah SET 
+                        jenis = :jenis,
+                        alasan = :alasan,
+                        foto_bukti = :foto_bukti
+                        WHERE id = :id AND user_id = :user_id');
+            $db->bind(':jenis', $jenis);
+            $db->bind(':alasan', $alasan);
+            $db->bind(':foto_bukti', $foto_bukti);
+            $db->bind(':id', $presensi_id);
+            $db->bind(':user_id', $user_id);
             
-            if ($result) {
+            if ($db->execute()) {
+                header('Content-Type: application/json');
                 echo json_encode(['success' => true, 'message' => 'Status presensi sekolah berhasil diubah']);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Gagal mengubah status presensi sekolah']);
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Gagal mengubah status presensi']);
             }
+            exit;
+        }
+    }
+
+    public function ubahStatusPresensiKelas() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $presensi_id = $_POST['presensi_id'] ?? null;
+            $user_id = $_POST['user_id'] ?? null;
+            $kelas_id = $_POST['kelas_id'] ?? null;
+            $jenis = $_POST['jenis'] ?? 'hadir';
+            $alasan = $_POST['alasan'] ?? null;
+            $foto_bukti = $_POST['foto_bukti'] ?? null;
+            $sesi_id = $_POST['sesi_id'] ?? null;
+            
+            // Validasi input
+            if (!$presensi_id || !$user_id || !$kelas_id) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'ID presensi, user, atau kelas tidak valid']);
+                exit;
+            }
+            
+            // Validasi alasan untuk izin/sakit
+            if (($jenis === 'izin' || $jenis === 'sakit') && empty($alasan)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Alasan harus diisi untuk status izin/sakit']);
+                exit;
+            }
+            
+            // Update presensi kelas yang sudah ada berdasarkan ID
+            $db = new Database();
+            $db->query('UPDATE presensi_kelas SET 
+                        jenis = :jenis,
+                        alasan = :alasan,
+                        foto_bukti = :foto_bukti
+                        WHERE id = :id AND user_id = :user_id AND kelas_id = :kelas_id');
+            $db->bind(':jenis', $jenis);
+            $db->bind(':alasan', $alasan);
+            $db->bind(':foto_bukti', $foto_bukti);
+            $db->bind(':id', $presensi_id);
+            $db->bind(':user_id', $user_id);
+            $db->bind(':kelas_id', $kelas_id);
+            
+            if ($db->execute()) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'message' => 'Status presensi kelas berhasil diubah']);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Gagal mengubah status presensi']);
+            }
+            exit;
         }
     }
 

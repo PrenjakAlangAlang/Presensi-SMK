@@ -135,7 +135,15 @@ document.getElementById('createSessionForm').addEventListener('submit', function
     e.preventDefault();
     const fd = new FormData(this);
     fetch('index.php?action=admin_kesiswaan_create_presensi_sekolah', { method: 'POST', body: fd })
-        .then(r => r.json()).then(json => { if(json.success) location.reload(); else alert('Gagal membuat sesi'); });
+        .then(r => r.json())
+        .then(json => { 
+            if(json.success) location.reload(); 
+            else alert('Gagal membuat sesi: ' + (json.message || 'Unknown error')); 
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Terjadi kesalahan saat membuat sesi');
+        });
 });
 
 document.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', function(){
@@ -151,8 +159,12 @@ document.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('cli
                 }
                 location.reload();
             } else {
-                alert('Gagal menutup sesi');
+                alert('Gagal menutup sesi: ' + (json.message || 'Unknown error'));
             }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Terjadi kesalahan saat menutup sesi');
         });
 }));
 
@@ -164,7 +176,15 @@ document.getElementById('extendSessionForm').addEventListener('submit', function
     e.preventDefault();
     const fd = new FormData(this);
     fetch('index.php?action=admin_kesiswaan_extend_presensi_sekolah', { method: 'POST', body: fd })
-        .then(r => r.json()).then(json => { if(json.success) location.reload(); else alert('Gagal perpanjang'); });
+        .then(r => r.json())
+        .then(json => { 
+            if(json.success) location.reload(); 
+            else alert('Gagal perpanjang: ' + (json.message || 'Unknown error')); 
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Terjadi kesalahan saat perpanjang sesi');
+        });
 });
 
 // Delete single session
@@ -181,8 +201,12 @@ document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('cl
                 alert('Sesi berhasil dihapus');
                 location.reload();
             } else {
-                alert('Gagal menghapus sesi');
+                alert('Gagal menghapus sesi: ' + (json.message || 'Unknown error'));
             }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Terjadi kesalahan saat menghapus sesi');
         });
 }));
 
@@ -237,8 +261,12 @@ function deleteSelectedSessions() {
                 alert(`${json.count} sesi berhasil dihapus`);
                 location.reload();
             } else {
-                alert('Gagal menghapus sesi');
+                alert('Gagal menghapus sesi: ' + (json.message || 'Unknown error'));
             }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Terjadi kesalahan saat menghapus sesi');
         });
 }
 </script>

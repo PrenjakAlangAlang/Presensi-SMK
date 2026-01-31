@@ -17,8 +17,11 @@ $action = $_GET['action'] ?? 'login';
 $protectedRoutes = [
     'admin_dashboard', 'admin_users', 'admin_kelas', 'admin_lokasi', 'admin_laporan', 'admin_create_user',
     'admin_update_user', 'admin_export_excel', 'admin_export_pdf',
+    'admin_presensi_sekolah', 'admin_create_presensi_sekolah', 'admin_extend_presensi_sekolah', 'admin_close_presensi_sekolah',
+    'admin_delete_presensi_sekolah', 'admin_delete_multiple_presensi_sekolah',
     'admin_kesiswaan_dashboard', 'admin_kesiswaan_buku_induk', 'admin_kesiswaan_presensi_sekolah',
     'admin_kesiswaan_create_presensi_sekolah', 'admin_kesiswaan_extend_presensi_sekolah', 'admin_kesiswaan_close_presensi_sekolah',
+    'admin_kesiswaan_delete_presensi_sekolah', 'admin_kesiswaan_delete_multiple_presensi_sekolah',
     'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk', 'admin_kesiswaan_delete_dokumen',
     'admin_kesiswaan_laporan', 'admin_kesiswaan_export_excel', 'admin_kesiswaan_export_pdf',
     'guru_dashboard', 'guru_kelas', 'guru_laporan',
@@ -98,6 +101,18 @@ switch($action) {
         require_once '../app/controllers/AdminController.php';
         $admin = new AdminController();
         $admin->getPresensiSekolahStatus();
+        break;
+
+    case 'admin_delete_presensi_sekolah':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->deletePresensiSekolah();
+        break;
+
+    case 'admin_delete_multiple_presensi_sekolah':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->deleteMultiplePresensiSekolah();
         break;
         
     case 'admin_laporan':
@@ -221,6 +236,18 @@ switch($action) {
         require_once '../app/controllers/AdminKesiswaanController.php';
         $ak = new AdminKesiswaanController();
         $ak->closePresensiSekolah();
+        break;
+
+    case 'admin_kesiswaan_delete_presensi_sekolah':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->deletePresensiSekolah();
+        break;
+
+    case 'admin_kesiswaan_delete_multiple_presensi_sekolah':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->deleteMultiplePresensiSekolah();
         break;
 
     case 'admin_kesiswaan_get_presensi_sekolah_status':
@@ -358,10 +385,22 @@ switch($action) {
         $admin->ubahStatusPresensiSekolah();
         break;
         
+    case 'admin_ubah_status_presensi_kelas':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->ubahStatusPresensiKelas();
+        break;
+        
     case 'admin_kesiswaan_ubah_status_presensi_sekolah':
         require_once '../app/controllers/AdminKesiswaanController.php';
         $ak = new AdminKesiswaanController();
         $ak->ubahStatusPresensiSekolah();
+        break;
+        
+    case 'admin_kesiswaan_ubah_status_presensi_kelas':
+        require_once '../app/controllers/AdminKesiswaanController.php';
+        $ak = new AdminKesiswaanController();
+        $ak->ubahStatusPresensiKelas();
         break;
 
     // Default fallback

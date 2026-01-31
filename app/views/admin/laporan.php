@@ -215,9 +215,15 @@ require_once __DIR__ . '/../layouts/header.php';
 <?php endif; ?>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-    <!-- Ringkasan Kehadiran Hari Ini -->
+    <!-- Ringkasan Kehadiran -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6">Ringkasan Kehadiran Hari Ini</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-6">Ringkasan Kehadiran</h3>
+        <?php if (!isset($statistik) || $statistik === null): ?>
+        <div class="text-center py-8">
+            <i class="fas fa-info-circle text-gray-300 text-4xl mb-3"></i>
+            <p class="text-sm text-gray-500">Pilih kelas untuk melihat statistik kehadiran</p>
+        </div>
+        <?php else: ?>
         <div class="space-y-4">
             <?php 
             $total_siswa = isset($statistik->total_siswa) ? $statistik->total_siswa : 0;
@@ -227,6 +233,12 @@ require_once __DIR__ . '/../layouts/header.php';
             $alpha = isset($statistik->alpha) ? $statistik->alpha : 0;
             $belum_presensi = $total_siswa - ($hadir + $izin + $sakit + $alpha);
             ?>
+            <?php if ($total_siswa == 0): ?>
+            <div class="text-center py-4 text-gray-500">
+                <i class="fas fa-inbox text-3xl mb-2"></i>
+                <p class="text-sm">Tidak ada data presensi untuk periode ini</p>
+            </div>
+            <?php else: ?>
             <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
@@ -293,15 +305,24 @@ require_once __DIR__ . '/../layouts/header.php';
                 <span class="text-2xl font-bold text-gray-600"><?php echo $total_siswa > 0 ? round(($belum_presensi/$total_siswa)*100) : 0; ?>%</span>
             </div>
             <?php endif; ?>
+            <?php endif; ?>
         </div>
+        <?php endif; ?>
     </div>
 
     <!-- Distribusi Kehadiran -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <h3 class="text-lg font-semibold text-gray-800 mb-6">Distribusi Kehadiran</h3>
+        <?php if (!isset($statistik) || $statistik === null || (isset($statistik->total_siswa) && $statistik->total_siswa == 0)): ?>
+        <div class="text-center py-16 text-gray-400">
+            <i class="fas fa-chart-pie text-5xl mb-3"></i>
+            <p class="text-sm">Grafik akan tampil setelah ada data presensi</p>
+        </div>
+        <?php else: ?>
         <div class="h-80">
             <canvas id="attendanceDistributionChart"></canvas>
         </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -335,7 +356,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Keterangan</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Aksi</th>
-                    <?php if ($tipe_laporan === 'sekolah'): ?>
+                    <?php if ($tipe_laporan === 'sekolah' || $tipe_laporan === 'kelas'): ?>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Edit</th>
                     <?php endif; ?>
                 </tr>
@@ -343,9 +364,12 @@ require_once __DIR__ . '/../layouts/header.php';
             <tbody class="divide-y divide-gray-200">
                 <?php if (empty($presensi)): ?>
                 <tr>
-                    <td colspan="<?php echo $tipe_laporan === 'kelas' ? '8' : '8'; ?>" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="<?php echo ($tipe_laporan === 'kelas' ? '9' : '9'); ?>" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
-                        <p>Tidak ada data presensi untuk <?php echo $tipe_laporan === 'kelas' ? 'kelas dan ' : ''; ?>tanggal yang dipilih</p>
+                        <p>Tidak ada data presensi untuk <?php echo $tipe_laporan === 'kelas' ? 'kelas dan ' : ''; ?>periode yang dipilih</p>
+                        <?php if ($tipe_laporan === 'kelas' && !isset($kelas_id)): ?>
+                        <p class="text-sm mt-2">Silakan pilih kelas terlebih dahulu</p>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php else: ?>
@@ -424,7 +448,7 @@ require_once __DIR__ . '/../layouts/header.php';
                             <?php endif; ?>
                         </td>
                         <td class="px-6 py-4">
-                            <button onclick="lihatDetailPresensi(<?php echo $p->siswa_id; ?>)" class="text-blue-600 hover:text-blue-800 transition-colors">
+                            <button onclick="lihatDetailPresensi(<?php echo $p->id; ?>)" class="text-blue-600 hover:text-blue-800 transition-colors">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
@@ -435,7 +459,20 @@ require_once __DIR__ . '/../layouts/header.php';
                             $alasan = isset($p->alasan) ? $p->alasan : '';
                             $foto_bukti = isset($p->foto_bukti) ? $p->foto_bukti : '';
                             ?>
-                            <button onclick="editPresensiSekolah('<?php echo $p->siswa_id; ?>', '<?php echo htmlspecialchars($p->nama ?? '', ENT_QUOTES); ?>', '<?php echo $jenis; ?>', '<?php echo htmlspecialchars($alasan, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($foto_bukti, ENT_QUOTES); ?>')" 
+                            <button onclick="editPresensiSekolah('<?php echo $p->id; ?>', '<?php echo $p->user_id; ?>', '<?php echo htmlspecialchars($p->nama ?? '', ENT_QUOTES); ?>', '<?php echo $jenis; ?>', '<?php echo htmlspecialchars($alasan, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($foto_bukti, ENT_QUOTES); ?>')" 
+                                    class="text-green-600 hover:text-green-800 transition-colors">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                        <?php elseif ($tipe_laporan === 'kelas'): ?>
+                        <td class="px-6 py-4">
+                            <?php 
+                            $jenis = isset($p->jenis) ? $p->jenis : 'hadir';
+                            $alasan = isset($p->alasan) ? $p->alasan : '';
+                            $foto_bukti = isset($p->foto_bukti) ? $p->foto_bukti : '';
+                            $kelas_id_val = isset($p->kelas_id) ? $p->kelas_id : ($kelas_id ?? '');
+                            ?>
+                            <button onclick="editPresensiKelas('<?php echo $p->id; ?>', '<?php echo $p->user_id; ?>', '<?php echo $kelas_id_val; ?>', '<?php echo htmlspecialchars($p->nama ?? '', ENT_QUOTES); ?>', '<?php echo $jenis; ?>', '<?php echo htmlspecialchars($alasan, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($foto_bukti, ENT_QUOTES); ?>')" 
                                     class="text-green-600 hover:text-green-800 transition-colors">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -537,8 +574,9 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
         
         <form id="formEditPresensiSekolah" onsubmit="return submitEditPresensiSekolah(event)">
-            <input type="hidden" id="edit_siswa_id" name="siswa_id">
-            <input type="hidden" id="edit_tanggal" name="tanggal" value="<?php echo $tanggal; ?>">
+            <input type="hidden" id="edit_presensi_id" name="presensi_id">
+            <input type="hidden" id="edit_user_id" name="user_id">
+            <input type="hidden" id="edit_tanggal" name="tanggal" value="<?php echo $tanggal ?? date('Y-m-d'); ?>">
             <input type="hidden" id="edit_sesi_id" name="sesi_id" value="<?php echo $_GET['sesi_id'] ?? ''; ?>">
             
             <div class="mb-4">
@@ -578,6 +616,69 @@ require_once __DIR__ . '/../layouts/header.php';
             
             <div class="flex justify-end space-x-2">
                 <button type="button" onclick="closeModalEdit()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Batal
+                </button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Edit Presensi Kelas -->
+<div id="modalEditPresensiKelas" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Ubah Status Presensi Kelas</h3>
+            <button onclick="closeModalEditKelas()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <form id="formEditPresensiKelas" onsubmit="return submitEditPresensiKelas(event)">
+            <input type="hidden" id="edit_kelas_presensi_id" name="presensi_id">
+            <input type="hidden" id="edit_kelas_user_id" name="user_id">
+            <input type="hidden" id="edit_kelas_kelas_id" name="kelas_id">
+            <input type="hidden" id="edit_kelas_sesi_id" name="sesi_id" value="">
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Nama Siswa
+                </label>
+                <p id="edit_kelas_nama_siswa" class="text-gray-600"></p>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_kelas_jenis">
+                    Status Kehadiran
+                </label>
+                <select id="edit_kelas_jenis" name="jenis" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" onchange="toggleEditKeteranganKelas()">
+                    <option value="hadir">Hadir</option>
+                    <option value="izin">Izin</option>
+                    <option value="sakit">Sakit</option>
+                    <option value="alpha">Alpha</option>
+                </select>
+            </div>
+            
+            <div id="editKeteranganKelasSection" class="hidden">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_kelas_alasan">
+                        Alasan <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="edit_kelas_alasan" name="alasan" rows="3" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan alasan izin/sakit..."></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_kelas_foto_bukti">
+                        Foto Bukti (URL)
+                    </label>
+                    <input type="text" id="edit_kelas_foto_bukti" name="foto_bukti" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan URL foto bukti...">
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeModalEditKelas()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                     Batal
                 </button>
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
@@ -641,8 +742,9 @@ require_once __DIR__ . '/../layouts/header.php';
 // Data presensi dari PHP untuk modal detail
 const presensiData = <?php echo json_encode(isset($presensi) ? $presensi : []); ?>;
 
-function editPresensiSekolah(siswa_id, nama, jenis, alasan, foto_bukti) {
-    document.getElementById('edit_siswa_id').value = siswa_id;
+function editPresensiSekolah(presensi_id, user_id, nama, jenis, alasan, foto_bukti) {
+    document.getElementById('edit_presensi_id').value = presensi_id;
+    document.getElementById('edit_user_id').value = user_id;
     document.getElementById('edit_nama_siswa').textContent = nama;
     document.getElementById('edit_jenis').value = jenis || 'hadir';
     document.getElementById('edit_alasan').value = alasan || '';
@@ -654,6 +756,72 @@ function editPresensiSekolah(siswa_id, nama, jenis, alasan, foto_bukti) {
 
 function closeModalEdit() {
     document.getElementById('modalEditPresensiSekolah').classList.add('hidden');
+}
+
+function editPresensiKelas(presensi_id, user_id, kelas_id, nama, jenis, alasan, foto_bukti) {
+    document.getElementById('edit_kelas_presensi_id').value = presensi_id;
+    document.getElementById('edit_kelas_user_id').value = user_id;
+    document.getElementById('edit_kelas_kelas_id').value = kelas_id;
+    document.getElementById('edit_kelas_nama_siswa').textContent = nama;
+    document.getElementById('edit_kelas_jenis').value = jenis || 'hadir';
+    document.getElementById('edit_kelas_alasan').value = alasan || '';
+    document.getElementById('edit_kelas_foto_bukti').value = foto_bukti || '';
+    
+    toggleEditKeteranganKelas();
+    document.getElementById('modalEditPresensiKelas').classList.remove('hidden');
+}
+
+function closeModalEditKelas() {
+    document.getElementById('modalEditPresensiKelas').classList.add('hidden');
+}
+
+function toggleEditKeteranganKelas() {
+    const jenis = document.getElementById('edit_kelas_jenis').value;
+    const keteranganSection = document.getElementById('editKeteranganKelasSection');
+    
+    if (jenis === 'izin' || jenis === 'sakit') {
+        keteranganSection.classList.remove('hidden');
+    } else {
+        keteranganSection.classList.add('hidden');
+    }
+}
+
+function submitEditPresensiKelas(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const jenis = formData.get('jenis');
+    const alasan = formData.get('alasan');
+    
+    // Validasi: jika izin/sakit, alasan harus diisi
+    if ((jenis === 'izin' || jenis === 'sakit') && !alasan) {
+        alert('Alasan harus diisi untuk status izin/sakit');
+        return false;
+    }
+    
+    // Show loading
+    if (confirm('Apakah Anda yakin ingin mengubah status presensi siswa ini?')) {
+        fetch('index.php?action=admin_ubah_status_presensi_kelas', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Status presensi berhasil diubah!');
+                closeModalEditKelas();
+                location.reload();
+            } else {
+                alert(data.message || 'Gagal mengubah status presensi');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengubah status');
+        });
+    }
+    
+    return false;
 }
 
 function toggleEditKeteranganSekolah() {
@@ -705,9 +873,9 @@ function submitEditPresensiSekolah(event) {
     return false;
 }
 
-function lihatDetailPresensi(siswaId) {
-    // Cari data presensi berdasarkan siswa_id
-    const data = presensiData.find(p => p.siswa_id == siswaId);
+function lihatDetailPresensi(presensiId) {
+    // Cari data presensi berdasarkan ID presensi
+    const data = presensiData.find(p => p.id == presensiId);
     
     if (!data) {
         alert('Data presensi tidak ditemukan');
@@ -839,50 +1007,54 @@ document.getElementById('periodeSelect').addEventListener('change', function() {
 });
 
 // Grafik Distribusi Kehadiran - Data Real dari PHP
-const distributionCtx = document.getElementById('attendanceDistributionChart').getContext('2d');
-const distributionChart = new Chart(distributionCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Hadir', 'Izin', 'Sakit', 'Alpha'],
-        datasets: [{
-            data: [
-                <?php echo isset($statistik->hadir) ? $statistik->hadir : 0; ?>,
-                <?php echo isset($statistik->izin) ? $statistik->izin : 0; ?>,
-                <?php echo isset($statistik->sakit) ? $statistik->sakit : 0; ?>,
-                <?php echo isset($statistik->alpha) ? $statistik->alpha : 0; ?>
-            ],
-            backgroundColor: [
-                '#10b981',
-                '#f59e0b',
-                '#ef4444',
-                '#6b7280'
-            ],
-            borderWidth: 2,
-            borderColor: '#fff'
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        let label = context.label || '';
-                        if (label) {
-                            label += ': ';
+<?php if (isset($statistik) && $statistik !== null && isset($statistik->total_siswa) && $statistik->total_siswa > 0): ?>
+const distributionCtx = document.getElementById('attendanceDistributionChart');
+if (distributionCtx) {
+    const distributionChart = new Chart(distributionCtx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Hadir', 'Izin', 'Sakit', 'Alpha'],
+            datasets: [{
+                data: [
+                    <?php echo isset($statistik->hadir) ? $statistik->hadir : 0; ?>,
+                    <?php echo isset($statistik->izin) ? $statistik->izin : 0; ?>,
+                    <?php echo isset($statistik->sakit) ? $statistik->sakit : 0; ?>,
+                    <?php echo isset($statistik->alpha) ? $statistik->alpha : 0; ?>
+                ],
+                backgroundColor: [
+                    '#10b981',
+                    '#f59e0b',
+                    '#ef4444',
+                    '#6b7280'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += context.parsed + ' siswa';
+                            return label;
                         }
-                        label += context.parsed + ' siswa';
-                        return label;
                     }
                 }
             }
         }
-    }
-});
+    });
+}
+<?php endif; ?>
 </script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

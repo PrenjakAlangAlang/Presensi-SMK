@@ -136,7 +136,11 @@ document.getElementById('createSessionForm').addEventListener('submit', function
         .then(r => r.json())
         .then(json => {
             if (json.success) location.reload();
-            else alert('Gagal membuat sesi');
+            else alert('Gagal membuat sesi: ' + (json.message || 'Unknown error'));
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Terjadi kesalahan saat membuat sesi');
         });
 });
 
@@ -154,8 +158,12 @@ document.querySelectorAll('.close-btn').forEach(b => b.addEventListener('click',
                 }
                 location.reload();
             } else {
-                alert('Gagal menutup sesi');
+                alert('Gagal menutup sesi: ' + (json.message || 'Unknown error'));
             }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Terjadi kesalahan saat menutup sesi');
         });
 }));
 
@@ -194,7 +202,11 @@ document.getElementById('extendSessionForm').addEventListener('submit', function
         .then(r => r.json())
         .then(json => {
             if (json.success) location.reload();
-            else alert('Gagal perpanjang');
+            else alert('Gagal perpanjang: ' + (json.message || 'Unknown error'));
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Terjadi kesalahan saat perpanjang sesi');
         });
 });
 
@@ -212,8 +224,12 @@ document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('cl
                 alert('Sesi berhasil dihapus');
                 location.reload();
             } else {
-                alert('Gagal menghapus sesi');
+                alert('Gagal menghapus sesi: ' + (json.message || 'Unknown error'));
             }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Terjadi kesalahan saat menghapus sesi');
         });
 }));
 
@@ -268,8 +284,12 @@ function deleteSelectedSessions() {
                 alert(`${json.count} sesi berhasil dihapus`);
                 location.reload();
             } else {
-                alert('Gagal menghapus sesi');
+                alert('Gagal menghapus sesi: ' + (json.message || 'Unknown error'));
             }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Terjadi kesalahan saat menghapus sesi');
         });
 }
 </script>

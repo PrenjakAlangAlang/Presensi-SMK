@@ -39,9 +39,9 @@ class PresensiSekolahSesiModel {
         return $this->db->execute();
     }
 
-    // Perpanjang sesi (update waktu_tutup)
+    // Perpanjang sesi (update waktu_tutup dan set status ke open)
     public function extendSession($id, $new_waktu_tutup) {
-        $this->db->query('UPDATE presensi_sekolah_sesi SET waktu_tutup = :wt WHERE id = :id');
+        $this->db->query('UPDATE presensi_sekolah_sesi SET waktu_tutup = :wt, status = "open" WHERE id = :id');
         $this->db->bind(':wt', $new_waktu_tutup);
         $this->db->bind(':id', $id);
         return $this->db->execute();
@@ -151,7 +151,7 @@ class PresensiSekolahSesiModel {
      */
     public function deleteSesi($id) {
         // Delete related presensi records first
-        $this->db->query('DELETE FROM presensi WHERE sesi_id = :id');
+        $this->db->query('DELETE FROM presensi_sekolah WHERE presensi_sekolah_sesi_id = :id');
         $this->db->bind(':id', $id);
         $this->db->execute();
         
@@ -172,7 +172,7 @@ class PresensiSekolahSesiModel {
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         
         // Delete related presensi records first
-        $this->db->query("DELETE FROM presensi WHERE sesi_id IN ($placeholders)");
+        $this->db->query("DELETE FROM presensi_sekolah WHERE presensi_sekolah_sesi_id IN ($placeholders)");
         foreach ($ids as $index => $id) {
             $this->db->bind($index + 1, $id);
         }
