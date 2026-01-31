@@ -25,17 +25,21 @@ require_once __DIR__ . '/../layouts/header.php';
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
-                        <input type="number" step="any" name="latitude" required 
+                        <input type="number" step="any" name="latitude" id="latitude" required 
                                value="<?php echo $lokasi->latitude ?? DEFAULT_LATITUDE; ?>"
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
-                        <input type="number" step="any" name="longitude" required 
+                        <input type="number" step="any" name="longitude" id="longitude" required 
                                value="<?php echo $lokasi->longitude ?? DEFAULT_LONGITUDE; ?>"
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                     </div>
                 </div>
+                
+                <button type="button" onclick="getCurrentLocation()" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center">
+                    <i class="fas fa-map-marker-alt mr-2"></i>Ambil Lokasi GPS Saya
+                </button>
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -196,6 +200,69 @@ function updateFormCoordinates(lat, lng) {
 
 function updateCirclePosition(lat, lng) {
     circle.setLatLng([lat, lng]);
+}
+
+// Get current GPS location
+function getCurrentLocation() {
+    if (!navigator.geolocation) {
+        showNotification('error', 'Browser Anda tidak mendukung GPS!');
+        return;
+    }
+    
+    // Show loading state
+    const button = event.target.closest('button');
+    const originalHTML = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengambil Lokasi...';
+    
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            // Update form inputs
+            document.getElementById('latitude').value = lat.toFixed(6);
+            document.getElementById('longitude').value = lng.toFixed(6);
+            
+            // Update map
+            marker.setLatLng([lat, lng]);
+            circle.setLatLng([lat, lng]);
+            map.setView([lat, lng], 16);
+            
+            // Show success notification
+            showNotification('success', 'Lokasi GPS berhasil diambil!');
+            
+            // Restore button
+            button.disabled = false;
+            button.innerHTML = originalHTML;
+        },
+        function(error) {
+            let errorMessage = 'Gagal mengambil lokasi GPS!';
+            
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage = 'Akses lokasi ditolak. Mohon izinkan akses lokasi di browser.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage = 'Informasi lokasi tidak tersedia.';
+                    break;
+                case error.TIMEOUT:
+                    errorMessage = 'Permintaan lokasi timeout.';
+                    break;
+            }
+            
+            showNotification('error', errorMessage);
+            
+            // Restore button
+            button.disabled = false;
+            button.innerHTML = originalHTML;
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
 }
 
 // Update radius when input changes
