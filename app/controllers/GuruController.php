@@ -250,6 +250,380 @@ class GuruController {
         exit();
     }
     
+    public function exportExcel() {
+        $guru_id = $_SESSION['user_id'];
+        $kelas_id = $_GET['kelas_id'] ?? null;
+        $sesi_id = $_GET['sesi_id'] ?? null;
+        
+        if (!$kelas_id) {
+            die('Kelas tidak dipilih');
+        }
+        
+        // Validasi guru mengajar kelas ini
+        $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
+        $isMyClass = false;
+        $selectedKelas = null;
+        foreach($kelasSaya as $kelas) {
+            if ($kelas->id == $kelas_id) {
+                $isMyClass = true;
+                $selectedKelas = $kelas;
+                break;
+            }
+        }
+        
+        if (!$isMyClass) {
+            die('Anda tidak mengajar kelas ini');
+        }
+        
+        // Get presensi data
+        if ($sesi_id) {
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, null, $sesi_id);
+            $session = $this->presensiSesiModel->getSessionById($sesi_id);
+            $periode_text = $session ? date('d/m/Y H:i', strtotime($session->waktu_buka)) : 'Sesi Dipilih';
+        } else {
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, date('Y-m-d'));
+            $periode_text = date('d F Y');
+        }
+        
+        // Get laporan kemajuan
+        $laporan_kemajuan = [];
+        if ($sesi_id) {
+            $allLaporan = $this->laporanModel->getLaporanByKelas($kelas_id);
+            $session = $this->presensiSesiModel->getSessionById($sesi_id);
+            if ($session) {
+                $start = $session->waktu_buka;
+                $end = $session->waktu_tutup ?: date('Y-m-d H:i:s');
+                foreach($allLaporan as $l) {
+                    if ($l->tanggal >= $start && $l->tanggal <= $end) {
+                        $laporan_kemajuan[] = $l;
+                    }
+                }
+            }
+        }
+        
+        // Calculate statistics
+        $hadir = 0;
+        $izin = 0;
+        $sakit = 0;
+        $alpha = 0;
+        
+        foreach($presensi as $p) {
+            if ($p->status == 'valid') {
+                if ($p->jenis == 'hadir') $hadir++;
+                elseif ($p->jenis == 'izin') $izin++;
+                elseif ($p->jenis == 'sakit') $sakit++;
+            } elseif ($p->status == null) {
+                $alpha++;
+            }
+        }
+        
+        $totalSiswa = $this->kelasModel->getTotalSiswaByKelas($kelas_id);
+        $belumPresensi = $totalSiswa - ($hadir + $izin + $sakit + $alpha);
+        $alpha += $belumPresensi;
+        
+        // Set headers for Excel download
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment; filename="Laporan_Presensi_' . str_replace(' ', '_', $selectedKelas->nama_kelas) . '_' . date('Y-m-d') . '.xls"');
+        header('Cache-Control: max-age=0');
+        
+        echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+        echo '<head>';
+        echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
+        echo '<style>';
+        echo 'table { border-collapse: collapse; width: 100%; }';
+        echo 'th, td { border: 1px solid black; padding: 8px; text-align: left; }';
+        echo 'th { background-color: #f2f2f2; font-weight: bold; }';
+        echo '</style>';
+        echo '</head>';
+        echo '<body>';
+        
+        echo '<h1>Laporan Presensi Kelas</h1>';
+        echo '<h2>' . htmlspecialchars($selectedKelas->nama_kelas) . '</h2>';
+        echo '<p>Periode: ' . htmlspecialchars($periode_text) . '</p>';
+        echo '<br/>';
+        
+        echo '<h3>Ringkasan Kehadiran</h3>';
+        echo '<table>';
+        echo '<tr><th>Kategori</th><th>Jumlah</th></tr>';
+        echo '<tr><td>Total Siswa</td><td>' . $totalSiswa . '</td></tr>';
+        echo '<tr><td>Hadir</td><td>' . $hadir . '</td></tr>';
+        echo '<tr><td>Izin</td><td>' . $izin . '</td></tr>';
+        echo '<tr><td>Sakit</td><td>' . $sakit . '</td></tr>';
+        echo '<tr><td>Alpha</td><td>' . $alpha . '</td></tr>';
+        echo '</table>';
+        echo '<br/>';
+        
+        if (!empty($laporan_kemajuan)) {
+            echo '<h3>Laporan Kemajuan</h3>';
+            echo '<table>';
+            echo '<tr><th>Tanggal</th><th>Guru</th><th>Catatan</th></tr>';
+            foreach($laporan_kemajuan as $l) {
+                echo '<tr>';
+                echo '<td>' . date('d/m/Y H:i', strtotime($l->tanggal)) . '</td>';
+                echo '<td>' . htmlspecialchars($l->guru_nama ?? '-') . '</td>';
+                echo '<td>' . htmlspecialchars($l->catatan ?? '-') . '</td>';
+                echo '</tr>';
+            }
+            echo '</table>';
+            echo '<br/>';
+        }
+        
+        echo '<h3>Detail Presensi</h3>';
+        echo '<table>';
+        echo '<tr><th>No</th><th>Nama Siswa</th><th>Status</th><th>Waktu</th><th>Lokasi</th><th>Keterangan</th></tr>';
+        
+        $no = 1;
+        foreach($presensi as $p) {
+            $jenis = $p->jenis ?? 'hadir';
+            $jenisMap = [
+                'hadir' => 'Hadir',
+                'izin' => 'Izin',
+                'sakit' => 'Sakit',
+                'alpha' => 'Alpha'
+            ];
+            $statusText = $jenisMap[$jenis] ?? 'Tidak Hadir';
+            
+            if (!$p->status) {
+                $statusText = 'Belum Presensi';
+            }
+            
+            $lokasi = '-';
+            if ($jenis == 'hadir') {
+                if ($p->status == 'valid') $lokasi = 'Valid';
+                elseif ($p->status == 'invalid') $lokasi = 'Invalid';
+            }
+            
+            $keterangan = '-';
+            if (($jenis == 'izin' || $jenis == 'sakit') && $p->alasan) {
+                $keterangan = $p->alasan;
+            }
+            
+            echo '<tr>';
+            echo '<td>' . $no++ . '</td>';
+            echo '<td>' . htmlspecialchars($p->nama ?? 'Siswa ' . $no) . '</td>';
+            echo '<td>' . $statusText . '</td>';
+            echo '<td>' . ($p->waktu ? date('H:i', strtotime($p->waktu)) : '-') . '</td>';
+            echo '<td>' . $lokasi . '</td>';
+            echo '<td>' . htmlspecialchars($keterangan) . '</td>';
+            echo '</tr>';
+        }
+        
+        echo '</table>';
+        echo '</body></html>';
+        exit;
+    }
+    
+    public function exportPDF() {
+        $guru_id = $_SESSION['user_id'];
+        $kelas_id = $_GET['kelas_id'] ?? null;
+        $sesi_id = $_GET['sesi_id'] ?? null;
+        
+        if (!$kelas_id) {
+            die('Kelas tidak dipilih');
+        }
+        
+        // Validasi guru mengajar kelas ini
+        $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
+        $isMyClass = false;
+        $selectedKelas = null;
+        foreach($kelasSaya as $kelas) {
+            if ($kelas->id == $kelas_id) {
+                $isMyClass = true;
+                $selectedKelas = $kelas;
+                break;
+            }
+        }
+        
+        if (!$isMyClass) {
+            die('Anda tidak mengajar kelas ini');
+        }
+        
+        // Get presensi data
+        if ($sesi_id) {
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, null, $sesi_id);
+            $session = $this->presensiSesiModel->getSessionById($sesi_id);
+            $periode_text = $session ? date('d/m/Y H:i', strtotime($session->waktu_buka)) : 'Sesi Dipilih';
+        } else {
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, date('Y-m-d'));
+            $periode_text = date('d F Y');
+        }
+        
+        // Get laporan kemajuan
+        $laporan_kemajuan = [];
+        if ($sesi_id) {
+            $allLaporan = $this->laporanModel->getLaporanByKelas($kelas_id);
+            $session = $this->presensiSesiModel->getSessionById($sesi_id);
+            if ($session) {
+                $start = $session->waktu_buka;
+                $end = $session->waktu_tutup ?: date('Y-m-d H:i:s');
+                foreach($allLaporan as $l) {
+                    if ($l->tanggal >= $start && $l->tanggal <= $end) {
+                        $laporan_kemajuan[] = $l;
+                    }
+                }
+            }
+        }
+        
+        // Calculate statistics
+        $hadir = 0;
+        $izin = 0;
+        $sakit = 0;
+        $alpha = 0;
+        
+        foreach($presensi as $p) {
+            if ($p->status == 'valid') {
+                if ($p->jenis == 'hadir') $hadir++;
+                elseif ($p->jenis == 'izin') $izin++;
+                elseif ($p->jenis == 'sakit') $sakit++;
+            } elseif ($p->status == null) {
+                $alpha++;
+            }
+        }
+        
+        $totalSiswa = $this->kelasModel->getTotalSiswaByKelas($kelas_id);
+        $belumPresensi = $totalSiswa - ($hadir + $izin + $sakit + $alpha);
+        $alpha += $belumPresensi;
+        
+        ?><!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Laporan Presensi Kelas - <?php echo htmlspecialchars($selectedKelas->nama_kelas); ?></title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; color: #333; }
+        h2 { text-align: center; color: #666; margin-top: 5px; }
+        h3 { color: #444; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .summary { display: flex; justify-content: space-around; margin: 20px 0; }
+        .summary-item { text-align: center; padding: 15px; }
+        .summary-item h4 { margin: 5px 0; font-size: 24px; }
+        .summary-item p { margin: 5px 0; color: #666; }
+        .print-btn { position: fixed; top: 10px; right: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .print-btn:hover { background: #0056b3; }
+        @media print {
+            .no-print { display: none; }
+            body { margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">Cetak / Simpan PDF</button>
+    
+    <h1>Laporan Presensi Kelas</h1>
+    <h2><?php echo htmlspecialchars($selectedKelas->nama_kelas); ?></h2>
+    <h3>Periode: <?php echo htmlspecialchars($periode_text); ?></h3>
+    
+    <h3>Ringkasan Kehadiran</h3>
+    <div class="summary">
+        <div class="summary-item">
+            <h4><?php echo $totalSiswa; ?></h4>
+            <p>Total Siswa</p>
+        </div>
+        <div class="summary-item">
+            <h4><?php echo $hadir; ?></h4>
+            <p>Hadir</p>
+        </div>
+        <div class="summary-item">
+            <h4><?php echo $izin; ?></h4>
+            <p>Izin</p>
+        </div>
+        <div class="summary-item">
+            <h4><?php echo $sakit; ?></h4>
+            <p>Sakit</p>
+        </div>
+        <div class="summary-item">
+            <h4><?php echo $alpha; ?></h4>
+            <p>Alpha</p>
+        </div>
+    </div>
+    
+    <?php if (!empty($laporan_kemajuan)): ?>
+    <h3>Laporan Kemajuan</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Tanggal</th>
+                <th>Guru</th>
+                <th>Catatan</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach($laporan_kemajuan as $l): ?>
+            <tr>
+                <td><?php echo date('d/m/Y H:i', strtotime($l->tanggal)); ?></td>
+                <td><?php echo htmlspecialchars($l->guru_nama ?? '-'); ?></td>
+                <td><?php echo htmlspecialchars($l->catatan ?? '-'); ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php endif; ?>
+    
+    <h3>Detail Presensi</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Nama Siswa</th>
+                <th>Status</th>
+                <th>Waktu</th>
+                <th>Lokasi</th>
+                <th>Keterangan</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php 
+            $no = 1;
+            foreach($presensi as $p): 
+                $jenis = $p->jenis ?? 'hadir';
+                $jenisMap = [
+                    'hadir' => 'Hadir',
+                    'izin' => 'Izin',
+                    'sakit' => 'Sakit',
+                    'alpha' => 'Alpha'
+                ];
+                $statusText = $jenisMap[$jenis] ?? 'Tidak Hadir';
+                
+                if (!$p->status) {
+                    $statusText = 'Belum Presensi';
+                }
+                
+                $lokasi = '-';
+                if ($jenis == 'hadir') {
+                    if ($p->status == 'valid') $lokasi = 'Valid';
+                    elseif ($p->status == 'invalid') $lokasi = 'Invalid';
+                }
+                
+                $keterangan = '-';
+                if (($jenis == 'izin' || $jenis == 'sakit') && isset($p->alasan) && $p->alasan) {
+                    $keterangan = $p->alasan;
+                }
+            ?>
+            <tr>
+                <td><?php echo $no++; ?></td>
+                <td><?php echo htmlspecialchars($p->nama ?? 'Siswa ' . $no); ?></td>
+                <td><?php echo $statusText; ?></td>
+                <td><?php echo $p->waktu ? date('H:i', strtotime($p->waktu)) : '-'; ?></td>
+                <td><?php echo $lokasi; ?></td>
+                <td><?php echo htmlspecialchars($keterangan); ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    
+    <script>
+        // Auto print dialog on load for PDF export
+    </script>
+</body>
+</html>
+        <?php
+        exit;
+    }
+    
     public function ubahStatusPresensi() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $siswa_id = $_POST['siswa_id'] ?? null;

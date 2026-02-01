@@ -24,7 +24,7 @@ $protectedRoutes = [
     'admin_kesiswaan_delete_presensi_sekolah', 'admin_kesiswaan_delete_multiple_presensi_sekolah',
     'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk', 'admin_kesiswaan_delete_dokumen',
     'admin_kesiswaan_laporan', 'admin_kesiswaan_export_excel', 'admin_kesiswaan_export_pdf',
-    'guru_dashboard', 'guru_kelas', 'guru_laporan',
+    'guru_dashboard', 'guru_kelas', 'guru_laporan', 'guru_export_pdf', 'guru_export_excel',
     'siswa_dashboard', 'siswa_presensi', 'siswa_riwayat',
     'siswa_buku_induk', 'siswa_save_buku_induk', 'siswa_delete_dokumen'
 ];
@@ -389,6 +389,18 @@ switch($action) {
         require_once '../app/controllers/GuruController.php';
         $guru = new GuruController();
         $guru->ubahStatusPresensi();
+        break;
+        
+    case 'guru_export_pdf':
+        require_once '../app/controllers/GuruController.php';
+        $guru = new GuruController();
+        $guru->exportPDF();
+        break;
+        
+    case 'guru_export_excel':
+        require_once '../app/controllers/GuruController.php';
+        $guru = new GuruController();
+        $guru->exportExcel();
         break;
         
     case 'admin_ubah_status_presensi_sekolah':

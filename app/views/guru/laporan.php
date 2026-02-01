@@ -190,9 +190,13 @@ $presentase = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
     <div class="p-6 border-b border-gray-200 flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-800">Daftar Presensi - <?php echo htmlspecialchars($selected_kelas->nama_kelas); ?></h3>
         <div class="flex space-x-2 no-print">
-            <button onclick="cetakLaporan()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-                <i class="fas fa-print"></i>
-                <span>Cetak Laporan</span>
+            <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                <i class="fas fa-file-pdf"></i>
+                <span>Export PDF</span>
+            </button>
+            <button onclick="exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                <i class="fas fa-file-excel"></i>
+                <span>Export Excel</span>
             </button>
         </div>
     </div>
@@ -469,14 +473,38 @@ function submitEditPresensi(event) {
     return false;
 }
 
-function cetakLaporan() {
-    showNotification('info', 'Mempersiapkan laporan untuk dicetak...');
+function exportToPDF() {
+    const kelasId = '<?php echo $kelas_id ?? ''; ?>';
+    const sesiId = '<?php echo $selected_sesi_id ?? ''; ?>';
     
-    // Simulate print preparation
-    setTimeout(() => {
-        window.print();
-        showNotification('success', 'Laporan siap dicetak!');
-    }, 1000);
+    if (!kelasId) {
+        showNotification('error', 'Pilih kelas terlebih dahulu');
+        return;
+    }
+    
+    let url = '<?php echo BASE_URL; ?>/public/index.php?action=guru_export_pdf&kelas_id=' + kelasId;
+    if (sesiId) {
+        url += '&sesi_id=' + sesiId;
+    }
+    
+    window.open(url, '_blank');
+}
+
+function exportToExcel() {
+    const kelasId = '<?php echo $kelas_id ?? ''; ?>';
+    const sesiId = '<?php echo $selected_sesi_id ?? ''; ?>';
+    
+    if (!kelasId) {
+        showNotification('error', 'Pilih kelas terlebih dahulu');
+        return;
+    }
+    
+    let url = '<?php echo BASE_URL; ?>/public/index.php?action=guru_export_excel&kelas_id=' + kelasId;
+    if (sesiId) {
+        url += '&sesi_id=' + sesiId;
+    }
+    
+    window.location.href = url;
 }
 
 function showNotification(type, message) {
