@@ -11,7 +11,7 @@ class BukuIndukModel {
     }
 
     public function getAll() {
-        $this->db->query('SELECT bi.*, u.nama, u.email FROM buku_induk bi INNER JOIN users u ON bi.user_id = u.id ORDER BY u.nama');
+        $this->db->query('SELECT bi.*, u.nama as user_nama, u.email FROM buku_induk bi INNER JOIN users u ON bi.user_id = u.id ORDER BY bi.nama');
         return $this->db->resultSet();
     }
 

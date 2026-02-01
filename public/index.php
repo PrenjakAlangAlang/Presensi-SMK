@@ -19,6 +19,7 @@ $protectedRoutes = [
     'admin_update_user', 'admin_delete_user', 'admin_export_excel', 'admin_export_pdf',
     'admin_presensi_sekolah', 'admin_create_presensi_sekolah', 'admin_extend_presensi_sekolah', 'admin_close_presensi_sekolah',
     'admin_delete_presensi_sekolah', 'admin_delete_multiple_presensi_sekolah',
+    'admin_buku_induk', 'admin_save_buku_induk', 'admin_delete_dokumen',
     'admin_kesiswaan_dashboard', 'admin_kesiswaan_buku_induk', 'admin_kesiswaan_presensi_sekolah',
     'admin_kesiswaan_create_presensi_sekolah', 'admin_kesiswaan_extend_presensi_sekolah', 'admin_kesiswaan_close_presensi_sekolah',
     'admin_kesiswaan_delete_presensi_sekolah', 'admin_kesiswaan_delete_multiple_presensi_sekolah',
@@ -193,6 +194,24 @@ switch($action) {
         require_once '../app/controllers/AdminController.php';
         $admin = new AdminController();
         $admin->removeSiswaFromKelas();
+        break;
+
+    case 'admin_buku_induk':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->bukuInduk();
+        break;
+
+    case 'admin_save_buku_induk':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->saveBukuInduk();
+        break;
+
+    case 'admin_delete_dokumen':
+        require_once '../app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->deleteDokumen();
         break;
 
     case 'admin_update_user':

@@ -9,6 +9,7 @@ require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/PresensiSekolahSesiModel.php';
 require_once __DIR__ . '/../models/LaporanModel.php';
 require_once __DIR__ . '/../models/PresensiSesiModel.php';
+require_once __DIR__ . '/../models/BukuIndukModel.php';
 
 class AdminController {
     private $userModel;
@@ -18,6 +19,7 @@ class AdminController {
     private $presensiSekolahSesiModel;
     private $laporanModel;
     private $presensiSesiModel;
+    private $bukuIndukModel;
     
     public function __construct() {
         $this->userModel = new UserModel();
@@ -27,6 +29,7 @@ class AdminController {
         $this->presensiSekolahSesiModel = new PresensiSekolahSesiModel();
         $this->laporanModel = new LaporanModel();
         $this->presensiSesiModel = new PresensiSesiModel();
+        $this->bukuIndukModel = new BukuIndukModel();
     }
 
     /**
@@ -1134,6 +1137,139 @@ class AdminController {
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'ID tidak valid']);
         exit;
+    }
+
+    // Buku Induk Management
+    public function bukuInduk() {
+        $siswa = $this->userModel->getUsersByRole('siswa');
+        $records = $this->bukuIndukModel->getAll();
+        
+        // Attach documents to each record
+        foreach($records as $record) {
+            $record->dokumen = $this->bukuIndukModel->getDokumen($record->id);
+        }
+        
+        require_once __DIR__ . '/../views/admin/buku_induk.php';
+    }
+
+    public function saveBukuInduk() {
+        if($_SERVER['REQUEST_METHOD'] !== 'POST') return;
+
+        $data = [
+            'user_id' => $_POST['user_id'],
+            'nama' => $_POST['nama'],
+            'nis' => $_POST['nis'],
+            'nisn' => $_POST['nisn'],
+            'tempat_lahir' => $_POST['tempat_lahir'],
+            'tanggal_lahir' => $_POST['tanggal_lahir'],
+            'alamat' => $_POST['alamat'],
+            'nama_ayah' => $_POST['nama_ayah'] ?? null,
+            'nama_ibu' => $_POST['nama_ibu'] ?? null,
+            'nama_wali' => $_POST['nama_wali'] ?? null,
+            'no_telp_ortu' => $_POST['no_telp_ortu'] ?? null,
+            'email_ortu' => $_POST['email_ortu'] ?? null,
+        ];
+
+        // Handle upload dokumen PDF opsional
+        if(isset($_FILES['dokumen_pdf']) && $_FILES['dokumen_pdf']['error'] === UPLOAD_ERR_OK) {
+            $uploadResult = $this->handlePdfUpload($_FILES['dokumen_pdf']);
+            if ($uploadResult['success']) {
+                $data['dokumen_pdf'] = $uploadResult['path'];
+            } else {
+                $_SESSION['error'] = $uploadResult['message'];
+                header('Location: ' . BASE_URL . '/public/index.php?action=admin_buku_induk');
+                exit();
+            }
+        } else {
+            $data['dokumen_pdf'] = $_POST['existing_pdf'] ?? null;
+        }
+
+        if($this->bukuIndukModel->upsert($data)) {
+            // Handle multiple document uploads
+            $bukuIndukRecord = $this->bukuIndukModel->getByUserId($data['user_id']);
+            
+            if(isset($_FILES['dokumen_tambahan']) && is_array($_FILES['dokumen_tambahan']['name'])) {
+                $files = $_FILES['dokumen_tambahan'];
+                $totalFiles = count($files['name']);
+                
+                for($i = 0; $i < $totalFiles; $i++) {
+                    if($files['error'][$i] === UPLOAD_ERR_OK) {
+                        $fileData = [
+                            'name' => $files['name'][$i],
+                            'type' => $files['type'][$i],
+                            'tmp_name' => $files['tmp_name'][$i],
+                            'error' => $files['error'][$i],
+                            'size' => $files['size'][$i]
+                        ];
+                        
+                        $uploadResult = $this->handlePdfUpload($fileData);
+                        if($uploadResult['success']) {
+                            $keterangan = $_POST['keterangan_tambahan'][$i] ?? '';
+                            $this->bukuIndukModel->addDokumen([
+                                'buku_induk_id' => $bukuIndukRecord->id,
+                                'nama_file' => $files['name'][$i],
+                                'path_file' => $uploadResult['path'],
+                                'keterangan' => $keterangan
+                            ]);
+                        }
+                    }
+                }
+            }
+            
+            $_SESSION['success'] = 'Buku induk berhasil disimpan.';
+        } else {
+            $_SESSION['error'] = 'Gagal menyimpan buku induk.';
+        }
+
+        header('Location: ' . BASE_URL . '/public/index.php?action=admin_buku_induk');
+        exit();
+    }
+
+    public function deleteDokumen() {
+        if($_SERVER['REQUEST_METHOD'] !== 'POST') return;
+        
+        $id = $_POST['dokumen_id'] ?? null;
+        if(!$id) {
+            $_SESSION['error'] = 'ID dokumen tidak valid.';
+        } else {
+            $dokumen = $this->bukuIndukModel->getDokumenById($id);
+            if($dokumen) {
+                // Delete physical file
+                $filePath = __DIR__ . '/../../public' . $dokumen->path_file;
+                if(file_exists($filePath)) {
+                    unlink($filePath);
+                }
+                
+                // Delete from database
+                if($this->bukuIndukModel->deleteDokumen($id)) {
+                    $_SESSION['success'] = 'Dokumen berhasil dihapus.';
+                } else {
+                    $_SESSION['error'] = 'Gagal menghapus dokumen dari database.';
+                }
+            } else {
+                $_SESSION['error'] = 'Dokumen tidak ditemukan.';
+            }
+        }
+        
+        header('Location: ' . BASE_URL . '/public/index.php?action=admin_buku_induk');
+        exit();
+    }
+
+    private function handlePdfUpload($file) {
+        $allowed = ['application/pdf'];
+        if(!in_array($file['type'], $allowed)) {
+            return ['success' => false, 'message' => 'Hanya file PDF yang diperbolehkan.'];
+        }
+        $uploadDir = __DIR__ . '/../../public/uploads/buku_induk';
+        if(!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        $safeName = uniqid('buku-induk-') . '.pdf';
+        $target = $uploadDir . '/' . $safeName;
+        if(move_uploaded_file($file['tmp_name'], $target)) {
+            return ['success' => true, 'path' => '/uploads/buku_induk/' . $safeName];
+        }
+        return ['success' => false, 'message' => 'Gagal mengunggah dokumen.'];
     }
 }
 ?>
