@@ -178,7 +178,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <button id="presensiKelasBtn" 
                         onclick="submitPresensiKelas()" 
                         disabled
-                        class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg shadow-lg">
+                        class="w-full bg-gray-400 cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg">
                     <i class="fas fa-chalkboard-teacher"></i>
                     <span>Presensi Kelas</span>
                 </button>
@@ -237,6 +237,7 @@ let radiusPresensi = <?php echo $lokasiSekolah->radius_presensi ?? MAX_RADIUS; ?
 let map, userMarker, schoolMarker, accuracyCircle;
 let sessionActive = false;
 let sessionAlreadyPresenced = false;
+let kelasAlreadyPresenced = {};
 
 // Initialize map
 function initMap() {
@@ -541,6 +542,51 @@ function submitPresensiSekolah() {
     });
 }
 
+// Update presensi kelas button appearance
+function updatePresensiKelasButton() {
+    const btn = document.getElementById('presensiKelasBtn');
+    const kelasSelect = document.getElementById('kelasSelect');
+    const selectedKelas = kelasSelect.value;
+    const jenisPresensi = document.getElementById('jenisPresensiKelas').value;
+    
+    // Reset to gray by default
+    btn.className = 'w-full bg-gray-400 cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg';
+    btn.disabled = true;
+    
+    // Check conditions
+    if (!selectedKelas) {
+        // No class selected - stay gray
+        return;
+    }
+    
+    if (kelasAlreadyPresenced[selectedKelas]) {
+        // Already presenced - stay gray
+        return;
+    }
+    
+    const sesiAktif = kelasSesi[selectedKelas] || false;
+    if (!sesiAktif) {
+        // No active session - stay gray
+        return;
+    }
+    
+    // Session active and haven't presenced yet
+    if (jenisPresensi === 'izin' || jenisPresensi === 'sakit') {
+        // For izin/sakit, enable without location check
+        btn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg';
+        btn.disabled = false;
+    } else {
+        // For hadir, check location
+        if (userLocation) {
+            const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
+            if (distance <= radiusPresensi) {
+                btn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg';
+                btn.disabled = false;
+            }
+        }
+    }
+}
+
 // Submit presensi kelas
 function submitPresensiKelas() {
     const kelasSelect = document.getElementById('kelasSelect');
@@ -608,24 +654,33 @@ function submitPresensiKelas() {
             showNotification('success', `Presensi kelas ${kelasName} berhasil! Status: ${jenisText}`);
             addToPresensiHistory(kelasName, jenisText, new Date().toLocaleTimeString());
             
+            // Mark as presenced
+            kelasAlreadyPresenced[selectedKelas] = true;
+            
             // Reset form
             document.getElementById('jenisPresensiKelas').value = 'hadir';
             document.getElementById('alasanKelas').value = '';
             document.getElementById('buktiKelas').value = '';
             document.getElementById('formAlasanKelas').classList.add('hidden');
-            // Reset teks tombol kembali ke default
+            
+            // Update button to gray (already presenced)
+            btn.className = 'w-full bg-gray-400 cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg';
             btn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
+            btn.disabled = true;
+            
+            document.getElementById('statusKelas').textContent = 'Sudah Presensi';
+            document.getElementById('statusKelas').className = 'text-gray-600 font-semibold';
         } else {
             showNotification('error', data.message || 'Gagal mencatat presensi kelas');
+            btn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
+            updatePresensiKelasButton();
         }
     })
     .catch(err => {
         console.error(err);
         showNotification('error', 'Terjadi kesalahan saat mengirim presensi');
-    })
-    .finally(() => {
         btn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
-        btn.disabled = false;
+        updatePresensiKelasButton();
     });
 }
 
@@ -712,28 +767,37 @@ document.addEventListener('DOMContentLoaded', function() {
             presensiKelasBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Submit</span>';
             // Ubah info GPS
             infoGPSKelas.textContent = 'Untuk izin/sakit, tidak perlu validasi GPS';
-            // Untuk izin/sakit, tidak perlu validasi lokasi - enable button jika kelas dipilih dan ada sesi
-            if (selectedKelas && kelasSesi[selectedKelas]) {
-                presensiKelasBtn.disabled = false;
-                document.getElementById('statusKelas').textContent = 'Sesi Aktif';
-                document.getElementById('statusKelas').className = 'text-green-600 font-semibold';
-            }
         } else {
             formAlasan.classList.add('hidden');
             // Kembalikan teks tombol ke "Presensi Kelas"
             presensiKelasBtn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
             // Kembalikan info GPS
             infoGPSKelas.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius ' + radiusPresensi + 'm dari sekolah';
-            // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
-            if (selectedKelas && kelasSesi[selectedKelas] && userLocation) {
-                const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
-                presensiKelasBtn.disabled = distance > radiusPresensi;
-                document.getElementById('statusKelas').textContent = distance <= radiusPresensi ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
-                document.getElementById('statusKelas').className = distance <= radiusPresensi ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+        }
+        
+        // Update button appearance based on all conditions
+        updatePresensiKelasButton();
+        
+        // Update status text
+        if (selectedKelas) {
+            if (kelasAlreadyPresenced[selectedKelas]) {
+                document.getElementById('statusKelas').textContent = 'Sudah Presensi';
+                document.getElementById('statusKelas').className = 'text-gray-600 font-semibold';
+            } else if (kelasSesi[selectedKelas]) {
+                if (this.value === 'izin' || this.value === 'sakit') {
+                    document.getElementById('statusKelas').textContent = 'Sesi Aktif';
+                    document.getElementById('statusKelas').className = 'text-green-600 font-semibold';
+                } else if (userLocation) {
+                    const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
+                    document.getElementById('statusKelas').textContent = distance <= radiusPresensi ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
+                    document.getElementById('statusKelas').className = distance <= radiusPresensi ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+                } else {
+                    document.getElementById('statusKelas').textContent = 'Menunggu lokasi GPS...';
+                    document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
+                }
             } else {
-                presensiKelasBtn.disabled = true;
-                document.getElementById('statusKelas').textContent = !userLocation ? 'Menunggu lokasi GPS...' : 'Tidak ada sesi aktif';
-                document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
+                document.getElementById('statusKelas').textContent = 'Tidak ada sesi aktif';
+                document.getElementById('statusKelas').className = 'text-red-600 font-semibold';
             }
         }
     });
@@ -767,15 +831,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Kelas select change handler
     document.getElementById('kelasSelect').addEventListener('change', function() {
         const selected = this.value;
-        const presensiKelasBtn = document.getElementById('presensiKelasBtn');
         const jenisPresensi = document.getElementById('jenisPresensiKelas').value;
         const kelasDetailCard = document.getElementById('kelasDetailCard');
 
         if (!selected) {
-            presensiKelasBtn.disabled = true;
             kelasDetailCard.classList.add('hidden');
             document.getElementById('statusKelas').textContent = 'Belum dipilih';
             document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
+            updatePresensiKelasButton();
             return;
         }
 
@@ -792,33 +855,39 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('kelasDetailJadwal').textContent = kelasJadwal;
         kelasDetailCard.classList.remove('hidden');
 
-        // enable only if session active
-        const sesiAktif = kelasSesi[selected] || false;
-        if (!sesiAktif) {
-            presensiKelasBtn.disabled = true;
-            document.getElementById('statusKelas').textContent = 'Tidak ada sesi aktif';
-            document.getElementById('statusKelas').className = 'text-red-600 font-semibold';
+        // Check if already presenced
+        if (kelasAlreadyPresenced[selected]) {
+            document.getElementById('statusKelas').textContent = 'Sudah Presensi';
+            document.getElementById('statusKelas').className = 'text-gray-600 font-semibold';
+            updatePresensiKelasButton();
             return;
         }
 
-        // Jika izin/sakit, tidak perlu validasi lokasi
+        // Check session status
+        const sesiAktif = kelasSesi[selected] || false;
+        if (!sesiAktif) {
+            document.getElementById('statusKelas').textContent = 'Tidak ada sesi aktif';
+            document.getElementById('statusKelas').className = 'text-red-600 font-semibold';
+            updatePresensiKelasButton();
+            return;
+        }
+
+        // Update status based on location and jenis presensi
         if (jenisPresensi === 'izin' || jenisPresensi === 'sakit') {
-            presensiKelasBtn.disabled = false;
             document.getElementById('statusKelas').textContent = 'Sesi Aktif';
             document.getElementById('statusKelas').className = 'text-green-600 font-semibold';
         } else {
-            // Untuk hadir, harus ada lokasi dan dalam radius
             if (!userLocation) {
-                presensiKelasBtn.disabled = true;
                 document.getElementById('statusKelas').textContent = 'Menunggu lokasi GPS...';
                 document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
             } else {
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
-                presensiKelasBtn.disabled = distance > radiusPresensi;
                 document.getElementById('statusKelas').textContent = distance <= radiusPresensi ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
                 document.getElementById('statusKelas').className = distance <= radiusPresensi ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
             }
         }
+        
+        updatePresensiKelasButton();
     });
 });
 

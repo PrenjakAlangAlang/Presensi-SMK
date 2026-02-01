@@ -528,6 +528,44 @@ class PresensiModel {
     }
 
     /**
+     * Get presensi record in a specific school session
+     * Returns the full record if exists, null otherwise
+     */
+    public function getPresensiInSchoolSession($user_id, $presensi_sekolah_sesi_id) {
+        if (!$presensi_sekolah_sesi_id) return null;
+        $this->db->query('SELECT * FROM presensi_sekolah WHERE user_id = :user_id AND presensi_sekolah_sesi_id = :sesi_id LIMIT 1');
+        $this->db->bind(':user_id', $user_id);
+        $this->db->bind(':sesi_id', $presensi_sekolah_sesi_id);
+        return $this->db->single();
+    }
+
+    /**
+     * Update existing presensi sekolah record by ID
+     * Used when updating alpha status to hadir/izin/sakit after session extension
+     */
+    public function updatePresensiSekolahById($id, $data) {
+        $this->db->query('UPDATE presensi_sekolah SET 
+                         latitude = :latitude, 
+                         longitude = :longitude, 
+                         jarak = :jarak, 
+                         status = :status, 
+                         jenis = :jenis, 
+                         alasan = :alasan, 
+                         foto_bukti = :foto_bukti,
+                         waktu = NOW()
+                         WHERE id = :id');
+        $this->db->bind(':id', $id);
+        $this->db->bind(':latitude', $data['latitude']);
+        $this->db->bind(':longitude', $data['longitude']);
+        $this->db->bind(':jarak', $data['jarak']);
+        $this->db->bind(':status', $data['status']);
+        $this->db->bind(':jenis', $data['jenis']);
+        $this->db->bind(':alasan', $data['alasan'] ?? null);
+        $this->db->bind(':foto_bukti', $data['foto_bukti'] ?? null);
+        return $this->db->execute();
+    }
+
+    /**
      * Get list of dates that have presensi sekolah records
      * Returns array of unique dates in DESC order
      */

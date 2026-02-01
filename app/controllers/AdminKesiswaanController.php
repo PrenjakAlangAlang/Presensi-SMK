@@ -268,7 +268,10 @@ class AdminKesiswaanController {
             $already = false;
             if (isset($_SESSION['user_id'])) {
                 $uid = $_SESSION['user_id'];
-                $already = $this->presensiModel->hasPresensiInSchoolSession($uid, $active->id);
+                $presensi = $this->presensiModel->getPresensiInSchoolSession($uid, $active->id);
+                // Siswa dianggap sudah presensi HANYA jika jenisnya bukan alpha
+                // Jika alpha, siswa masih bisa presensi ulang (ketika sesi diperpanjang)
+                $already = $presensi && $presensi->jenis !== 'alpha';
             }
             echo json_encode(['active' => true, 'session' => $active, 'already_presenced' => (bool)$already]);
         } else {

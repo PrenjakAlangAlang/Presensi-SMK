@@ -129,8 +129,11 @@ class SiswaController {
                 return;
             }
 
-            // Cegah duplikat presensi untuk session yang sama
-            if ($this->presensiModel->hasPresensiInSchoolSession($user_id, $activeSession->id)) {
+            // Cek apakah sudah ada presensi untuk sesi ini
+            $existingPresensi = $this->presensiModel->getPresensiInSchoolSession($user_id, $activeSession->id);
+            
+            // Jika sudah ada presensi dan bukan alpha, tolak duplikat
+            if ($existingPresensi && $existingPresensi->jenis !== 'alpha') {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi sekolah ini.']);
                 return;
@@ -175,10 +178,21 @@ class SiswaController {
 
             // Simpan presensi dan kembalikan hasil serta apakah lokasi valid
             header('Content-Type: application/json');
-            if($this->presensiModel->recordPresensiSekolah($data)) {
-                echo json_encode(['success' => true, 'valid' => $isValid, 'jenis' => $jenis]);
+            
+            // Jika sudah ada record alpha, update record tersebut
+            if ($existingPresensi && $existingPresensi->jenis === 'alpha') {
+                if($this->presensiModel->updatePresensiSekolahById($existingPresensi->id, $data)) {
+                    echo json_encode(['success' => true, 'valid' => $isValid, 'jenis' => $jenis, 'updated' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Gagal memperbarui presensi']);
+                }
             } else {
-                echo json_encode(['success' => false, 'message' => 'Gagal mencatat presensi']);
+                // Buat record presensi baru
+                if($this->presensiModel->recordPresensiSekolah($data)) {
+                    echo json_encode(['success' => true, 'valid' => $isValid, 'jenis' => $jenis]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Gagal menyimpan presensi']);
+                }
             }
         }
     }

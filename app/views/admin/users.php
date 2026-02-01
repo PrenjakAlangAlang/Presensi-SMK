@@ -196,9 +196,20 @@ function closeEditUserModal() {
 }
 
 function deleteUser(userId) {
-    if (confirm('Apakah Anda yakin ingin menghapus user ini?')) {
-        // Implement delete functionality
-        alert('User deleted: ' + userId);
+    if (confirm('Apakah Anda yakin ingin menghapus user ini? Data user akan dihapus permanen.')) {
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'index.php?action=admin_delete_user';
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'id';
+        input.value = userId;
+        
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 

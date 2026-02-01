@@ -270,7 +270,73 @@ define('TWILIO_ACCOUNT_SID', getenv('TWILIO_ACCOUNT_SID'));
 define('TWILIO_AUTH_TOKEN', getenv('TWILIO_AUTH_TOKEN'));
 ```
 
-## 📞 Support & Resources
+## � Troubleshooting
+
+### ❌ Error 63058: "Business is restricted from messaging users in this country"
+
+**Penyebab:**
+- Akun Twilio trial **HANYA** bisa mengirim ke negara tertentu (default: US, CA, UK)
+- Indonesia mungkin tidak termasuk dalam daftar negara yang diizinkan untuk trial account
+
+**Solusi:**
+
+#### Opsi 1: Verifikasi Nomor Penerima (SANDBOX MODE - RECOMMENDED)
+1. Pastikan **SETIAP** nomor HP orang tua sudah **JOIN** Twilio Sandbox
+2. Cara join:
+   ```
+   Buka WhatsApp → Kirim pesan ke +1 415 523 8886
+   Ketik: join <your-code>
+   ```
+3. Tunggu konfirmasi dari Twilio
+4. **WAJIB**: Setiap nomor yang akan menerima notifikasi harus join terlebih dahulu!
+
+#### Opsi 2: Upgrade ke Paid Account
+1. Buka Twilio Console → Billing
+2. Add credit (minimal $20)
+3. Upgrade account dari Trial ke Production
+4. Aktifkan WhatsApp Business API
+5. Verifikasi nomor WhatsApp bisnis Anda
+
+#### Opsi 3: Enable Geographic Permissions (Trial Account)
+1. Login ke [Twilio Console](https://console.twilio.com/)
+2. Klik **Account** → **Settings**
+3. Scroll ke **Geo Permissions**
+4. Cari **Indonesia** dan **centang**
+5. Klik **Save**
+6. Tunggu beberapa menit untuk aktivasi
+
+#### Opsi 4: Gunakan Verified Caller IDs (Trial Only)
+1. Di Twilio Console → Phone Numbers → Verified Caller IDs
+2. Klik **Add a new Caller ID**
+3. Masukkan nomor HP yang akan menerima notifikasi
+4. Verifikasi dengan kode yang dikirim via SMS
+5. Ulangi untuk setiap nomor orang tua
+
+**Catatan Penting:**
+- **Trial account** memiliki banyak limitasi
+- Untuk production dengan banyak siswa, **upgrade ke paid account** sangat disarankan
+- Paid account tidak punya batasan negara/nomor
+
+### ⚠️ Error Lainnya
+
+#### Error 21211: Invalid 'To' Phone Number
+- **Penyebab**: Format nomor HP salah
+- **Solusi**: Pastikan format `+62XXXXXXXXXX` (contoh: +628123456789)
+
+#### Error 21608: Account not authorized
+- **Penyebab**: Nomor penerima belum diverifikasi di trial account
+- **Solusi**: Join Twilio Sandbox atau verifikasi nomor
+
+#### Error 21606: From number not supported
+- **Penyebab**: Nomor pengirim tidak valid untuk WhatsApp
+- **Solusi**: Gunakan sandbox number `whatsapp:+14155238886`
+
+#### Message Status: "Failed" atau "Undelivered"
+- **Cek**: Logs di Twilio Console → Monitor → Logs → Messaging
+- **Lihat**: Error code dan deskripsi detail
+- **Action**: Sesuaikan berdasarkan error code
+
+## �📞 Support & Resources
 
 ### Dokumentasi Resmi:
 - Twilio WhatsApp API: [https://www.twilio.com/docs/whatsapp](https://www.twilio.com/docs/whatsapp)

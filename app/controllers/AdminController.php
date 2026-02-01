@@ -142,7 +142,10 @@ class AdminController {
             $already = false;
             if (isset($_SESSION['user_id'])) {
                 $uid = $_SESSION['user_id'];
-                $already = $this->presensiModel->hasPresensiInSchoolSession($uid, $active->id);
+                $presensi = $this->presensiModel->getPresensiInSchoolSession($uid, $active->id);
+                // Siswa dianggap sudah presensi HANYA jika jenisnya bukan alpha
+                // Jika alpha, siswa masih bisa presensi ulang (ketika sesi diperpanjang)
+                $already = $presensi && $presensi->jenis !== 'alpha';
             }
             echo json_encode(['active' => true, 'session' => $active, 'already_presenced' => (bool)$already]);
         } else {
@@ -479,6 +482,34 @@ class AdminController {
                 $_SESSION['error'] = 'Gagal memperbarui user!';
             }
 
+            header('Location: ' . BASE_URL . '/public/index.php?action=admin_users');
+            exit;
+        }
+    }
+
+    public function deleteUser() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $id = $_POST['id'] ?? null;
+            
+            if (!$id) {
+                $_SESSION['error'] = 'ID user tidak valid';
+                header('Location: ' . BASE_URL . '/public/index.php?action=admin_users');
+                exit;
+            }
+            
+            // Cek apakah user yang akan dihapus adalah diri sendiri
+            if ($id == $_SESSION['user_id']) {
+                $_SESSION['error'] = 'Tidak dapat menghapus akun Anda sendiri';
+                header('Location: ' . BASE_URL . '/public/index.php?action=admin_users');
+                exit;
+            }
+            
+            if($this->userModel->deleteUser($id)) {
+                $_SESSION['success'] = 'User berhasil dihapus!';
+            } else {
+                $_SESSION['error'] = 'Gagal menghapus user';
+            }
+            
             header('Location: ' . BASE_URL . '/public/index.php?action=admin_users');
             exit;
         }

@@ -24,9 +24,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     </p>
                     <?php endif; ?>                </div>
             </div>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                Aktif
-            </span>
+            
         </div>
 
             <div class="space-y-3 mb-4">
