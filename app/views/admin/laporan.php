@@ -355,7 +355,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Status</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Keterangan</th>
-                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Aksi</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Lihat Detail</th>
                     <?php if ($tipe_laporan === 'sekolah' || $tipe_laporan === 'kelas'): ?>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Edit</th>
                     <?php endif; ?>
@@ -605,13 +605,14 @@ require_once __DIR__ . '/../layouts/header.php';
                     </label>
                     <textarea id="edit_alasan" name="alasan" rows="3" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan alasan..."></textarea>
                 </div>
-                
+                <!--
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_foto_bukti">
                         Foto Bukti (URL)
                     </label>
                     <input type="text" id="edit_foto_bukti" name="foto_bukti" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan URL foto bukti...">
                 </div>
+            -->
             </div>
             
             <div class="flex justify-end space-x-2">
@@ -668,13 +669,14 @@ require_once __DIR__ . '/../layouts/header.php';
                     </label>
                     <textarea id="edit_kelas_alasan" name="alasan" rows="3" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan alasan izin/sakit..."></textarea>
                 </div>
-                
+                <!--
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="edit_kelas_foto_bukti">
                         Foto Bukti (URL)
                     </label>
                     <input type="text" id="edit_kelas_foto_bukti" name="foto_bukti" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan URL foto bukti...">
                 </div>
+            -->
             </div>
             
             <div class="flex justify-end space-x-2">
@@ -748,7 +750,6 @@ function editPresensiSekolah(presensi_id, user_id, nama, jenis, alasan, foto_buk
     document.getElementById('edit_nama_siswa').textContent = nama;
     document.getElementById('edit_jenis').value = jenis || 'hadir';
     document.getElementById('edit_alasan').value = alasan || '';
-    document.getElementById('edit_foto_bukti').value = foto_bukti || '';
     
     toggleEditKeteranganSekolah();
     document.getElementById('modalEditPresensiSekolah').classList.remove('hidden');
@@ -765,7 +766,6 @@ function editPresensiKelas(presensi_id, user_id, kelas_id, nama, jenis, alasan, 
     document.getElementById('edit_kelas_nama_siswa').textContent = nama;
     document.getElementById('edit_kelas_jenis').value = jenis || 'hadir';
     document.getElementById('edit_kelas_alasan').value = alasan || '';
-    document.getElementById('edit_kelas_foto_bukti').value = foto_bukti || '';
     
     toggleEditKeteranganKelas();
     document.getElementById('modalEditPresensiKelas').classList.remove('hidden');
@@ -909,7 +909,7 @@ function lihatDetailPresensi(presensiId) {
         else if (jenis === 'alpha') statusClass = 'bg-red-100 text-red-800';
         
         statusHTML = `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
-            <i class="fas fa-check-circle mr-1"></i> ${jenis.charAt(0).toUpperCase() + jenis.slice(1)}
+             ${jenis.charAt(0).toUpperCase() + jenis.slice(1)}
         </span>`;
     } else if (data.status === 'invalid') {
         statusHTML = '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800"><i class="fas fa-times-circle mr-1"></i> Tidak Valid</span>';

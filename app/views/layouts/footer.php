@@ -22,8 +22,8 @@
     -->
                     <div class="text-center md:text-right">
                         <p class="text-gray-600 text-sm">
-                            &copy; 2025 SMK Negeri 7 Yogyakarta. 
-                            <span class="font-medium">Sistem Presensi Berbasis Web dengan Geotagging.</span>
+                            &copy; 2026 SMK Negeri 7 Yogyakarta. 
+                            <span class="font-medium">Sistem Presensi Berbasis Web dengan Geotagging dan Algoritma Haversine.</span>
                         </p>
                         
                     </div>

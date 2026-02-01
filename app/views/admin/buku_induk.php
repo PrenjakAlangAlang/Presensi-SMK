@@ -129,15 +129,15 @@ require_once __DIR__ . '/../layouts/header.php';
                         <td class="px-4 py-3"><?php echo !empty($r->email_ortu) ? htmlspecialchars($r->email_ortu) : '-'; ?></td>
                         <td class="px-4 py-3">
                             <?php if(!empty($r->dokumen_pdf)): ?>
-                                <a href="<?php echo $r->dokumen_pdf; ?>" target="_blank" class="text-blue-600 hover:underline"><i class="fas fa-eye"></i></a>
+                                <a href="<?php echo $r->dokumen_pdf; ?>" target="_blank" class="text-red-600 hover:text-red-700" title="Lihat KTP"><i class="fas fa-file-pdf"></i></a>
                             <?php else: ?>
                                 <span class="text-gray-400">-</span>
                             <?php endif; ?>
                             <?php if(!empty($r->dokumen) && count($r->dokumen) > 0): ?>
-                                <button class="text-green-600 hover:text-green-800 ml-2 view-docs-btn" 
+                                <button class="text-blue-600 hover:text-blue-800 ml-2 view-docs-btn" 
                                         data-record-id="<?php echo $r->id; ?>" 
                                         title="Lihat semua dokumen (<?php echo count($r->dokumen); ?>)">
-                                    <i class="fas fa-folder-open"></i> (<?php echo count($r->dokumen); ?>)
+                                    <i class="fas fa-folder"></i> (<?php echo count($r->dokumen); ?>)
                                 </button>
                             <?php endif; ?>
                         </td>
@@ -255,8 +255,8 @@ document.querySelectorAll('.view-docs-btn').forEach(btn => {
                         <p class="text-xs text-gray-500 mt-1">${new Date(dok.created_at).toLocaleString('id-ID')}</p>
                     </div>
                     <div class="flex gap-2">
-                        <a href="${dok.path_file}" target="_blank" class="text-blue-600 hover:text-blue-800">
-                            <i class="fas fa-eye"></i>
+                        <a href="${dok.path_file}" target="_blank" class="text-red-600 hover:text-red-700" title="Buka PDF">
+                            <i class="fas fa-file-pdf"></i>
                         </a>
                         <form method="POST" action="<?php echo BASE_URL; ?>/public/index.php?action=admin_delete_dokumen" 
                               onsubmit="return confirm('Hapus dokumen ini?')" class="inline">

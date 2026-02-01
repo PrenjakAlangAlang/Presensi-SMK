@@ -48,8 +48,8 @@ require_once __DIR__ . '/../layouts/header.php';
                     <input type="number" name="radius_presensi" required 
                            value="<?php echo $lokasi->radius_presensi ?? MAX_RADIUS; ?>"
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                           min="50" max="500">
-                    <!--<p class="text-sm text-gray-500 mt-1">Rentang: 50 - 500 meter</p>-->
+                           min="1">
+                    <p class="text-sm text-gray-500 mt-1">Masukkan radius dalam meter (minimal 1 meter)</p>
                 </div>
                    
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300">
@@ -82,15 +82,6 @@ require_once __DIR__ . '/../layouts/header.php';
                     <span class="text-gray-600">Koordinat:</span>
                     <span class="font-mono text-sm text-gray-800">
                         <?php echo $lokasi->latitude ?? DEFAULT_LATITUDE; ?>, <?php echo $lokasi->longitude ?? DEFAULT_LONGITUDE; ?>
-                    </span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-green-600 h-2 rounded-full" style="width: 100%"></div>
-                </div>
-                <div class="text-center">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        <i class="fas fa-check-circle mr-1"></i>
-                        Lokasi Valid
                     </span>
                 </div>
             </div>
@@ -268,7 +259,7 @@ function getCurrentLocation() {
 // Update radius when input changes
 document.querySelector('input[name="radius_presensi"]').addEventListener('input', function(e) {
     const newRadius = parseInt(e.target.value);
-    if (newRadius >= 50 && newRadius <= 500) {
+    if (newRadius > 0) {
         circle.setRadius(newRadius);
     }
 });
@@ -300,9 +291,9 @@ document.addEventListener('DOMContentLoaded', function() {
 document.querySelector('form').addEventListener('submit', function(e) {
     const radius = parseInt(document.querySelector('input[name="radius_presensi"]').value);
     
-    if (radius < 50 || radius > 500) {
+    if (radius < 1 || isNaN(radius)) {
         e.preventDefault();
-        showNotification('error', 'Radius harus antara 50 - 500 meter!');
+        showNotification('error', 'Radius harus minimal 1 meter!');
         return;
     }
     
