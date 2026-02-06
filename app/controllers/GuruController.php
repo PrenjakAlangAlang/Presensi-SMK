@@ -337,6 +337,14 @@ class GuruController {
         echo '</head>';
         echo '<body>';
         
+        // Kop Surat
+        echo '<div style="text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px;">';
+        echo '<h1 style="margin: 5px 0; font-size: 18px; text-transform: uppercase;">SMK NEGERI 7 Yogyakarta</h1>';
+      
+        echo '<p style="margin: 3px 0; font-size: 10px;">Jalan Gowongan Kidul Blok JT3 No.416, Gowongan, Kec. Jetis, Kota Yogyakarta, DIY 55232</p>';
+        echo '<p style="margin: 3px 0; font-size: 10px;">Telp: (0274) 512403 | Email: smknegeri7jogja@smkn7jogja.sch.id | Website: https://www.smkn7jogja.sch.id/</p>';
+        echo '</div>';
+        
         echo '<h1>Laporan Presensi Kelas</h1>';
         echo '<h2>' . htmlspecialchars($selectedKelas->nama_kelas) . '</h2>';
         echo '<p>Periode: ' . htmlspecialchars($periode_text) . '</p>';
@@ -491,6 +499,11 @@ class GuruController {
     <title>Laporan Presensi Kelas - <?php echo htmlspecialchars($selectedKelas->nama_kelas); ?></title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
+        .kop-surat { text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .kop-surat h1 { margin: 5px 0; font-size: 24px; color: #000; text-transform: uppercase; }
+        
+        .kop-surat p { margin: 3px 0; font-size: 12px; color: #555; }
+        .kop-surat .separator { border-top: 2px solid #000; margin-top: 10px; }
         h1 { text-align: center; color: #333; }
         h2 { text-align: center; color: #666; margin-top: 5px; }
         h3 { color: #444; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 20px; }
@@ -512,6 +525,15 @@ class GuruController {
 </head>
 <body>
     <button class="print-btn no-print" onclick="window.print()">Cetak / Simpan PDF</button>
+    
+    <!-- Kop Surat -->
+    <div class="kop-surat">
+        <h1>SMK NEGERI 7 Yogyakarta</h1>
+        
+        <p>Jalan Gowongan Kidul Blok JT3 No.416, Gowongan, Kec. Jetis, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55232</p>
+        <p>Telp: (0274) 512403 | Email: smknegeri7jogja@smkn7jogja.sch.id | Website: https://www.smkn7jogja.sch.id/</p>
+        <div class="separator"></div>
+    </div>
     
     <h1>Laporan Presensi Kelas</h1>
     <h2><?php echo htmlspecialchars($selectedKelas->nama_kelas); ?></h2>
