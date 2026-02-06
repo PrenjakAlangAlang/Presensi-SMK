@@ -149,6 +149,18 @@ class SiswaController {
                 // Untuk hadir, validasi lokasi GPS dengan algoritma Haversine
                 $distance = $this->locationModel->getDistance($latitude, $longitude);
                 $isValid = $this->locationModel->validateLocation($latitude, $longitude);
+                
+                // TOLAK presensi jika lokasi di luar radius
+                if (!$isValid) {
+                    $lokasiSekolah = $this->locationModel->getLokasiSekolah();
+                    $radiusMax = $lokasiSekolah ? $lokasiSekolah->radius_presensi : 100;
+                    header('Content-Type: application/json');
+                    echo json_encode([
+                        'success' => false, 
+                        'message' => 'Presensi ditolak! Anda berada di luar radius sekolah. Jarak Anda: ' . round($distance, 2) . ' meter. Radius maksimal: ' . $radiusMax . ' meter.'
+                    ]);
+                    return;
+                }
             }
             
             // Handle upload bukti jika ada (untuk izin/sakit)
@@ -231,6 +243,18 @@ class SiswaController {
                 // Untuk hadir, validasi lokasi GPS dengan algoritma Haversine
                 $distance = $this->locationModel->getDistance($latitude, $longitude);
                 $isValid = $this->locationModel->validateLocation($latitude, $longitude);
+                
+                // TOLAK presensi jika lokasi di luar radius
+                if (!$isValid) {
+                    $lokasiSekolah = $this->locationModel->getLokasiSekolah();
+                    $radiusMax = $lokasiSekolah ? $lokasiSekolah->radius_presensi : 100;
+                    header('Content-Type: application/json');
+                    echo json_encode([
+                        'success' => false, 
+                        'message' => 'Presensi ditolak! Anda berada di luar radius sekolah. Jarak Anda: ' . round($distance, 2) . ' meter. Radius maksimal: ' . $radiusMax . ' meter.'
+                    ]);
+                    return;
+                }
             }
             
             // Handle upload bukti jika ada (untuk izin/sakit)

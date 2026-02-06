@@ -2,6 +2,11 @@
 // config/config.php
 session_start();
 
+// Load environment variables from .env file
+require_once __DIR__ . '/../vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
+
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
@@ -27,11 +32,9 @@ define('EMAIL_PASSWORD', 'fbuk xfdr aogc qlmg'); // App password atau password e
 define('EMAIL_FROM', 'kristinluthfi@gmail.com'); // Email pengirim
 define('EMAIL_FROM_NAME', 'Sistem Presensi SMK'); // Nama pengirim
 
-// WhatsApp Configuration untuk Twilio (loaded from .env)
-define('TWILIO_ACCOUNT_SID', $_ENV['TWILIO_SID'] ?? ''); // Account SID dari Twilio Console
-define('TWILIO_AUTH_TOKEN', $_ENV['TWILIO_TOKEN'] ?? ''); // Auth Token dari Twilio Console
-define('TWILIO_WHATSAPP_FROM', $_ENV['TWILIO_WHATSAPP_FROM'] ?? 'whatsapp:+14155238886'); // Nomor WhatsApp Twilio
-define('TWILIO_APP_NAME', $_ENV['TWILIO_APP_NAME'] ?? 'PresensiSMK'); // Nama aplikasi
+// WhatsApp Configuration untuk Fonnte (loaded from .env)
+define('FONNTE_TOKEN', $_ENV['FONNTE_TOKEN'] ?? ''); // Token dari dashboard Fonnte
+define('FONNTE_APP_NAME', $_ENV['FONNTE_APP_NAME'] ?? 'PresensiSMK'); // Nama aplikasi
 
 // Fungsi helper
 function isLoggedIn() {

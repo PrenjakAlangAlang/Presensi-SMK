@@ -1,20 +1,16 @@
 <?php
 // app/services/WhatsAppService.php
-// Service untuk mengirim notifikasi WhatsApp menggunakan Twilio API
+// Service untuk mengirim notifikasi WhatsApp menggunakan Fonnte API
 
 class WhatsAppService {
-    private $accountSid;
-    private $authToken;
-    private $fromNumber;
+    private $token;
     private $appName;
     private $apiUrl;
     
     public function __construct() {
-        $this->accountSid = TWILIO_ACCOUNT_SID;
-        $this->authToken = TWILIO_AUTH_TOKEN;
-        $this->fromNumber = TWILIO_WHATSAPP_FROM;
-        $this->appName = TWILIO_APP_NAME;
-        $this->apiUrl = "https://api.twilio.com/2010-04-01/Accounts/{$this->accountSid}/Messages.json";
+        $this->token = FONNTE_TOKEN;
+        $this->appName = FONNTE_APP_NAME;
+        $this->apiUrl = 'https://api.fonnte.com/send';
     }
     
     /**
@@ -110,22 +106,19 @@ class WhatsAppService {
     }
     
     /**
-     * Fungsi umum untuk mengirim pesan WhatsApp via Twilio
+     * Fungsi umum untuk mengirim pesan WhatsApp via Fonnte
      * 
-     * @param string $phoneNumber Nomor tujuan (format: whatsapp:+62XXXXXXXXXX)
+     * @param string $phoneNumber Nomor tujuan (format: 628XXXXXXXXXX)
      * @param string $message Isi pesan
      * @return bool
      */
     private function sendMessage($phoneNumber, $message) {
         try {
-            // Format nomor untuk Twilio: whatsapp:+62xxx
-            $toNumber = 'whatsapp:' . $phoneNumber;
-            
-            // Data untuk API Twilio
+            // Data untuk API Fonnte
             $postData = [
-                'From' => $this->fromNumber,
-                'To' => $toNumber,
-                'Body' => $message
+                'target' => $phoneNumber,
+                'message' => $message,
+                'countryCode' => '62' // Indonesia
             ];
             
             // Initialize cURL
@@ -135,10 +128,8 @@ class WhatsAppService {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-            curl_setopt($ch, CURLOPT_USERPWD, $this->accountSid . ':' . $this->authToken);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/x-www-form-urlencoded'
+                'Authorization: ' . $this->token
             ]);
             
             // Execute request
@@ -158,20 +149,18 @@ class WhatsAppService {
             // Parse response
             $responseData = json_decode($response, true);
             
+            // Debug: Log full response
+            error_log('Fonnte API Response: ' . json_encode($responseData));
+            
             // Check if message sent successfully
-            // Twilio returns HTTP 200 or 201 for successful message
-            if ($httpCode === 200 || $httpCode === 201) {
+            // Fonnte returns status true for success
+            if (isset($responseData['status']) && $responseData['status'] === true) {
                 return true;
             }
             
-            // Handle sandbox error (63015) - number not joined sandbox
-            if (isset($responseData['code']) && $responseData['code'] == 63015) {
-                error_log('WhatsApp Sandbox Error: Nomor ' . $phoneNumber . ' belum join sandbox. Silakan kirim "join <code>" ke +1 415 523 8886');
-                return false; // Silently fail untuk development
-            }
-            
-            // Log other errors
-            error_log('WhatsApp API error (HTTP ' . $httpCode . '): ' . $response);
+            // Log errors with full details
+            $errorMsg = $responseData['reason'] ?? $responseData['message'] ?? 'Unknown error';
+            error_log('Fonnte API error (HTTP ' . $httpCode . '): ' . $errorMsg . ' | Full response: ' . json_encode($responseData));
             return false;
             
         } catch (Exception $e) {
@@ -181,9 +170,9 @@ class WhatsAppService {
     }
     
     /**
-     * Format nomor telepon ke format internasional yang diterima Twilio
+     * Format nomor telepon ke format yang diterima Fonnte
      * Input: 08123456789, +628123456789, 628123456789, 8123456789
-     * Output: +628123456789
+     * Output: 628123456789
      * 
      * @param string $phone Nomor telepon
      * @return string|false Nomor terformat atau false jika invalid
@@ -207,48 +196,30 @@ class WhatsAppService {
         
         // Validate: must start with 62 and have reasonable length (11-15 digits)
         if (substr($phone, 0, 2) === '62' && strlen($phone) >= 11 && strlen($phone) <= 15) {
-            return '+' . $phone; // Twilio requires + prefix
+            return $phone; // Fonnte uses simple format: 628xxx
         }
         
         return false;
     }
     
     /**
-     * Test koneksi ke Twilio API
+     * Test koneksi ke Fonnte API
      * 
      * @return array Status koneksi dan pesan
      */
     public function testConnection() {
-        if (empty($this->accountSid) || $this->accountSid === 'your-twilio-account-sid-here') {
+        if (empty($this->token) || $this->token === 'your-fonnte-token-here') {
             return [
                 'success' => false,
-                'message' => 'Account SID belum dikonfigurasi. Silakan update config.php'
-            ];
-        }
-        
-        if (empty($this->authToken) || $this->authToken === 'your-twilio-auth-token-here') {
-            return [
-                'success' => false,
-                'message' => 'Auth Token belum dikonfigurasi. Silakan update config.php'
-            ];
-        }
-        
-        if (empty($this->fromNumber) || $this->fromNumber === 'whatsapp:+14155238886') {
-            return [
-                'success' => true,
-                'message' => 'Konfigurasi valid (Sandbox Mode). Pastikan nomor penerima sudah join sandbox.',
-                'account_sid' => substr($this->accountSid, 0, 10) . '...',
-                'from_number' => $this->fromNumber,
-                'mode' => 'sandbox'
+                'message' => 'Token Fonnte belum dikonfigurasi. Silakan update file .env'
             ];
         }
         
         return [
             'success' => true,
-            'message' => 'Konfigurasi WhatsApp service sudah benar',
-            'account_sid' => substr($this->accountSid, 0, 10) . '...',
-            'from_number' => $this->fromNumber,
-            'mode' => 'production'
+            'message' => 'Konfigurasi Fonnte sudah benar',
+            'token' => substr($this->token, 0, 10) . '...',
+            'api_url' => $this->apiUrl
         ];
     }
 }

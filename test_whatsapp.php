@@ -1,12 +1,12 @@
 <?php
 /**
- * Test WhatsApp Service dengan Twilio
+ * Test WhatsApp Service dengan Fonnte
  * File untuk testing notifikasi WhatsApp sebelum digunakan di production
  * 
  * Cara menggunakan:
- * 1. Pastikan sudah setup config.php dengan Account SID dan Auth Token
- * 2. Join Twilio Sandbox: kirim "join <code>" ke +1 415 523 8886 di WhatsApp
- * 3. Ganti nomor test dengan nomor yang sudah join sandbox
+ * 1. Pastikan sudah setup .env dengan token Fonnte
+ * 2. Device WhatsApp sudah connected di dashboard Fonnte
+ * 3. Ganti nomor test dengan nomor Indonesia yang valid
  * 4. Akses file ini via browser: http://localhost/Presensi-SMK/test_whatsapp.php
  */
 
@@ -20,7 +20,7 @@ require_once 'app/services/WhatsAppService.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test WhatsApp Service - Twilio</title>
+    <title>Test WhatsApp Service - Fonnte</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -127,7 +127,7 @@ require_once 'app/services/WhatsAppService.php';
 </head>
 <body>
     <div class="container">
-        <h1>📱 Test WhatsApp Service - Twilio</h1>
+        <h1>📱 Test WhatsApp Service - Fonnte</h1>
         
         <?php
         // Initialize WhatsApp service
@@ -153,8 +153,8 @@ require_once 'app/services/WhatsAppService.php';
             echo '</div>';
             echo '<div class="info">';
             echo '<strong>Cara memperbaiki:</strong><br>';
-            echo '1. Buka file <code>config/config.php</code><br>';
-            echo '2. Update nilai <code>TWILIO_ACCOUNT_SID</code> dan <code>TWILIO_AUTH_TOKEN</code><br>';
+            echo '1. Buka file <code>.env</code><br>';
+            echo '2. Update nilai <code>FONNTE_TOKEN</code> dengan token dari dashboard Fonnte<br>';
             echo '3. Reload halaman ini';
             echo '</div>';
         }
@@ -220,18 +220,18 @@ require_once 'app/services/WhatsAppService.php';
             echo '<form method="POST">';
             echo '<div class="warning">';
             echo '<strong>⚠️ Penting:</strong><br>';
-            echo 'Jika menggunakan <strong>Sandbox Mode</strong> Twilio, pastikan nomor HP sudah join sandbox:<br>';
-            echo '1. Buka WhatsApp di HP Anda<br>';
-            echo '2. Chat ke nomor: <code>+1 415 523 8886</code><br>';
-            echo '3. Kirim pesan: <code>join &lt;code&gt;</code> (lihat code di Twilio Console)<br>';
-            echo '4. Tunggu konfirmasi "You are all set!"<br>';
-            echo '5. Baru bisa menerima pesan test';
+            echo 'Pastikan device WhatsApp sudah <strong>connected</strong> di dashboard Fonnte:<br>';
+            echo '1. Login ke <a href="https://fonnte.com" target="_blank">dashboard Fonnte</a><br>';
+            echo '2. Cek status device harus <strong>Connected</strong> (hijau ✅)<br>';
+            echo '3. Jika disconnect, scan ulang QR Code<br>';
+            echo '4. HP harus tetap online dan WhatsApp aktif<br>';
+            echo '5. Gunakan nomor Indonesia (08xxx atau 628xxx)';
             echo '</div>';
             
             echo '<div class="form-group">';
-            echo '<label>Nomor WhatsApp Test (yang sudah verify):</label>';
+            echo '<label>Nomor WhatsApp Test:</label>';
             echo '<input type="text" name="test_phone" placeholder="08123456789 atau 628123456789" required>';
-            echo '<small style="color: #666;">Format: 08xxx, 628xxx, atau +628xxx</small>';
+            echo '<small style="color: #666;">Format: 08xxx, 628xxx, atau +628xxx (nomor Indonesia)</small>';
             echo '</div>';
             
             echo '<div class="form-group">';
@@ -247,13 +247,13 @@ require_once 'app/services/WhatsAppService.php';
         // Instructions
         echo '<div class="test-section">';
         echo '<h2>📖 Petunjuk Lengkap</h2>';
-        echo '<p>Untuk panduan lengkap setup Twilio, baca file: <code>SETUP_WHATSAPP_TWILIO.md</code></p>';
+        echo '<p>Untuk panduan lengkap setup Fonnte, baca file: <code>SETUP_WHATSAPP_FONNTE.md</code></p>';
         echo '<div class="info">';
         echo '<strong>Langkah-langkah:</strong><br>';
-        echo '1. Registrasi akun di <a href="https://www.twilio.com/try-twilio" target="_blank">Twilio.com</a><br>';
-        echo '2. Copy Account SID dan Auth Token dari console<br>';
-        echo '3. Join Twilio Sandbox: kirim join code ke +1 415 523 8886<br>';
-        echo '4. Update config.php dengan kredensial Twilio<br>';
+        echo '1. Registrasi akun di <a href="https://fonnte.com" target="_blank">Fonnte.com</a><br>';
+        echo '2. Hubungkan device WhatsApp dengan scan QR Code<br>';
+        echo '3. Copy token dari dashboard Fonnte<br>';
+        echo '4. Update file .env dengan token Fonnte<br>';
         echo '5. Test kirim pesan menggunakan form di atas<br>';
         echo '6. Jika berhasil, sistem sudah siap digunakan!';
         echo '</div>';
@@ -263,11 +263,11 @@ require_once 'app/services/WhatsAppService.php';
         echo '<div class="test-section">';
         echo '<h2>🔧 Informasi Teknis</h2>';
         echo '<ul>';
-        echo '<li><strong>API Provider:</strong> Twilio</li>';
-        echo '<li><strong>API Endpoint:</strong> https://api.twilio.com/2010-04-01/Accounts/{AccountSid}/Messages.json</li>';
+        echo '<li><strong>API Provider:</strong> Fonnte (Indonesia)</li>';
+        echo '<li><strong>API Endpoint:</strong> https://api.fonnte.com/send</li>';
         echo '<li><strong>Method:</strong> POST</li>';
-        echo '<li><strong>Auth:</strong> Basic Authentication (AccountSid:AuthToken)</li>';
-        echo '<li><strong>Sandbox Number:</strong> +1 415 523 8886</li>';
+        echo '<li><strong>Auth:</strong> Token Authorization</li>';
+        echo '<li><strong>Device:</strong> WhatsApp Personal (connected via QR)</li>';
         echo '<li><strong>PHP Extension:</strong> cURL (required)</li>';
         echo '</ul>';
         echo '</div>';

@@ -214,7 +214,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         </div>
                         <div class="flex items-center space-x-2">
                             <div class="w-4 h-4 border-2 border-blue-500 bg-blue-100 rounded-full"></div>
-                            <span>Radius Presensi (100m)</span>
+                            <span>Radius Presensi (<?php echo $lokasiSekolah->radius_presensi ?? MAX_RADIUS; ?>m)</span>
                         </div>
                     </div>
                 </div>
@@ -271,7 +271,7 @@ function initMap() {
     // Add circle for radius
     L.circle([schoolLocation.lat, schoolLocation.lng], {
         color: 'blue',
-        fillColor: '#ff0000',
+        fillColor: '#3454be',
         fillOpacity: 0.1,
         radius: radiusPresensi,
         weight: 2
@@ -400,14 +400,14 @@ function updateMap() {
         `)
         .openPopup();
 
-    // Add accuracy circle
-    accuracyCircle = L.circle([userLocation.lat, userLocation.lng], {
-        radius: userLocation.accuracy,
-        color: 'blue',
-        fillColor: '#3b82f6',
-        fillOpacity: 0.1,
-        weight: 1
-    }).addTo(map);
+    // Add accuracy circle (disabled)
+    // accuracyCircle = L.circle([userLocation.lat, userLocation.lng], {
+    //     radius: userLocation.accuracy,
+    //     color: 'blue',
+    //     fillColor: '#3b82f6',
+    //     fillOpacity: 0.1,
+    //     weight: 1
+    // }).addTo(map);
 
     // Adjust map view to show both markers
     const group = new L.featureGroup([schoolMarker, userMarker]);
