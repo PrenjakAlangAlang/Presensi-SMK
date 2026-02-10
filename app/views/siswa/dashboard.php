@@ -125,9 +125,40 @@ require_once __DIR__ . '/../layouts/header.php';
                         <p class="text-sm text-gray-600"><?php echo date('d M Y H:i', strtotime($presensi->waktu)); ?></p>
                     </div>
                 </div>
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
-                    <?php echo $presensi->status == 'valid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
-                    <?php echo $presensi->status == 'valid' ? 'Valid' : 'Invalid'; ?>
+                <?php 
+                $jenis = $presensi->jenis ?? 'hadir';
+                $status = $presensi->status ?? 'valid';
+                
+                // Determine badge styling based on type and status
+                if($jenis == 'hadir' && $status == 'valid') {
+                    $badgeClass = 'bg-green-100 text-green-800';
+                    $icon = 'fa-check-circle';
+                    $label = 'Hadir';
+                } elseif($jenis == 'hadir' && $status == 'invalid') {
+                    $badgeClass = 'bg-red-100 text-red-800';
+                    $icon = 'fa-exclamation-circle';
+                    $label = 'Invalid';
+                } elseif($jenis == 'izin') {
+                    $badgeClass = 'bg-yellow-100 text-yellow-800';
+                    $icon = 'fa-envelope';
+                    $label = 'Izin';
+                } elseif($jenis == 'sakit') {
+                    $badgeClass = 'bg-orange-100 text-orange-800';
+                    $icon = 'fa-first-aid';
+                    $label = 'Sakit';
+                } elseif($jenis == 'alpha') {
+                    $badgeClass = 'bg-gray-100 text-gray-800';
+                    $icon = 'fa-times-circle';
+                    $label = 'Alpha';
+                } else {
+                    $badgeClass = 'bg-gray-100 text-gray-600';
+                    $icon = 'fa-question-circle';
+                    $label = ucfirst($jenis);
+                }
+                ?>
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium <?php echo $badgeClass; ?>">
+                    <i class="fas <?php echo $icon; ?> mr-1"></i>
+                    <?php echo $label; ?>
                 </span>
             </div>
             <?php endforeach; ?>
