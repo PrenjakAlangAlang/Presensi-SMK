@@ -22,9 +22,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <i class="fas fa-users text-blue-600 text-xl"></i>
             </div>
         </div>
-        <div class="mt-4">
-            <span class="text-green-600 text-sm font-medium">Aktif</span>
-        </div>
+        
     </div>
 
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
@@ -37,9 +35,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <i class="fas fa-chalkboard-teacher text-green-600 text-xl"></i>
             </div>
         </div>
-        <div class="mt-4">
-            <span class="text-green-600 text-sm font-medium">Aktif</span>
-        </div>
+        
     </div>
 
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
@@ -52,9 +48,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <i class="fas fa-chalkboard text-purple-600 text-xl"></i>
             </div>
         </div>
-        <div class="mt-4">
-            <span class="text-green-600 text-sm font-medium">Aktif</span>
-        </div>
+        
     </div>
     <!--
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">

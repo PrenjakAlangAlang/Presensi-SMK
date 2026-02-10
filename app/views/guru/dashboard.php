@@ -81,9 +81,8 @@ require_once __DIR__ . '/../layouts/header.php';
                 </div>
                 <div class="text-right">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        Aktif
+                        <?php echo count($this->kelasModel->getSiswaInKelas($kelas->id)); ?> siswa
                     </span>
-                    <p class="text-sm text-gray-600 mt-1"><?php echo count($this->kelasModel->getSiswaInKelas($kelas->id)); ?> siswa</p>
                 </div>
             </div>
             <?php endforeach; ?>
