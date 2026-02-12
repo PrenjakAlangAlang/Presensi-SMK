@@ -74,14 +74,22 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-2">Upload Dokumen Tambahan (Multiple PDF)</label>
             <div id="file-upload-area" class="space-y-3">
-                <div class="file-input-group flex gap-2 items-start">
-                    <div class="flex-1">
-                        <input type="file" name="dokumen_tambahan[]" accept="application/pdf" class="w-full mb-1" />
-                        <input type="text" name="keterangan_tambahan[]" placeholder="Keterangan dokumen (opsional)" class="w-full border rounded px-3 py-1 text-sm" />
+                <div class="file-input-group border rounded-lg p-4 bg-gray-50">
+                    <div class="flex gap-3 items-start">
+                        <div class="flex-1 space-y-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">File PDF</label>
+                                <input type="file" name="dokumen_tambahan[]" accept="application/pdf" class="w-full text-sm" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan <span class="text-gray-400 font-normal">(opsional)</span></label>
+                                <input type="text" name="keterangan_tambahan[]" placeholder="Contoh: Ijazah SD, Kartu Keluarga, dll" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                            </div>
+                        </div>
+                        <button type="button" class="add-file-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors mt-6">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
-                    <button type="button" class="add-file-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded">
-                        <i class="fas fa-plus"></i>
-                    </button>
                 </div>
             </div>
         </div>
@@ -191,21 +199,32 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadArea.addEventListener('click', function(e) {
         if(e.target.closest('.add-file-btn')) {
             const newGroup = document.createElement('div');
-            newGroup.className = 'file-input-group flex gap-2 items-start';
+            newGroup.className = 'file-input-group border rounded-lg p-4 bg-gray-50';
             newGroup.innerHTML = `
-                <div class="flex-1">
-                    <input type="file" name="dokumen_tambahan[]" accept="application/pdf" class="w-full mb-1" />
-                    <input type="text" name="keterangan_tambahan[]" placeholder="Keterangan dokumen (opsional)" class="w-full border rounded px-3 py-1 text-sm" />
+                <div class="flex gap-3 items-start">
+                    <div class="flex-1 space-y-2">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">File PDF</label>
+                            <input type="file" name="dokumen_tambahan[]" accept="application/pdf" class="w-full text-sm" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan <span class="text-gray-400 font-normal">(opsional)</span></label>
+                            <input type="text" name="keterangan_tambahan[]" placeholder="Contoh: Ijazah SD, Kartu Keluarga, dll" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                        </div>
+                    </div>
+                    <button type="button" class="remove-file-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition-colors mt-6">
+                        <i class="fas fa-minus"></i>
+                    </button>
                 </div>
-                <button type="button" class="remove-file-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">
-                    <i class="fas fa-minus"></i>
-                </button>
             `;
             uploadArea.appendChild(newGroup);
         }
         
         if(e.target.closest('.remove-file-btn')) {
-            e.target.closest('.file-input-group').remove();
+            const groups = uploadArea.querySelectorAll('.file-input-group');
+            if(groups.length > 1) {
+                e.target.closest('.file-input-group').remove();
+            }
         }
     });
 });
@@ -252,7 +271,7 @@ document.querySelectorAll('.view-docs-btn').forEach(btn => {
                     <div class="flex-1">
                         <p class="font-medium text-gray-800">${dok.nama_file}</p>
                         ${dok.keterangan ? `<p class="text-sm text-gray-600">${dok.keterangan}</p>` : ''}
-                        <p class="text-xs text-gray-500 mt-1">${new Date(dok.created_at).toLocaleString('id-ID')}</p>
+                        
                     </div>
                     <div class="flex gap-2">
                         <a href="${dok.dokumen_pdf}" target="_blank" class="text-red-600 hover:text-red-700" title="Buka PDF">
