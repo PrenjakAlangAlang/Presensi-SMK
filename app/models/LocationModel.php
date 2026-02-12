@@ -31,7 +31,10 @@ class LocationModel {
     
     public function getLokasiSekolah() {
         // Ambil record lokasi sekolah terbaru (dipakai sebagai pusat validasi)
-        $this->db->query('SELECT * FROM lokasi_sekolah ORDER BY id DESC LIMIT 1');
+        $this->db->query('SELECT ls.*, u.nama as updated_by_nama 
+                         FROM lokasi_sekolah ls 
+                         LEFT JOIN users u ON ls.updated_by = u.id 
+                         ORDER BY ls.id DESC LIMIT 1');
         return $this->db->single();
     }
     
@@ -81,15 +84,6 @@ class LocationModel {
             $lokasiSekolah->latitude, 
             $lokasiSekolah->longitude
         );
-    }
-    
-    public function getRiwayatLokasi() {
-        // Ambil semua riwayat perubahan lokasi, urutkan dari yang terbaru
-        $this->db->query('SELECT ls.*, u.nama as updated_by_nama 
-                         FROM lokasi_sekolah ls 
-                         LEFT JOIN users u ON ls.updated_by = u.id 
-                         ORDER BY ls.id DESC');
-        return $this->db->resultSet();
     }
 }
 ?>

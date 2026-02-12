@@ -84,53 +84,14 @@ require_once __DIR__ . '/../layouts/header.php';
                         <?php echo $lokasi->latitude ?? DEFAULT_LATITUDE; ?>, <?php echo $lokasi->longitude ?? DEFAULT_LONGITUDE; ?>
                     </span>
                 </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Terakhir di update oleh:</span>
+                    <span class="font-medium text-gray-800">
+                        <?php echo htmlspecialchars($lokasi->updated_by_nama ?? 'System'); ?>
+                    </span>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Riwayat Perubahan -->
-<div class="mt-8 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">Riwayat Perubahan Lokasi</h3>
-    <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead>
-                <tr class="bg-gray-50">
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Waktu</th>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Koordinat</th>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Radius</th>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Diubah Oleh</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                <?php if(isset($riwayat_lokasi) && count($riwayat_lokasi) > 0): ?>
-                    <?php foreach($riwayat_lokasi as $riwayat): ?>
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-4 py-3 text-gray-600"><?php echo isset($riwayat->created_at) ? date('d M Y H:i', strtotime($riwayat->created_at)) : date('d M Y H:i'); ?></td>
-                        <td class="px-4 py-3 text-gray-600">
-                            <span class="font-mono text-sm"><?php echo $riwayat->latitude; ?>, <?php echo $riwayat->longitude; ?></span>
-                        </td>
-                        <td class="px-4 py-3 text-gray-600"><?php echo $riwayat->radius_presensi; ?> meter</td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-user text-blue-600 text-sm"></i>
-                                </div>
-                                <span class="text-gray-800"><?php echo htmlspecialchars($riwayat->updated_by_nama ?? 'System'); ?></span>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="4" class="px-4 py-6 text-center text-gray-500">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            Belum ada riwayat perubahan lokasi
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
     </div>
 </div>
 

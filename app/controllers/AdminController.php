@@ -299,7 +299,6 @@ class AdminController {
     public function lokasi() {
         // Halaman pengaturan lokasi sekolah
         $lokasi = $this->locationModel->getLokasiSekolah();
-        $riwayat_lokasi = $this->locationModel->getRiwayatLokasi();
     require_once __DIR__ . '/../views/admin/lokasi.php';
     }
     

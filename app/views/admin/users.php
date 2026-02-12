@@ -22,7 +22,6 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Nama</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Email</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Role</th>
-                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Tanggal Dibuat</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Aksi</th>
                 </tr>
             </thead>
@@ -47,7 +46,6 @@ require_once __DIR__ . '/../layouts/header.php';
                             <?php echo ucfirst($user->role); ?>
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-gray-600"><?php echo date('d M Y', strtotime($user->created_at)); ?></td>
                     <td class="px-6 py-4">
                         <div class="flex space-x-2">
                             <button 

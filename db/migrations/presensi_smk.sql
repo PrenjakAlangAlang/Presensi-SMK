@@ -75,16 +75,17 @@ CREATE TABLE `kelas` (
   `id` int NOT NULL,
   `nama_kelas` varchar(100) NOT NULL,
   `tahun_ajaran` varchar(20) DEFAULT NULL,
-  `wali_kelas` int DEFAULT NULL,  `jadwal` varchar(100) DEFAULT NULL,  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `wali_kelas` int DEFAULT NULL,
+  `jadwal` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `kelas`
 --
 
-INSERT INTO `kelas` (`id`, `nama_kelas`, `tahun_ajaran`, `wali_kelas`, `jadwal`, `created_at`) VALUES
-(1, 'XI RPL 1', '2025/2026', 2, 'Senin, 08:00 - 09:30', '2025-10-31 07:43:25'),
-(3, 'XII Multimedia', '2025/2026', 2, 'Rabu, 10:00 - 11:30', '2025-11-07 07:14:50');
+INSERT INTO `kelas` (`id`, `nama_kelas`, `tahun_ajaran`, `wali_kelas`, `jadwal`) VALUES
+(1, 'XI RPL 1', '2025/2026', 2, 'Senin, 08:00 - 09:30'),
+(3, 'XII Multimedia', '2025/2026', 2, 'Rabu, 10:00 - 11:30');
 
 -- --------------------------------------------------------
 
@@ -125,17 +126,16 @@ CREATE TABLE `lokasi_sekolah` (
   `latitude` double NOT NULL,
   `longitude` double NOT NULL,
   `radius_presensi` int DEFAULT '100',
-  `updated_by` int DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `updated_by` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `lokasi_sekolah`
 --
 
-INSERT INTO `lokasi_sekolah` (`id`, `nama_sekolah`, `latitude`, `longitude`, `radius_presensi`, `updated_by`, `created_at`) VALUES
-(1, 'SMK Negeri 7 Yogyakarta', -7.7956, 110.3695, 100, 1, '2025-10-31 07:43:39'),
-(2, 'SMK Negeri 7 Yogyakarta', -7.64961, 110.413032, 100, 1, '2025-11-02 06:45:36');
+INSERT INTO `lokasi_sekolah` (`id`, `nama_sekolah`, `latitude`, `longitude`, `radius_presensi`, `updated_by`) VALUES
+(1, 'SMK Negeri 7 Yogyakarta', -7.7956, 110.3695, 100, 1),
+(2, 'SMK Negeri 7 Yogyakarta', -7.64961, 110.413032, 100, 1);
 
 -- --------------------------------------------------------
 
@@ -257,44 +257,43 @@ CREATE TABLE `presensi_sekolah_sesi` (
   `waktu_tutup` datetime NOT NULL,
   `status` enum('open','closed') NOT NULL DEFAULT 'open',
   `created_by` int DEFAULT NULL,
-  `note` varchar(255) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `note` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `presensi_sekolah_sesi`
 --
 
-INSERT INTO `presensi_sekolah_sesi` (`id`, `waktu_buka`, `waktu_tutup`, `status`, `created_by`, `note`, `created_at`) VALUES
-(1, '2025-11-07 22:46:00', '2025-11-07 22:49:00', 'closed', 1, '', '2025-11-07 22:46:46'),
-(2, '2025-11-07 22:53:00', '2025-11-07 23:10:50', 'closed', 1, '', '2025-11-07 22:53:12'),
-(3, '2025-11-07 23:03:00', '2025-11-07 23:21:00', 'closed', 1, '', '2025-11-07 23:03:12'),
-(4, '2025-12-20 00:17:00', '2025-12-20 00:20:00', 'closed', 1, 'nlknlk', '2025-12-20 00:17:24'),
-(5, '2025-12-22 01:14:00', '2025-12-22 01:30:00', 'closed', 1, '', '2025-12-22 01:17:33'),
-(6, '2025-12-22 08:53:00', '2025-12-22 09:05:00', 'closed', 1, '', '2025-12-22 08:53:47'),
-(7, '2025-12-22 09:03:00', '2025-12-22 09:10:00', 'closed', 1, '', '2025-12-22 09:03:29'),
-(8, '2025-12-22 09:04:00', '2025-12-22 09:10:00', 'closed', 1, '', '2025-12-22 09:04:42'),
-(9, '2025-12-22 09:08:00', '2025-12-22 09:24:00', 'closed', 1, '', '2025-12-22 09:08:08'),
-(10, '2025-12-22 09:23:00', '2025-12-22 09:36:00', 'closed', 1, '', '2025-12-22 09:23:56'),
-(11, '2025-12-22 09:44:00', '2025-12-22 09:56:00', 'closed', 1, '', '2025-12-22 09:44:16'),
-(12, '2025-12-22 10:32:00', '2025-12-22 10:43:00', 'closed', 1, '', '2025-12-22 10:32:25'),
-(13, '2025-12-22 10:39:00', '2025-12-22 10:46:00', 'closed', 1, '', '2025-12-22 10:39:17'),
-(14, '2025-12-22 11:00:00', '2025-12-22 11:13:00', 'closed', 1, '', '2025-12-22 11:00:23'),
-(15, '2025-12-22 11:06:00', '2025-12-22 11:16:00', 'closed', 1, '', '2025-12-22 11:07:01'),
-(16, '2025-12-22 11:40:00', '2025-12-22 11:44:00', 'closed', 1, '', '2025-12-22 11:40:35'),
-(17, '2025-12-22 11:49:00', '2025-12-22 11:53:00', 'closed', 1, '', '2025-12-22 11:49:57'),
-(18, '2025-12-23 15:54:00', '2025-12-23 15:59:00', 'closed', 1, '', '2025-12-23 15:55:09'),
-(19, '2025-12-24 00:07:00', '2025-12-24 00:09:00', 'closed', 1, '', '2025-12-24 00:07:11'),
-(20, '2025-12-24 00:08:00', '2025-12-24 00:12:00', 'closed', 1, '', '2025-12-24 00:08:38'),
-(21, '2025-12-24 23:08:00', '2025-12-24 23:11:00', 'closed', 1, '', '2025-12-24 23:08:20'),
-(22, '2025-12-24 23:19:00', '2025-12-24 23:21:00', 'closed', 1, '', '2025-12-24 23:19:13'),
-(23, '2025-12-24 23:49:00', '2025-12-24 23:52:00', 'closed', 9, '', '2025-12-24 23:50:05'),
-(24, '2025-12-24 23:53:00', '2025-12-24 23:57:00', 'closed', 9, '', '2025-12-24 23:54:04'),
-(25, '2025-12-25 00:05:00', '2025-12-25 00:07:00', 'closed', 9, '', '2025-12-25 00:05:38'),
-(26, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9, '', '2025-12-25 00:07:54'),
-(27, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9, '', '2025-12-25 00:07:54'),
-(28, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9, '', '2025-12-25 00:07:54'),
-(29, '2025-12-25 00:22:00', '2025-12-25 00:26:00', 'closed', 9, '', '2025-12-25 00:22:54');
+INSERT INTO `presensi_sekolah_sesi` (`id`, `waktu_buka`, `waktu_tutup`, `status`, `created_by`, `note`) VALUES
+(1, '2025-11-07 22:46:00', '2025-11-07 22:49:00', 'closed', 1, ''),
+(2, '2025-11-07 22:53:00', '2025-11-07 23:10:50', 'closed', 1, ''),
+(3, '2025-11-07 23:03:00', '2025-11-07 23:21:00', 'closed', 1, ''),
+(4, '2025-12-20 00:17:00', '2025-12-20 00:20:00', 'closed', 1, 'nlknlk'),
+(5, '2025-12-22 01:14:00', '2025-12-22 01:30:00', 'closed', 1, ''),
+(6, '2025-12-22 08:53:00', '2025-12-22 09:05:00', 'closed', 1, ''),
+(7, '2025-12-22 09:03:00', '2025-12-22 09:10:00', 'closed', 1, ''),
+(8, '2025-12-22 09:04:00', '2025-12-22 09:10:00', 'closed', 1, ''),
+(9, '2025-12-22 09:08:00', '2025-12-22 09:24:00', 'closed', 1, ''),
+(10, '2025-12-22 09:23:00', '2025-12-22 09:36:00', 'closed', 1, ''),
+(11, '2025-12-22 09:44:00', '2025-12-22 09:56:00', 'closed', 1, ''),
+(12, '2025-12-22 10:32:00', '2025-12-22 10:43:00', 'closed', 1, ''),
+(13, '2025-12-22 10:39:00', '2025-12-22 10:46:00', 'closed', 1, ''),
+(14, '2025-12-22 11:00:00', '2025-12-22 11:13:00', 'closed', 1, ''),
+(15, '2025-12-22 11:06:00', '2025-12-22 11:16:00', 'closed', 1, ''),
+(16, '2025-12-22 11:40:00', '2025-12-22 11:44:00', 'closed', 1, ''),
+(17, '2025-12-22 11:49:00', '2025-12-22 11:53:00', 'closed', 1, ''),
+(18, '2025-12-23 15:54:00', '2025-12-23 15:59:00', 'closed', 1, ''),
+(19, '2025-12-24 00:07:00', '2025-12-24 00:09:00', 'closed', 1, ''),
+(20, '2025-12-24 00:08:00', '2025-12-24 00:12:00', 'closed', 1, ''),
+(21, '2025-12-24 23:08:00', '2025-12-24 23:11:00', 'closed', 1, ''),
+(22, '2025-12-24 23:19:00', '2025-12-24 23:21:00', 'closed', 1, ''),
+(23, '2025-12-24 23:49:00', '2025-12-24 23:52:00', 'closed', 9, ''),
+(24, '2025-12-24 23:53:00', '2025-12-24 23:57:00', 'closed', 9, ''),
+(25, '2025-12-25 00:05:00', '2025-12-25 00:07:00', 'closed', 9, ''),
+(26, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9, ''),
+(27, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9, ''),
+(28, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9, ''),
+(29, '2025-12-25 00:22:00', '2025-12-25 00:26:00', 'closed', 9, '');
 
 -- --------------------------------------------------------
 
@@ -357,23 +356,22 @@ CREATE TABLE `users` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `role` enum('admin','admin_kesiswaan','guru','siswa','orangtua') NOT NULL,
-  `foto_profil` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `foto_profil` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `nama`, `email`, `password`, `role`, `foto_profil`, `created_at`) VALUES
-(1, 'Admin Utama', 'admin@smk7.sch.id', 'admin123', 'admin', NULL, '2025-10-31 07:43:18'),
-(2, 'Guru Informatika', 'guru@smk7.sch.id', 'guru123', 'guru', NULL, '2025-10-31 07:43:18'),
-(3, 'Luthfi', 'siswa@smk7.sch.id', 'siswa123', 'siswa', NULL, '2025-10-31 07:43:18'),
-(5, 'Fakhri', 'fakhri@gmail.com', '123', 'siswa', NULL, '2025-11-02 02:43:43'),
-(6, 'Zola', 'z@gmail.com', '123', 'guru', NULL, '2025-11-06 09:01:04'),
-(7, 'Habib', 'h@gmail.com', '123', 'siswa', NULL, '2025-11-07 07:14:24'),
-(8, 'Zola', 'zola@gmail.com', '123', 'siswa', NULL, '2025-12-01 04:07:59'),
-(9, 'Yoga', 'yoga@gmail.com', 'yoga123', 'admin_kesiswaan', NULL, '2025-12-17 04:56:50');
+INSERT INTO `users` (`id`, `nama`, `email`, `password`, `role`, `foto_profil`) VALUES
+(1, 'Admin Utama', 'admin@smk7.sch.id', 'admin123', 'admin', NULL),
+(2, 'Guru Informatika', 'guru@smk7.sch.id', 'guru123', 'guru', NULL),
+(3, 'Luthfi', 'siswa@smk7.sch.id', 'siswa123', 'siswa', NULL),
+(5, 'Fakhri', 'fakhri@gmail.com', '123', 'siswa', NULL),
+(6, 'Zola', 'z@gmail.com', '123', 'guru', NULL),
+(7, 'Habib', 'h@gmail.com', '123', 'siswa', NULL),
+(8, 'Zola', 'zola@gmail.com', '123', 'siswa', NULL),
+(9, 'Yoga', 'yoga@gmail.com', 'yoga123', 'admin_kesiswaan', NULL);
 
 --
 -- Indexes for dumped tables
