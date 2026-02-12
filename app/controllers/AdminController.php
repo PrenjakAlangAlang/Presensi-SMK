@@ -49,7 +49,6 @@ class AdminController {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $waktu_buka = $_POST['waktu_buka'] ?? null;
             $waktu_tutup = $_POST['waktu_tutup'] ?? null;
-            $note = $_POST['note'] ?? null;
             $created_by = $_SESSION['user_id'] ?? null;
             
             if (!$waktu_buka || !$waktu_tutup) {
@@ -64,7 +63,7 @@ class AdminController {
             if (strlen($waktu_buka_formatted) == 16) $waktu_buka_formatted .= ':00';
             if (strlen($waktu_tutup_formatted) == 16) $waktu_tutup_formatted .= ':00';
             
-            $id = $this->presensiSekolahSesiModel->createSession($waktu_buka_formatted, $waktu_tutup_formatted, $created_by, $note);
+            $id = $this->presensiSekolahSesiModel->createSession($waktu_buka_formatted, $waktu_tutup_formatted, $created_by);
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$id, 'id' => $id]);
             exit;
