@@ -40,18 +40,16 @@ CREATE TABLE `buku_induk` (
   `nama_ibu` varchar(150) DEFAULT NULL,
   `no_telp_ortu` varchar(20) DEFAULT NULL,
   `email_ortu` varchar(255) DEFAULT NULL COMMENT 'Email orang tua untuk notifikasi',
-  `dokumen_pdf` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `dokumen_pdf` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `buku_induk`
 --
 
-INSERT INTO `buku_induk` (`id`, `user_id`, `nama`, `nis`, `nisn`, `tempat_lahir`, `tanggal_lahir`, `alamat`, `nama_ayah`, `nama_ibu`, `no_telp_ortu`, `email_ortu`, `dokumen_pdf`, `created_at`, `updated_at`) VALUES
-(1, 5, 'Fakhri', '7627', '11134567', 'Sleman', '2025-12-01', 'Ngampel', '', '', '', 'l@gmail.com', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-694239e508e54.pdf', '2025-12-17 05:04:37', '2025-12-24 17:23:28'),
-(2, 8, 'Zola', '7627', '11134567', 'Sleman', '2025-12-01', 'fgsdfs', 'dsfsdf', 'sdfdsfsd', '089644755532', 'luthfinurafiq76@gmail.com', '', '2025-12-24 15:57:41', '2025-12-24 16:43:22');
+INSERT INTO `buku_induk` (`id`, `user_id`, `nama`, `nis`, `nisn`, `tempat_lahir`, `tanggal_lahir`, `alamat`, `nama_ayah`, `nama_ibu`, `no_telp_ortu`, `email_ortu`, `dokumen_pdf`) VALUES
+(1, 5, 'Fakhri', '7627', '11134567', 'Sleman', '2025-12-01', 'Ngampel', '', '', '', 'l@gmail.com', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-694239e508e54.pdf'),
+(2, 8, 'Zola', '7627', '11134567', 'Sleman', '2025-12-01', 'fgsdfs', 'dsfsdf', 'sdfdsfsd', '089644755532', 'luthfinurafiq76@gmail.com', '');
 
 -- --------------------------------------------------------
 
@@ -63,9 +61,8 @@ CREATE TABLE `buku_induk_dokumen` (
   `id` int NOT NULL,
   `buku_induk_id` int NOT NULL,
   `nama_file` varchar(255) NOT NULL,
-  `path_file` varchar(500) NOT NULL,
-  `keterangan` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `dokumen_pdf` varchar(255) NOT NULL,
+  `keterangan` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------

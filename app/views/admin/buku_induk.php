@@ -255,7 +255,7 @@ document.querySelectorAll('.view-docs-btn').forEach(btn => {
                         <p class="text-xs text-gray-500 mt-1">${new Date(dok.created_at).toLocaleString('id-ID')}</p>
                     </div>
                     <div class="flex gap-2">
-                        <a href="${dok.path_file}" target="_blank" class="text-red-600 hover:text-red-700" title="Buka PDF">
+                        <a href="${dok.dokumen_pdf}" target="_blank" class="text-red-600 hover:text-red-700" title="Buka PDF">
                             <i class="fas fa-file-pdf"></i>
                         </a>
                         <form method="POST" action="<?php echo BASE_URL; ?>/public/index.php?action=admin_delete_dokumen" 

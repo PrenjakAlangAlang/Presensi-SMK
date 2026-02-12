@@ -85,7 +85,7 @@ require_once __DIR__ . '/../layouts/header.php';
     
     <?php if(!empty($dokumen)): ?>
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Dokumen yang Telah Diunggah</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Dokumen tambahan yang Telah Diunggah</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <?php foreach($dokumen as $dok): ?>
                 <div class="border rounded-lg p-4 flex justify-between items-center">
@@ -94,10 +94,9 @@ require_once __DIR__ . '/../layouts/header.php';
                         <?php if(!empty($dok->keterangan)): ?>
                             <p class="text-sm text-gray-600"><?php echo htmlspecialchars($dok->keterangan); ?></p>
                         <?php endif; ?>
-                        <p class="text-xs text-gray-500 mt-1"><?php echo date('d M Y H:i', strtotime($dok->created_at)); ?></p>
                     </div>
                     <div class="flex gap-2">
-                        <a href="<?php echo $dok->path_file; ?>" target="_blank" class="text-blue-600 hover:text-blue-800">
+                        <a href="<?php echo $dok->dokumen_pdf; ?>" target="_blank" class="text-blue-600 hover:text-blue-800">
                             <i class="fas fa-eye"></i>
                         </a>
                         <form method="POST" action="<?php echo BASE_URL; ?>/public/index.php?action=siswa_delete_dokumen" onsubmit="return confirm('Hapus dokumen ini?')" class="inline">

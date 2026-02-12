@@ -1229,7 +1229,7 @@ class AdminController {
                             $this->bukuIndukModel->addDokumen([
                                 'buku_induk_id' => $bukuIndukRecord->id,
                                 'nama_file' => $files['name'][$i],
-                                'path_file' => $uploadResult['path'],
+                                'dokumen_pdf' => $uploadResult['path'],
                                 'keterangan' => $keterangan
                             ]);
                         }
@@ -1256,7 +1256,7 @@ class AdminController {
             $dokumen = $this->bukuIndukModel->getDokumenById($id);
             if($dokumen) {
                 // Delete physical file
-                $filePath = __DIR__ . '/../../public' . $dokumen->path_file;
+                $filePath = __DIR__ . '/../../public' . $dokumen->dokumen_pdf;
                 if(file_exists($filePath)) {
                     unlink($filePath);
                 }

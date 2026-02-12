@@ -12,14 +12,13 @@ class UserModel {
     }
     
     public function login($email, $password) {
-        // Cari user dengan email & password yang diberikan
-        $this->db->query('SELECT * FROM users WHERE email = :email AND password = :password');
+        // Cari user dengan email
+        $this->db->query('SELECT * FROM users WHERE email = :email');
         $this->db->bind(':email', $email);
-        $this->db->bind(':password', $password);
         
         $user = $this->db->single();
         
-        if($user) {
+        if($user && password_verify($password, $user->password)) {
             // Simpan data penting ke session untuk penggunaan di controller/view
             $_SESSION['user_id'] = $user->id;
             $_SESSION['user_email'] = $user->email;
@@ -44,11 +43,13 @@ class UserModel {
     }
     
     public function createUser($data) {
-        // Tambah user baru (password belum di-hash di implementasi ini)
+        // Tambah user baru dengan password ter-hash
+        $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
+        
         $this->db->query('INSERT INTO users (nama, email, password, role) VALUES (:nama, :email, :password, :role)');
         $this->db->bind(':nama', $data['nama']);
         $this->db->bind(':email', $data['email']);
-        $this->db->bind(':password', $data['password']);
+        $this->db->bind(':password', $hashedPassword);
         $this->db->bind(':role', $data['role']);
         
         return $this->db->execute();
@@ -57,13 +58,15 @@ class UserModel {
     public function updateUser($data) {
         // Perbarui data user (nama, email, role, dan password jika ada)
         if (isset($data['password']) && !empty($data['password'])) {
-            // Update dengan password
+            // Update dengan password ter-hash
+            $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
+            
             $this->db->query('UPDATE users SET nama = :nama, email = :email, role = :role, password = :password WHERE id = :id');
             $this->db->bind(':id', $data['id']);
             $this->db->bind(':nama', $data['nama']);
             $this->db->bind(':email', $data['email']);
             $this->db->bind(':role', $data['role']);
-            $this->db->bind(':password', $data['password']);
+            $this->db->bind(':password', $hashedPassword);
         } else {
             // Update tanpa password
             $this->db->query('UPDATE users SET nama = :nama, email = :email, role = :role WHERE id = :id');

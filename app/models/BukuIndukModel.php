@@ -55,7 +55,7 @@ class BukuIndukModel {
      * @return array
      */
     public function getDokumen($bukuIndukId) {
-        $this->db->query('SELECT * FROM buku_induk_dokumen WHERE buku_induk_id = :buku_induk_id ORDER BY created_at DESC');
+        $this->db->query('SELECT * FROM buku_induk_dokumen WHERE buku_induk_id = :buku_induk_id ORDER BY nama_file ASC');
         $this->db->bind(':buku_induk_id', $bukuIndukId);
         return $this->db->resultSet();
     }
@@ -66,11 +66,11 @@ class BukuIndukModel {
      * @return bool
      */
     public function addDokumen($data) {
-        $this->db->query('INSERT INTO buku_induk_dokumen (buku_induk_id, nama_file, path_file, keterangan) 
-                          VALUES (:buku_induk_id, :nama_file, :path_file, :keterangan)');
+        $this->db->query('INSERT INTO buku_induk_dokumen (buku_induk_id, nama_file, dokumen_pdf, keterangan) 
+                          VALUES (:buku_induk_id, :nama_file, :dokumen_pdf, :keterangan)');
         $this->db->bind(':buku_induk_id', $data['buku_induk_id']);
         $this->db->bind(':nama_file', $data['nama_file']);
-        $this->db->bind(':path_file', $data['path_file']);
+        $this->db->bind(':dokumen_pdf', $data['dokumen_pdf']);
         $this->db->bind(':keterangan', $data['keterangan'] ?? null);
         return $this->db->execute();
     }
