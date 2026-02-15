@@ -41,6 +41,10 @@ require_once __DIR__ . '/../layouts/header.php';
                     <h4 class="font-medium text-blue-800 mb-3">Informasi Presensi</h4>
                     <div class="space-y-2 text-sm text-blue-700">
                         <div class="flex justify-between">
+                            <span>Status Sesi:</span>
+                            <span id="sessionSekolahStatus" class="font-medium">Memeriksa...</span>
+                        </div>
+                        <div class="flex justify-between">
                             <span>Status Lokasi:</span>
                             <span id="locationValid" class="font-medium">Memeriksa...</span>
                         </div>
@@ -809,15 +813,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 // update global session flags and re-evaluate UI
                 sessionActive = !!json.active;
                 sessionAlreadyPresenced = !!json.already_presenced;
+                
+                // Update status sesi UI
+                const statusElement = document.getElementById('sessionSekolahStatus');
                 if (json.active) {
-                    const session = json.session;
-                    document.getElementById('statusKelas').textContent = 'Sesi Sekolah: Aktif';
-                    if (sessionAlreadyPresenced) {
-                        document.getElementById('statusKelas').textContent += ' — Sudah presensi';
+                    if (json.already_presenced) {
+                        statusElement.textContent = 'Aktif - Sudah Presensi';
+                        statusElement.className = 'font-medium text-gray-600';
+                    } else {
+                        statusElement.textContent = 'Aktif - Belum Presensi';
+                        statusElement.className = 'font-medium text-green-600';
                     }
                 } else {
-                    document.getElementById('statusKelas').textContent = 'Tidak ada sesi sekolah aktif';
+                    statusElement.textContent = 'Tidak Aktif';
+                    statusElement.className = 'font-medium text-red-600';
                 }
+                
                 // Re-run local validation to enable/disable buttons correctly
                 if (userLocation) updateLocationStatus();
             })
