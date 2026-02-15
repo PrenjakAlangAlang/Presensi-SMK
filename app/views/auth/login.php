@@ -19,7 +19,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHVAweoQjf3tZGgu8icpjOiRZXIW3FgKnxj6IDqHqKQudytavVYlVgvOgs8VNuBWEQxUELCAfq0l4EJqWZntjWl3AQar86rszko9E1a6GsfPvD0l0FFSvoljzzcsEc8VLt3N20UChRxb=s1920-w1920-h1080');
+    background-image: url('https://file.data.kemendikdasmen.go.id/sekolahkita/20/2040/20403295-2.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
