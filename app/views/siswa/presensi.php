@@ -235,8 +235,12 @@ const kelasSesi = <?php
     echo json_encode($map);
 ?>;
 
+// === GEOTAGGING: Inisialisasi Variabel Lokasi GPS ===
+// userLocation: menyimpan koordinat GPS pengguna (latitude, longitude, accuracy)
 let userLocation = null;
+// schoolLocation: menyimpan koordinat GPS sekolah dari database
 let schoolLocation = { lat: <?php echo $lokasiSekolah->latitude ?? DEFAULT_LATITUDE; ?>, lng: <?php echo $lokasiSekolah->longitude ?? DEFAULT_LONGITUDE; ?> };
+// radiusPresensi: jarak maksimum yang diperbolehkan untuk presensi (dalam meter)
 let radiusPresensi = <?php echo $lokasiSekolah->radius_presensi ?? MAX_RADIUS; ?>;
 let map, userMarker, schoolMarker, accuracyCircle;
 let sessionActive = false;
@@ -282,18 +286,23 @@ function initMap() {
     }).addTo(map).bindPopup('Radius Presensi: ' + radiusPresensi + ' meter');
 }
 
-// Get user location
+// === GEOTAGGING: Mendapatkan Lokasi GPS Pengguna ===
 function getUserLocation() {
+    // Cek apakah browser mendukung Geolocation API
     if (navigator.geolocation) {
+        // Meminta akses lokasi GPS dari browser
         navigator.geolocation.getCurrentPosition(
             function(position) {
+                // GEOTAGGING: Menyimpan koordinat GPS pengguna
                 userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    accuracy: position.coords.accuracy
+                    lat: position.coords.latitude,    // Latitude (garis lintang)
+                    lng: position.coords.longitude,   // Longitude (garis bujur)
+                    accuracy: position.coords.accuracy // Akurasi GPS dalam meter
                 };
                 
+                // Validasi jarak menggunakan algoritma Haversine
                 updateLocationStatus();
+                // Tampilkan marker lokasi pengguna di peta
                 updateMap();
             },
             function(error) {
@@ -309,9 +318,9 @@ function getUserLocation() {
                 document.getElementById('loadingSpinner').classList.add('hidden');
             },
             {
-                enableHighAccuracy: true,
-                timeout: 15000,
-                maximumAge: 0
+                enableHighAccuracy: true,  // GEOTAGGING: Gunakan GPS akurasi tinggi
+                timeout: 15000,            // Batas waktu 15 detik untuk mendapatkan lokasi
+                maximumAge: 0              // Tidak menggunakan cache lokasi lama
             }
         );
     } else {
@@ -328,15 +337,19 @@ function getUserLocation() {
     }
 }
 
-// Update location status
+// === HAVERSINE: Validasi Jarak Lokasi Pengguna ===
 function updateLocationStatus() {
+    // ALGORITMA HAVERSINE: Hitung jarak antara lokasi pengguna dan sekolah
+    // Input: koordinat GPS pengguna dan sekolah (latitude, longitude)
+    // Output: jarak dalam meter
     const distance = calculateDistance(
-        userLocation.lat, 
-        userLocation.lng, 
-        schoolLocation.lat, 
-        schoolLocation.lng
+        userLocation.lat,      // Latitude pengguna
+        userLocation.lng,      // Longitude pengguna
+        schoolLocation.lat,    // Latitude sekolah
+        schoolLocation.lng     // Longitude sekolah
     );
     
+    // Validasi: apakah jarak pengguna dalam radius yang diizinkan?
     const isValid = distance <= radiusPresensi;
     const statusElement = document.getElementById('locationStatus');
     const validElement = document.getElementById('locationValid');
@@ -418,18 +431,34 @@ function updateMap() {
     map.fitBounds(group.getBounds().pad(0.1));
 }
 
-// Haversine formula to calculate distance
+// === ALGORITMA HAVERSINE: Menghitung Jarak Antar Dua Titik Koordinat GPS ===
+// Formula Haversine digunakan untuk menghitung jarak terpendek antara dua titik
+// di permukaan bumi berdasarkan koordinat latitude dan longitude
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371000; // Earth radius in meters
+    // HAVERSINE: Konstanta radius bumi dalam meter
+    const R = 6371000; // Earth radius in meters (6,371 km)
+    
+    // HAVERSINE: Konversi selisih latitude dari derajat ke radian
     const dLat = (lat2 - lat1) * Math.PI / 180;
+    // HAVERSINE: Konversi selisih longitude dari derajat ke radian
     const dLon = (lon2 - lon1) * Math.PI / 180;
+    
+    // HAVERSINE: Hitung nilai 'a' menggunakan formula Haversine
+    // a = sin²(Δlat/2) + cos(lat1) * cos(lat2) * sin²(Δlon/2)
     const a = 
         Math.sin(dLat/2) * Math.sin(dLat/2) +
         Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
         Math.sin(dLon/2) * Math.sin(dLon/2);
+    
+    // HAVERSINE: Hitung nilai 'c' (central angle)
+    // c = 2 * atan2(√a, √(1-a))
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    
+    // HAVERSINE: Hitung jarak akhir dalam meter
+    // distance = R * c
     const distance = R * c;
-    return distance;
+    
+    return distance; // Mengembalikan jarak dalam meter
 }
 
 // Submit presensi sekolah
@@ -501,10 +530,10 @@ function submitPresensiSekolah() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
     
-    // Real API call to server
+    // GEOTAGGING: Kirim koordinat GPS ke server untuk presensi
     const fd = new FormData();
-    fd.append('latitude', userLocation.lat);
-    fd.append('longitude', userLocation.lng);
+    fd.append('latitude', userLocation.lat);   // GEOTAGGING: Latitude pengguna
+    fd.append('longitude', userLocation.lng);  // GEOTAGGING: Longitude pengguna
     fd.append('jenis', jenis);
     if (alasan.trim()) fd.append('alasan', alasan);
     if (buktiFile) fd.append('bukti', buktiFile);
@@ -582,7 +611,9 @@ function updatePresensiKelasButton() {
     } else {
         // For hadir, check location
         if (userLocation) {
+            // HAVERSINE: Hitung jarak untuk validasi presensi kelas
             const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
+            // Validasi: aktifkan tombol jika dalam radius
             if (distance <= radiusPresensi) {
                 btn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg';
                 btn.disabled = false;
@@ -639,8 +670,9 @@ function submitPresensiKelas() {
             btn.disabled = false;
             return;
         }
-        formData.append('latitude', userLocation.lat);
-        formData.append('longitude', userLocation.lng);
+        // GEOTAGGING: Kirim koordinat GPS pengguna untuk presensi kelas
+        formData.append('latitude', userLocation.lat);   // GEOTAGGING: Latitude
+        formData.append('longitude', userLocation.lng);  // GEOTAGGING: Longitude
     }
     
     formData.append('jenis', jenis);
@@ -719,11 +751,11 @@ function updateTime() {
     document.getElementById('currentTime').textContent = new Date().toLocaleTimeString();
 }
 
-// Initialize
+// === INISIALISASI SISTEM PRESENSI GEOTAGGING ===
 document.addEventListener('DOMContentLoaded', function() {
-    initMap();
-    getUserLocation();
-    setInterval(updateTime, 1000);
+    initMap();              // Inisialisasi peta Leaflet
+    getUserLocation();      // GEOTAGGING: Minta akses lokasi GPS pengguna
+    setInterval(updateTime, 1000);  // Update waktu setiap detik
     
     // Event listener untuk jenis presensi sekolah
     document.getElementById('jenisPresensiSekolah').addEventListener('change', function() {
@@ -749,6 +781,7 @@ document.addEventListener('DOMContentLoaded', function() {
             infoGPSSekolah.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius ' + radiusPresensi + 'm dari sekolah';
             // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
             if (sessionActive && !sessionAlreadyPresenced && userLocation) {
+                // HAVERSINE: Validasi jarak untuk tombol presensi sekolah
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
                 presensiSekolahBtn.disabled = distance > radiusPresensi;
             } else {
@@ -792,6 +825,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('statusKelas').textContent = 'Sesi Aktif';
                     document.getElementById('statusKelas').className = 'text-green-600 font-semibold';
                 } else if (userLocation) {
+                    // HAVERSINE: Validasi jarak untuk update status kelas
                     const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
                     document.getElementById('statusKelas').textContent = distance <= radiusPresensi ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
                     document.getElementById('statusKelas').className = distance <= radiusPresensi ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
@@ -892,6 +926,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('statusKelas').textContent = 'Menunggu lokasi GPS...';
                 document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
             } else {
+                // HAVERSINE: Hitung dan validasi jarak saat memilih kelas
                 const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
                 document.getElementById('statusKelas').textContent = distance <= radiusPresensi ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
                 document.getElementById('statusKelas').className = distance <= radiusPresensi ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
