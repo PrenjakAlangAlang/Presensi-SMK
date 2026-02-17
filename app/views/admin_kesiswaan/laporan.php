@@ -339,14 +339,13 @@ require_once __DIR__ . '/../layouts/header.php';
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Status</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Jarak</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Keterangan</th>
-                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Lihat Detail</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Edit</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
                 <?php if (empty($presensi)): ?>
                 <tr>
-                    <td colspan="<?php echo $tipe_laporan === 'kelas' ? '9' : '9'; ?>" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="<?php echo $tipe_laporan === 'kelas' ? '8' : '8'; ?>" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>Tidak ada data presensi untuk <?php echo $tipe_laporan === 'kelas' ? 'kelas dan ' : ''; ?>tanggal yang dipilih</p>
                     </td>
@@ -425,11 +424,6 @@ require_once __DIR__ . '/../layouts/header.php';
                             <?php else: ?>
                                 <span class="text-gray-400 text-sm">-</span>
                             <?php endif; ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button onclick="lihatDetailPresensi(<?php echo $p->id; ?>)" class="text-blue-600 hover:text-blue-800 transition-colors">
-                                <i class="fas fa-eye"></i>
-                            </button>
                         </td>
                         <td class="px-6 py-4">
                             <?php 

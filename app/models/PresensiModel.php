@@ -140,15 +140,20 @@ class PresensiModel {
     }
     
     public function getStatistikKehadiran($user_id) {
-        // Statistik kehadiran untuk bulan ini (jumlah hadir, izin, sakit, alpha)
+        // Statistik kehadiran untuk bulan ini dari presensi_sekolah + presensi_kelas
         $this->db->query('SELECT 
                          COUNT(*) as total,
-                         SUM(CASE WHEN status = "valid" THEN 1 ELSE 0 END) as hadir,
+                         SUM(CASE WHEN status = "valid" AND jenis = "hadir" THEN 1 ELSE 0 END) as hadir,
                          SUM(CASE WHEN jenis = "izin" THEN 1 ELSE 0 END) as izin,
                          SUM(CASE WHEN jenis = "sakit" THEN 1 ELSE 0 END) as sakit,
                          SUM(CASE WHEN jenis = "alpha" THEN 1 ELSE 0 END) as alpha
-                         FROM presensi_sekolah 
-                         WHERE user_id = :user_id AND MONTH(waktu) = MONTH(CURDATE())');
+                         FROM (
+                             SELECT status, jenis, waktu FROM presensi_sekolah 
+                             WHERE user_id = :user_id AND MONTH(waktu) = MONTH(CURDATE()) AND YEAR(waktu) = YEAR(CURDATE())
+                             UNION ALL
+                             SELECT status, jenis, waktu FROM presensi_kelas 
+                             WHERE user_id = :user_id AND MONTH(waktu) = MONTH(CURDATE()) AND YEAR(waktu) = YEAR(CURDATE())
+                         ) AS combined_presensi');
         $this->db->bind(':user_id', $user_id);
         return $this->db->single();
     }

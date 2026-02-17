@@ -67,7 +67,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <input type="email" name="email_ortu" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" />
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen KTP (*PDF)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen (*PDF)</label>
             <input type="file" name="dokumen_pdf" accept="application/pdf" class="w-full" />
             <input type="hidden" name="existing_pdf" id="existing_pdf" />
         </div>
@@ -83,7 +83,7 @@ require_once __DIR__ . '/../layouts/header.php';
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan <span class="text-gray-400 font-normal">(opsional)</span></label>
-                                <input type="text" name="keterangan_tambahan[]" placeholder="Contoh: Ijazah SD, Kartu Keluarga, dll" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                <input type="text" name="keterangan_tambahan[]" placeholder="Contoh: Ijazah SMP, Kartu Keluarga, dll" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                             </div>
                         </div>
                         <button type="button" class="add-file-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors mt-6">
@@ -136,17 +136,17 @@ require_once __DIR__ . '/../layouts/header.php';
                         <td class="px-4 py-3"><?php echo !empty($r->no_telp_ortu) ? htmlspecialchars($r->no_telp_ortu) : '-'; ?></td>
                         <td class="px-4 py-3"><?php echo !empty($r->email_ortu) ? htmlspecialchars($r->email_ortu) : '-'; ?></td>
                         <td class="px-4 py-3">
-                            <?php if(!empty($r->dokumen_pdf)): ?>
-                                <a href="<?php echo $r->dokumen_pdf; ?>" target="_blank" class="text-red-600 hover:text-red-700" title="Lihat KTP"><i class="fas fa-file-pdf"></i></a>
-                            <?php else: ?>
-                                <span class="text-gray-400">-</span>
-                            <?php endif; ?>
-                            <?php if(!empty($r->dokumen) && count($r->dokumen) > 0): ?>
-                                <button class="text-blue-600 hover:text-blue-800 ml-2 view-docs-btn" 
+                            <?php 
+                            $total_docs = (!empty($r->dokumen_pdf) ? 1 : 0) + (!empty($r->dokumen) ? count($r->dokumen) : 0);
+                            if($total_docs > 0): 
+                            ?>
+                                <button class="text-blue-600 hover:text-blue-800 view-docs-btn" 
                                         data-record-id="<?php echo $r->id; ?>" 
-                                        title="Lihat semua dokumen (<?php echo count($r->dokumen); ?>)">
-                                    <i class="fas fa-folder"></i> (<?php echo count($r->dokumen); ?>)
+                                        title="Lihat semua dokumen (<?php echo $total_docs; ?>)">
+                                    <i class="fas fa-folder"></i> <?php echo $total_docs; ?> Dokumen
                                 </button>
+                            <?php else: ?>
+                                <span class="text-gray-400">Tidak ada dokumen</span>
                             <?php endif; ?>
                         </td>
                         <td class="px-4 py-3">
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan <span class="text-gray-400 font-normal">(opsional)</span></label>
-                            <input type="text" name="keterangan_tambahan[]" placeholder="Contoh: Ijazah SD, Kartu Keluarga, dll" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                            <input type="text" name="keterangan_tambahan[]" placeholder="Contoh: Ijazah SMP, Kartu Keluarga, dll" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                         </div>
                     </div>
                     <button type="button" class="remove-file-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition-colors mt-6">
@@ -262,32 +262,58 @@ document.querySelectorAll('.view-docs-btn').forEach(btn => {
         // Get dokumen from PHP data
         const record = <?php echo json_encode($records); ?>.find(r => r.id == recordId);
         
-        if(record && record.dokumen) {
+        if(record) {
             dokumenList.innerHTML = '';
-            record.dokumen.forEach(dok => {
+            
+            // Tampilkan dokumen utama jika ada
+            if(record.dokumen_pdf) {
                 const div = document.createElement('div');
-                div.className = 'border rounded-lg p-4 flex justify-between items-center';
+                div.className = 'border rounded-lg p-4 flex justify-between items-center bg-blue-50';
                 div.innerHTML = `
                     <div class="flex-1">
-                        <p class="font-medium text-gray-800">${dok.nama_file}</p>
-                        ${dok.keterangan ? `<p class="text-sm text-gray-600">${dok.keterangan}</p>` : ''}
-                        
+                        <p class="font-medium text-gray-800">
+                            <i class="fas fa-file-pdf text-red-600 mr-2"></i>Dokumen Utama
+                        </p>
+                        <p class="text-sm text-gray-600">Dokumen induk siswa</p>
                     </div>
                     <div class="flex gap-2">
-                        <a href="${dok.dokumen_pdf}" target="_blank" class="text-red-600 hover:text-red-700" title="Buka PDF">
-                            <i class="fas fa-file-pdf"></i>
+                        <a href="${record.dokumen_pdf}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-colors" title="Buka PDF">
+                            <i class="fas fa-eye mr-1"></i>Lihat
                         </a>
-                        <form method="POST" action="<?php echo BASE_URL; ?>/public/index.php?action=admin_delete_dokumen" 
-                              onsubmit="return confirm('Hapus dokumen ini?')" class="inline">
-                            <input type="hidden" name="dokumen_id" value="${dok.id}" />
-                            <button type="submit" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
                     </div>
                 `;
                 dokumenList.appendChild(div);
-            });
+            }
+            
+            // Tampilkan dokumen tambahan jika ada
+            if(record.dokumen && record.dokumen.length > 0) {
+                record.dokumen.forEach(dok => {
+                    const div = document.createElement('div');
+                    div.className = 'border rounded-lg p-4 flex justify-between items-center';
+                    div.innerHTML = `
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-800">
+                                <i class="fas fa-file-pdf text-red-600 mr-2"></i>${dok.nama_file}
+                            </p>
+                            ${dok.keterangan ? `<p class="text-sm text-gray-600">${dok.keterangan}</p>` : '<p class="text-sm text-gray-400">Tanpa keterangan</p>'}
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="${dok.dokumen_pdf}" target="_blank" class="text-blue-600 hover:text-blue-800" title="Buka PDF">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <form method="POST" action="<?php echo BASE_URL; ?>/public/index.php?action=admin_delete_dokumen" 
+                                  onsubmit="return confirm('Hapus dokumen ini?')" class="inline">
+                                <input type="hidden" name="dokumen_id" value="${dok.id}" />
+                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    `;
+                    dokumenList.appendChild(div);
+                });
+            }
+            
             modal.classList.remove('hidden');
         }
     });

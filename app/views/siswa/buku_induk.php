@@ -56,7 +56,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <input type="email" name="email_ortu" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" value="<?php echo htmlspecialchars($record->email_ortu ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen KTP (*PDF)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen (*PDF)</label>
                 <input type="file" name="dokumen_pdf" accept="application/pdf" class="w-full" />
                 <input type="hidden" name="existing_pdf" value="<?php echo htmlspecialchars($record->dokumen_pdf ?? '', ENT_QUOTES); ?>" />
                 <?php if(!empty($record->dokumen_pdf)): ?>
@@ -75,7 +75,7 @@ require_once __DIR__ . '/../layouts/header.php';
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan <span class="text-gray-400 font-normal">(opsional)</span></label>
-                                    <input type="text" name="keterangan[]" placeholder="Contoh: Ijazah SD, Kartu Keluarga, dll" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                    <input type="text" name="keterangan[]" placeholder="Contoh: Ijazah SMP, Kartu Keluarga, dll" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                                 </div>
                             </div>
                             <button type="button" class="add-file-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors mt-6">
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan <span class="text-gray-400 font-normal">(opsional)</span></label>
-                            <input type="text" name="keterangan[]" placeholder="Contoh: Ijazah SD, Kartu Keluarga, dll" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                            <input type="text" name="keterangan[]" placeholder="Contoh: Ijazah SMP, Kartu Keluarga, dll" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                         </div>
                     </div>
                     <button type="button" class="remove-file-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition-colors mt-6">
