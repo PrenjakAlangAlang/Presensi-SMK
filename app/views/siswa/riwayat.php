@@ -462,7 +462,7 @@ $tahun = $_GET['tahun'] ?? date('Y');
 // Period filter functions
 function applyFilter() {
     const periode = document.getElementById('periodeSelect').value;
-    let url = '<?php echo BASE_URL; ?>/public/index.php?action=siswa_riwayat&periode=' + periode;
+    let url = '<?php echo BASE_URL; ?>/index.php?action=siswa_riwayat&periode=' + periode;
     
     if (periode === 'harian') {
         const tanggal = document.getElementById('tanggalInput').value;

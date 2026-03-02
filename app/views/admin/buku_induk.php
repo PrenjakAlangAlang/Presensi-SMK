@@ -12,7 +12,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
     <h3 class="text-lg font-semibold text-gray-800 mb-4">Tambah / Perbarui Buku Induk</h3>
-    <form method="POST" action="<?php echo BASE_URL; ?>/public/index.php?action=admin_save_buku_induk" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form method="POST" action="<?php echo BASE_URL; ?>/index.php?action=admin_save_buku_induk" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Siswa</label>
             <select name="user_id" required class="w-full border rounded-lg px-4 py-2">
@@ -301,7 +301,7 @@ document.querySelectorAll('.view-docs-btn').forEach(btn => {
                             <a href="${dok.dokumen_pdf}" target="_blank" class="text-blue-600 hover:text-blue-800" title="Buka PDF">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <form method="POST" action="<?php echo BASE_URL; ?>/public/index.php?action=admin_delete_dokumen" 
+                            <form method="POST" action="<?php echo BASE_URL; ?>/index.php?action=admin_delete_dokumen" 
                                   onsubmit="return confirm('Hapus dokumen ini?')" class="inline">
                                 <input type="hidden" name="dokumen_id" value="${dok.id}" />
                                 <button type="submit" class="text-red-600 hover:text-red-800">

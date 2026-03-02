@@ -482,7 +482,7 @@ function exportToPDF() {
         return;
     }
     
-    let url = '<?php echo BASE_URL; ?>/public/index.php?action=guru_export_pdf&kelas_id=' + kelasId;
+    let url = '<?php echo BASE_URL; ?>/index.php?action=guru_export_pdf&kelas_id=' + kelasId;
     if (sesiId) {
         url += '&sesi_id=' + sesiId;
     }
@@ -499,7 +499,7 @@ function exportToExcel() {
         return;
     }
     
-    let url = '<?php echo BASE_URL; ?>/public/index.php?action=guru_export_excel&kelas_id=' + kelasId;
+    let url = '<?php echo BASE_URL; ?>/index.php?action=guru_export_excel&kelas_id=' + kelasId;
     if (sesiId) {
         url += '&sesi_id=' + sesiId;
     }

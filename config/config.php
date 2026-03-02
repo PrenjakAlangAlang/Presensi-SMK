@@ -5,7 +5,7 @@ session_start();
 // Load environment variables from .env file
 require_once __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
+$dotenv->safeLoad();
 
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
@@ -25,10 +25,10 @@ define('DEFAULT_LONGITUDE', 110.3695);
 
 // Email Configuration untuk SwiftMailer
 define('EMAIL_HOST', 'smtp.gmail.com'); // Ganti dengan SMTP server Anda
-define('EMAIL_PORT', 465); // 465 untuk SSL (lebih stabil jika 587 diblokir)
+define('EMAIL_PORT', 587); // 465 untuk SSL (lebih stabil jika 587 diblokir)
 define('EMAIL_ENCRYPTION', 'ssl'); // 'ssl' untuk port 465
 define('EMAIL_USERNAME', 'kristinluthfi@gmail.com'); // Email pengirim
-define('EMAIL_PASSWORD', 'fbuk xfdr aogc qlmg'); // App password atau password email
+define('EMAIL_PASSWORD', 'ggwh hjvb rzja jkfh'); // App password atau password email
 define('EMAIL_FROM', 'kristinluthfi@gmail.com'); // Email pengirim
 define('EMAIL_FROM_NAME', 'Sistem Presensi SMK'); // Nama pengirim
 
@@ -42,7 +42,7 @@ function isLoggedIn() {
 }
 
 function redirect($url) {
-    header('Location: ' . BASE_URL . '/public/' . $url);
+    header('Location: ' . BASE_URL . '/' . $url);
     exit();
 }
 

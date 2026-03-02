@@ -34,7 +34,7 @@ class AuthController {
     public function logout() {
         // Destroy session dan kembali ke halaman login
         session_destroy();
-        header('Location: ' . BASE_URL . '/public/index.php?action=login');
+        header('Location: ' . BASE_URL . '/index.php?action=login');
         exit();
     }
     
@@ -42,22 +42,22 @@ class AuthController {
         switch($role) {
             case 'admin':
                 // admin -> dashboard admin
-                header('Location: ' . BASE_URL . '/public/index.php?action=admin_dashboard');
+                header('Location: ' . BASE_URL . '/index.php?action=admin_dashboard');
                 break;
             case 'admin_kesiswaan':
-                header('Location: ' . BASE_URL . '/public/index.php?action=admin_kesiswaan_dashboard');
+                header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_dashboard');
                 break;
             case 'guru':
                 // guru -> dashboard guru
-                header('Location: ' . BASE_URL . '/public/index.php?action=guru_dashboard');
+                header('Location: ' . BASE_URL . '/index.php?action=guru_dashboard');
                 break;
             case 'siswa':
                 // siswa -> dashboard siswa
-                header('Location: ' . BASE_URL . '/public/index.php?action=siswa_dashboard');
+                header('Location: ' . BASE_URL . '/index.php?action=siswa_dashboard');
                 break;
             default:
                 // fallback ke login jika role tidak dikenali
-                header('Location: ' . BASE_URL . '/public/index.php?action=login');
+                header('Location: ' . BASE_URL . '/index.php?action=login');
         }
         exit();
     }

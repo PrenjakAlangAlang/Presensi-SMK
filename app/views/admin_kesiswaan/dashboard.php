@@ -155,7 +155,7 @@ require_once __DIR__ . '/../layouts/header.php';
 </div>
 <script>
 function kelola() {
-    window.location.href = "<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_presensi_sekolah";
+    window.location.href = "<?php echo BASE_URL; ?>/index.php?action=admin_kesiswaan_presensi_sekolah";
 }
 </script>
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

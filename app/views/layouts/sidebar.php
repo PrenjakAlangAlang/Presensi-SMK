@@ -47,49 +47,49 @@ function isActiveMenu($action, $current) {
             <?php if($user_role == 'admin'): ?>
                 <!-- Admin Menu -->
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_dashboard" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_dashboard" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_dashboard', $current_action); ?>">
                         <i class="fas fa-tachometer-alt w-5 text-center"></i>
                         <span class="font-medium">Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_presensi_sekolah" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_presensi_sekolah" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_presensi_sekolah', $current_action); ?>">
                         <i class="fas fa-fingerprint w-5 text-center"></i>
                         <span class="font-medium">Presensi Sekolah</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_users" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_users" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_users', $current_action); ?>">
                         <i class="fas fa-users w-5 text-center"></i>
                         <span class="font-medium">Manajemen User</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_kelas" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_kelas" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_kelas', $current_action); ?>">
                         <i class="fas fa-chalkboard w-5 text-center"></i>
                         <span class="font-medium">Data Kelas</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_lokasi" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_lokasi" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_lokasi', $current_action); ?>">
                         <i class="fas fa-map-marker-alt w-5 text-center"></i>
                         <span class="font-medium">Lokasi Sekolah</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_buku_induk" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_buku_induk" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_buku_induk', $current_action); ?>">
                         <i class="fas fa-book w-5 text-center"></i>
                         <span class="font-medium">Buku Induk</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_laporan" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_laporan" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_laporan', $current_action); ?>">
                         <i class="fas fa-chart-bar w-5 text-center"></i>
                         <span class="font-medium">Laporan</span>
@@ -99,28 +99,28 @@ function isActiveMenu($action, $current) {
             <?php elseif($user_role == 'admin_kesiswaan'): ?>
                 <!-- Admin Kesiswaan Menu -->
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_dashboard" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_kesiswaan_dashboard" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_kesiswaan_dashboard', $current_action); ?>">
                         <i class="fas fa-tachometer-alt w-5 text-center"></i>
                         <span class="font-medium">Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_buku_induk" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_kesiswaan_buku_induk" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_kesiswaan_buku_induk', $current_action); ?>">
                         <i class="fas fa-book-open w-5 text-center"></i>
                         <span class="font-medium">Buku Induk</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_presensi_sekolah" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_kesiswaan_presensi_sekolah" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_kesiswaan_presensi_sekolah', $current_action); ?>">
                         <i class="fas fa-fingerprint w-5 text-center"></i>
                         <span class="font-medium">Presensi Sekolah</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=admin_kesiswaan_laporan" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_kesiswaan_laporan" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_kesiswaan_laporan', $current_action); ?>">
                         <i class="fas fa-chart-bar w-5 text-center"></i>
                         <span class="font-medium">Laporan</span>
@@ -130,21 +130,21 @@ function isActiveMenu($action, $current) {
             <?php elseif($user_role == 'guru'): ?>
                 <!-- Guru Menu -->
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=guru_dashboard" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=guru_dashboard" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('guru_dashboard', $current_action); ?>">
                         <i class="fas fa-tachometer-alt w-5 text-center"></i>
                         <span class="font-medium">Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=guru_kelas" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=guru_kelas" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('guru_kelas', $current_action); ?>">
                         <i class="fas fa-chalkboard-teacher w-5 text-center"></i>
                         <span class="font-medium">Kelas Saya</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=guru_laporan" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=guru_laporan" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('guru_laporan', $current_action); ?>">
                         <i class="fas fa-file-alt w-5 text-center"></i>
                         <span class="font-medium">Laporan</span>
@@ -162,28 +162,28 @@ function isActiveMenu($action, $current) {
             <?php elseif($user_role == 'siswa'): ?>
                 <!-- Siswa Menu -->
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=siswa_dashboard" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=siswa_dashboard" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('siswa_dashboard', $current_action); ?>">
                         <i class="fas fa-tachometer-alt w-5 text-center"></i>
                         <span class="font-medium">Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=siswa_presensi" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=siswa_presensi" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('siswa_presensi', $current_action); ?>">
                         <i class="fas fa-fingerprint w-5 text-center"></i>
                         <span class="font-medium">Presensi</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=siswa_riwayat" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=siswa_riwayat" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('siswa_riwayat', $current_action); ?>">
                         <i class="fas fa-history w-5 text-center"></i>
                         <span class="font-medium">Riwayat</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=siswa_buku_induk" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=siswa_buku_induk" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('siswa_buku_induk', $current_action); ?>">
                         <i class="fas fa-id-card w-5 text-center"></i>
                         <span class="font-medium">Buku Induk Saya</span>
@@ -201,7 +201,7 @@ function isActiveMenu($action, $current) {
             <?php elseif($user_role == 'orangtua'): ?>
                 <!-- Orang Tua Menu -->
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/public/index.php?action=orangtua_dashboard" 
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=orangtua_dashboard" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('orangtua_dashboard', $current_action); ?>">
                         <i class="fas fa-tachometer-alt w-5 text-center"></i>
                         <span class="font-medium">Dashboard</span>
@@ -242,7 +242,7 @@ function isActiveMenu($action, $current) {
             -->
             </li>
             <li>
-                <a href="<?php echo BASE_URL; ?>/public/index.php?action=logout" 
+                <a href="<?php echo BASE_URL; ?>/index.php?action=logout" 
                    class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-red-600 hover:translate-x-1">
                     <i class="fas fa-sign-out-alt w-5 text-center"></i>
                     <span class="font-medium">Logout</span>

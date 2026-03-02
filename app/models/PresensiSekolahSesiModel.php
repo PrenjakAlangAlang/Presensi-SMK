@@ -80,6 +80,13 @@ class PresensiSekolahSesiModel {
         return $this->db->single();
     }
 
+    // Ambil satu sesi berdasarkan ID
+    public function getSessionById($id) {
+        $this->db->query('SELECT * FROM presensi_sekolah_sesi WHERE id = :id LIMIT 1');
+        $this->db->bind(':id', $id);
+        return $this->db->single();
+    }
+
     /**
      * Auto-create sesi presensi sekolah setiap jam 7 pagi (Senin-Jumat) WIB
      * Akan membuat sesi otomatis jika:

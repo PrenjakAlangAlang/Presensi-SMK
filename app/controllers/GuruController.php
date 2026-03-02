@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/LaporanModel.php';
 require_once __DIR__ . '/../models/PresensiSesiModel.php';
+require_once __DIR__ . '/../models/BukuIndukModel.php';
 
 class GuruController {
     private $kelasModel;
@@ -13,6 +14,7 @@ class GuruController {
     private $userModel;
     private $laporanModel;
     private $presensiSesiModel;
+    private $bukuIndukModel;
     
     public function __construct() {
         $this->kelasModel = new KelasModel();
@@ -20,6 +22,7 @@ class GuruController {
         $this->userModel = new UserModel();
         $this->laporanModel = new LaporanModel();
         $this->presensiSesiModel = new PresensiSesiModel();
+        $this->bukuIndukModel = new BukuIndukModel();
     }
     
     public function dashboard() {
@@ -178,7 +181,7 @@ class GuruController {
             $alphaCount = 0;
             
             if ($activeSession) {
-                // Mark absent students as alpha before closing
+                // Mark absent students as alpha before closing (notifications sent automatically)
                 $alphaCount = $this->presensiModel->markAbsentStudentsAsAlphaKelas($kelas_id, $activeSession->id);
             }
 
@@ -191,7 +194,7 @@ class GuruController {
             if ($closed && $saved) {
                 $message = 'Presensi kelas ditutup!';
                 if ($alphaCount > 0) {
-                    $message .= " $alphaCount siswa ditandai alpha.";
+                    $message .= " $alphaCount siswa ditandai alpha. Notifikasi sedang dikirim.";
                 }
                 echo json_encode(['success' => true, 'message' => $message, 'alpha_count' => $alphaCount]);
             } else if ($saved) {

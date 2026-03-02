@@ -112,7 +112,7 @@ class AdminController {
                 exit;
             }
             
-            // Mark absent students as alpha before closing
+            // Mark absent students as alpha before closing (notifications sent automatically)
             $alphaCount = $this->presensiModel->markAbsentStudentsAsAlphaSekolah($id);
             
             // Close the session
@@ -122,7 +122,7 @@ class AdminController {
             echo json_encode([
                 'success' => (bool)$ok,
                 'alpha_count' => $alphaCount,
-                'message' => $alphaCount > 0 ? "Sesi ditutup. $alphaCount siswa ditandai alpha." : 'Sesi ditutup.'
+                'message' => $alphaCount > 0 ? "Sesi ditutup. $alphaCount siswa ditandai alpha. Notifikasi sedang dikirim." : 'Sesi ditutup.'
             ]);
             exit;
         }
@@ -210,7 +210,7 @@ class AdminController {
                 $_SESSION['error'] = 'Gagal membuat kelas!';
             }
 
-            header('Location: ' . BASE_URL . '/public/index.php?action=admin_kelas');
+            header('Location: ' . BASE_URL . '/index.php?action=admin_kelas');
             exit;
         }
     }
@@ -232,7 +232,7 @@ class AdminController {
                 $_SESSION['error'] = 'Gagal memperbarui kelas!';
             }
 
-            header('Location: ' . BASE_URL . '/public/index.php?action=admin_kelas');
+            header('Location: ' . BASE_URL . '/index.php?action=admin_kelas');
             exit;
         }
     }
@@ -246,7 +246,7 @@ class AdminController {
             } else {
                 $_SESSION['error'] = 'Gagal menghapus kelas!';
             }
-            header('Location: ' . BASE_URL . '/public/index.php?action=admin_kelas');
+            header('Location: ' . BASE_URL . '/index.php?action=admin_kelas');
             exit;
         }
     }
@@ -459,7 +459,7 @@ class AdminController {
                 $_SESSION['error'] = 'Gagal membuat user!';
             }
             
-            header('Location: ' . BASE_URL . '/public/index.php?action=admin_users');
+            header('Location: ' . BASE_URL . '/index.php?action=admin_users');
         }
     }
 
@@ -483,7 +483,7 @@ class AdminController {
                 $_SESSION['error'] = 'Gagal memperbarui user!';
             }
 
-            header('Location: ' . BASE_URL . '/public/index.php?action=admin_users');
+            header('Location: ' . BASE_URL . '/index.php?action=admin_users');
             exit;
         }
     }
@@ -494,14 +494,14 @@ class AdminController {
             
             if (!$id) {
                 $_SESSION['error'] = 'ID user tidak valid';
-                header('Location: ' . BASE_URL . '/public/index.php?action=admin_users');
+                header('Location: ' . BASE_URL . '/index.php?action=admin_users');
                 exit;
             }
             
             // Cek apakah user yang akan dihapus adalah diri sendiri
             if ($id == $_SESSION['user_id']) {
                 $_SESSION['error'] = 'Tidak dapat menghapus akun Anda sendiri';
-                header('Location: ' . BASE_URL . '/public/index.php?action=admin_users');
+                header('Location: ' . BASE_URL . '/index.php?action=admin_users');
                 exit;
             }
             
@@ -511,7 +511,7 @@ class AdminController {
                 $_SESSION['error'] = 'Gagal menghapus user';
             }
             
-            header('Location: ' . BASE_URL . '/public/index.php?action=admin_users');
+            header('Location: ' . BASE_URL . '/index.php?action=admin_users');
             exit;
         }
     }
@@ -532,7 +532,7 @@ class AdminController {
                 $_SESSION['error'] = 'Gagal memperbarui lokasi sekolah!';
             }
             
-            header('Location: ' . BASE_URL . '/public/index.php?action=admin_lokasi');
+            header('Location: ' . BASE_URL . '/index.php?action=admin_lokasi');
         }
     }
 
@@ -1196,7 +1196,7 @@ class AdminController {
                 $data['dokumen_pdf'] = $uploadResult['path'];
             } else {
                 $_SESSION['error'] = $uploadResult['message'];
-                header('Location: ' . BASE_URL . '/public/index.php?action=admin_buku_induk');
+                header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
                 exit();
             }
         } else {
@@ -1240,7 +1240,7 @@ class AdminController {
             $_SESSION['error'] = 'Gagal menyimpan buku induk.';
         }
 
-        header('Location: ' . BASE_URL . '/public/index.php?action=admin_buku_induk');
+        header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
         exit();
     }
 
@@ -1270,7 +1270,7 @@ class AdminController {
             }
         }
         
-        header('Location: ' . BASE_URL . '/public/index.php?action=admin_buku_induk');
+        header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
         exit();
     }
 
@@ -1290,5 +1290,7 @@ class AdminController {
         }
         return ['success' => false, 'message' => 'Gagal mengunggah dokumen.'];
     }
+
+
 }
 ?>

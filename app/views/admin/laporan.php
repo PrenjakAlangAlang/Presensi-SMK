@@ -42,7 +42,7 @@ require_once __DIR__ . '/../layouts/header.php';
 <!-- Filter Section -->
 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
     <h3 class="text-lg font-semibold text-gray-800 mb-4">Filter Laporan</h3>
-    <form method="GET" action="<?php echo BASE_URL; ?>/public/index.php" class="space-y-4">
+    <form method="GET" action="<?php echo BASE_URL; ?>/index.php" class="space-y-4">
         <input type="hidden" name="action" value="admin_laporan">
         <input type="hidden" name="tipe" value="<?php echo $tipe_laporan; ?>">
         
@@ -959,7 +959,7 @@ function exportToPDF() {
     const status = '<?php echo $filter_status ?? ''; ?>';
     const tipe = '<?php echo $tipe_laporan ?? 'sekolah'; ?>';
     const kelasId = '<?php echo $kelas_id ?? ''; ?>';
-    window.open('<?php echo BASE_URL; ?>/public/index.php?action=admin_export_pdf&periode=' + periode + '&tanggal=' + tanggal + '&minggu=' + minggu + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId, '_blank');
+    window.open('<?php echo BASE_URL; ?>/index.php?action=admin_export_pdf&periode=' + periode + '&tanggal=' + tanggal + '&minggu=' + minggu + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId, '_blank');
 }
 
 function exportToExcel() {
@@ -971,7 +971,7 @@ function exportToExcel() {
     const status = '<?php echo $filter_status ?? ''; ?>';
     const tipe = '<?php echo $tipe_laporan ?? 'sekolah'; ?>';
     const kelasId = '<?php echo $kelas_id ?? ''; ?>';
-    window.location.href = '<?php echo BASE_URL; ?>/public/index.php?action=admin_export_excel&periode=' + periode + '&tanggal=' + tanggal + '&minggu=' + minggu + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId;
+    window.location.href = '<?php echo BASE_URL; ?>/index.php?action=admin_export_excel&periode=' + periode + '&tanggal=' + tanggal + '&minggu=' + minggu + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId;
 }
 
 // Close modal when clicking outside

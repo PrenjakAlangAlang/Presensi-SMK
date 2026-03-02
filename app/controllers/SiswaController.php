@@ -325,7 +325,7 @@ class SiswaController {
             $upload = $this->handlePdfUpload($_FILES['dokumen_pdf']);
             if(!$upload['success']) {
                 $_SESSION['error'] = $upload['message'];
-                header('Location: ' . BASE_URL . '/public/index.php?action=siswa_buku_induk');
+                header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
                 exit();
             }
             $data['dokumen_pdf'] = $upload['path'];
@@ -369,7 +369,7 @@ class SiswaController {
             $_SESSION['error'] = 'Gagal menyimpan data.';
         }
 
-        header('Location: ' . BASE_URL . '/public/index.php?action=siswa_buku_induk');
+        header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
         exit();
     }
 
@@ -399,7 +399,7 @@ class SiswaController {
             }
         }
         
-        header('Location: ' . BASE_URL . '/public/index.php?action=siswa_buku_induk');
+        header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
         exit();
     }
 

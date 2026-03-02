@@ -110,7 +110,7 @@ $page_title = $page_title ?? 'Sistem Presensi';
                 <nav class="flex" aria-label="Breadcrumb">
                     <ol class="flex items-center space-x-2 text-sm text-gray-600">
                         <li>
-                            <a href="<?php echo BASE_URL; ?>/public/index.php?action=<?php echo $_SESSION['user_role'] ?? 'admin'; ?>_dashboard" class="hover:text-blue-600 transition-colors">
+                            <a href="<?php echo BASE_URL; ?>/index.php?action=<?php echo $_SESSION['user_role'] ?? 'admin'; ?>_dashboard" class="hover:text-blue-600 transition-colors">
                                 <i class="fas fa-home mr-1"></i>
                                 Dashboard
                             </a>

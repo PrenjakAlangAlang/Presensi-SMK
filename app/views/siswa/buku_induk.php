@@ -10,7 +10,7 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>  
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <form method="POST" action="<?php echo BASE_URL; ?>/public/index.php?action=siswa_save_buku_induk" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form method="POST" action="<?php echo BASE_URL; ?>/index.php?action=siswa_save_buku_induk" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
                 <input type="text" name="nama" required class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nama ?? ($_SESSION['user_nama'] ?? ''), ENT_QUOTES); ?>" />
@@ -107,7 +107,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         <a href="<?php echo $dok->dokumen_pdf; ?>" target="_blank" class="text-blue-600 hover:text-blue-800">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <form method="POST" action="<?php echo BASE_URL; ?>/public/index.php?action=siswa_delete_dokumen" onsubmit="return confirm('Hapus dokumen ini?')" class="inline">
+                        <form method="POST" action="<?php echo BASE_URL; ?>/index.php?action=siswa_delete_dokumen" onsubmit="return confirm('Hapus dokumen ini?')" class="inline">
                             <input type="hidden" name="dokumen_id" value="<?php echo $dok->id; ?>" />
                             <button type="submit" class="text-red-600 hover:text-red-800">
                                 <i class="fas fa-trash"></i>

@@ -328,7 +328,7 @@ const statusChart = new Chart(statusCtx, {
 });
 
 function kelola() {
-    window.location.href = "<?php echo BASE_URL; ?>/public/index.php?action=admin_presensi_sekolah";
+    window.location.href = "<?php echo BASE_URL; ?>/index.php?action=admin_presensi_sekolah";
 }
 </script>
 

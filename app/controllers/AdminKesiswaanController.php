@@ -85,7 +85,7 @@ class AdminKesiswaanController {
             $uploadResult = $this->handlePdfUpload($_FILES['dokumen_pdf']);
             if(!$uploadResult['success']) {
                 $_SESSION['error'] = $uploadResult['message'];
-                header('Location: ' . BASE_URL . '/public/index.php?action=admin_kesiswaan_buku_induk');
+                header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
                 exit();
             }
             $data['dokumen_pdf'] = $uploadResult['path'];
@@ -130,7 +130,7 @@ class AdminKesiswaanController {
             $_SESSION['error'] = 'Gagal menyimpan buku induk.';
         }
 
-        header('Location: ' . BASE_URL . '/public/index.php?action=admin_kesiswaan_buku_induk');
+        header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
         exit();
     }
 
@@ -160,7 +160,7 @@ class AdminKesiswaanController {
             }
         }
         
-        header('Location: ' . BASE_URL . '/public/index.php?action=admin_kesiswaan_buku_induk');
+        header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
         exit();
     }
 
@@ -238,7 +238,7 @@ class AdminKesiswaanController {
                 exit;
             }
             
-            // Mark absent students as alpha before closing
+            // Mark absent students as alpha before closing (notifications sent automatically)
             $alphaCount = $this->presensiModel->markAbsentStudentsAsAlphaSekolah($id);
             
             // Close the session
@@ -248,7 +248,7 @@ class AdminKesiswaanController {
             echo json_encode([
                 'success' => (bool)$ok,
                 'alpha_count' => $alphaCount,
-                'message' => $alphaCount > 0 ? "Sesi ditutup. $alphaCount siswa ditandai alpha." : 'Sesi ditutup.'
+                'message' => $alphaCount > 0 ? "Sesi ditutup. $alphaCount siswa ditandai alpha. Notifikasi sedang dikirim." : 'Sesi ditutup.'
             ]);
             exit;
         }
@@ -1045,5 +1045,7 @@ class AdminKesiswaanController {
         echo json_encode(['success' => false, 'message' => 'ID tidak valid']);
         exit;
     }
+
+
 }
 ?>
