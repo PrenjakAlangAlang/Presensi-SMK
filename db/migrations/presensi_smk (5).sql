@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jan 31, 2026 at 04:44 PM
+-- Generation Time: Mar 03, 2026 at 02:52 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -30,17 +30,17 @@ SET time_zone = "+00:00";
 CREATE TABLE `buku_induk` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `nama` varchar(150) NOT NULL,
-  `nis` varchar(50) NOT NULL,
-  `nisn` varchar(50) NOT NULL,
-  `tempat_lahir` varchar(100) NOT NULL,
+  `nama` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `nis` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `nisn` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `tempat_lahir` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `tanggal_lahir` date NOT NULL,
   `alamat` text,
-  `nama_ayah` varchar(150) DEFAULT NULL,
-  `nama_ibu` varchar(150) DEFAULT NULL,
+  `nama_ayah` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `nama_ibu` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `nama_wali` varchar(100) DEFAULT NULL,
   `no_telp_ortu` varchar(20) DEFAULT NULL,
-  `email_ortu` varchar(255) DEFAULT NULL COMMENT 'Email orang tua untuk notifikasi',
+  `email_ortu` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Email orang tua untuk notifikasi',
   `dokumen_pdf` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -49,8 +49,10 @@ CREATE TABLE `buku_induk` (
 --
 
 INSERT INTO `buku_induk` (`id`, `user_id`, `nama`, `nis`, `nisn`, `tempat_lahir`, `tanggal_lahir`, `alamat`, `nama_ayah`, `nama_ibu`, `nama_wali`, `no_telp_ortu`, `email_ortu`, `dokumen_pdf`) VALUES
-(1, 5, 'Fakhri', '7627', '11134567', 'Sleman', '2025-12-01', 'Ngampel', '', '', '', '0895363611056', 'luthfinurafiq76@gmail.com', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-694239e508e54.pdf'),
-(2, 8, 'Zola', '7627', '11134567', 'Sleman', '2025-12-01', 'fgsdfs', 'dsfsdf', 'sdfdsfsd', NULL, '089644755532', 'luthfinurafiq76@gmail.com', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-69516fc03cadd.pdf');
+(1, 5, 'Fakhri Tajuddin Hidayat', '7627', '11134567', 'Sleman', '2025-12-01', 'Ngampel', '', '', '', '', '', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-694239e508e54.pdf'),
+(2, 8, 'Zola', '7627', '11134567', 'Yogyakarta', '2025-12-01', 'fgsdfs', 'dsfsdf', 'sdfdsfsd', 'vzxv', '', '', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-697edf25009be.pdf'),
+(3, 7, 'Habib Maulana', 'dsada', 'sdaddd', 'sdadas', '2026-02-01', 'dasdas', 'dsa', 'dasd', 'asdas', '', '', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-697ede11e77e7.pdf'),
+(4, 3, 'Luthfi Nurafiq Asshiddiqi', '7627', '12345566', 'Sleman', '2026-02-04', 'Pakem', 'Atun Budi', 'Adik Kristien', '', '', 'luthfinurafiq76@gmail.com', '/uploads/buku_induk/buku-induk-698dff45b9fd6.pdf');
 
 -- --------------------------------------------------------
 
@@ -61,9 +63,9 @@ INSERT INTO `buku_induk` (`id`, `user_id`, `nama`, `nis`, `nisn`, `tempat_lahir`
 CREATE TABLE `buku_induk_dokumen` (
   `id` int NOT NULL,
   `buku_induk_id` int NOT NULL,
-  `nama_file` varchar(255) NOT NULL,
+  `nama_file` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `dokumen_pdf` varchar(255) NOT NULL,
-  `keterangan` varchar(255) DEFAULT NULL
+  `keterangan` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -71,8 +73,9 @@ CREATE TABLE `buku_induk_dokumen` (
 --
 
 INSERT INTO `buku_induk_dokumen` (`id`, `buku_induk_id`, `nama_file`, `dokumen_pdf`, `keterangan`) VALUES
-(1, 2, 'Kelompok 9_124220021_Luthfi_Tugas2.pdf', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-69516fc03d788.pdf', ''),
-(2, 2, 'Kelompok 9_124220021_Luthfi_Tugas1 (revisi).pdf', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-69516fc03e151.pdf', '');
+(4, 2, 'Jadwal Seminar Tugas Akhir Bulan Februari 2026 Prodi SI.pdf', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-698de74ad6972.pdf', 'seminar'),
+(5, 4, 'Ahmad+Ari+Gunawan+S.pdf', '/uploads/buku_induk/buku-induk-698dff45bac5e.pdf', 'tetggdfs'),
+(6, 4, 'Socialmediaandgeography.pdf', '/uploads/buku_induk/buku-induk-698dff45bb2c5.pdf', '');
 
 -- --------------------------------------------------------
 
@@ -82,10 +85,10 @@ INSERT INTO `buku_induk_dokumen` (`id`, `buku_induk_id`, `nama_file`, `dokumen_p
 
 CREATE TABLE `kelas` (
   `id` int NOT NULL,
-  `nama_kelas` varchar(100) NOT NULL,
-  `tahun_ajaran` varchar(20) DEFAULT NULL,
+  `nama_kelas` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `tahun_ajaran` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `wali_kelas` int DEFAULT NULL,
-  `jadwal` varchar(100) DEFAULT NULL
+  `jadwal` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -93,9 +96,11 @@ CREATE TABLE `kelas` (
 --
 
 INSERT INTO `kelas` (`id`, `nama_kelas`, `tahun_ajaran`, `wali_kelas`, `jadwal`) VALUES
-(1, 'XI RPL 1', '2025/2026', 2, 'Senin, 07:30-09:00'),
-(3, 'XII Multimedia', '2025/2026', 2, 'Senin, 09:30-11:00'),
-(4, 'X TKR 2', '2025/2026', 6, 'Senin, 11.00-12.30');
+(1, 'Bahasa Indonesia-XI Perhotelan', '2025/2026', 2, 'Senin, 07:30-09:00'),
+(3, 'Pendidikan Agama Islam-XII DPB', '2025/2026', 2, 'Senin, 09:30-11:00'),
+(4, 'Bahasa Inggris-X Akuntansi 2', '2025/2026', 6, 'Senin, 11.00-12.30'),
+(6, 'PKN-X Akuntansi 1', '2025/2027', 6, 'Senin, 11.00-12.30'),
+(7, 'PKN-X Manajemen Perkantoran', '2025/2026', 2, 'Senin, 11.00-12.30');
 
 -- --------------------------------------------------------
 
@@ -129,7 +134,14 @@ INSERT INTO `laporan_kemajuan` (`id`, `kelas_id`, `guru_id`, `tanggal`, `catatan
 (10, 1, 2, '2026-01-02', '', '2026-01-02 15:41:15'),
 (11, 1, 2, '2026-01-06', 'gdfgfd', '2026-01-06 15:15:05'),
 (12, 1, 2, '2026-01-08', 'h8nu', '2026-01-08 06:12:59'),
-(13, 1, 2, '2026-01-08', 'h8nu', '2026-01-08 06:12:59');
+(13, 1, 2, '2026-01-08', 'h8nu', '2026-01-08 06:12:59'),
+(14, 1, 2, '2026-02-01', 'kgkkjh', '2026-02-01 04:08:04'),
+(15, 1, 2, '2026-02-01', 'lhohi', '2026-02-01 04:54:57'),
+(16, 1, 2, '2026-02-01', 'nlk;', '2026-02-01 04:57:16'),
+(17, 1, 2, '2026-02-04', 'adjasd', '2026-02-04 06:55:24'),
+(18, 1, 2, '2026-02-10', 'fsdf', '2026-02-10 06:52:48'),
+(19, 1, 2, '2026-03-02', 'hjvjvh', '2026-03-02 06:37:18'),
+(20, 1, 2, '2026-03-02', 'hjvjvh', '2026-03-02 06:37:18');
 
 -- --------------------------------------------------------
 
@@ -156,7 +168,40 @@ INSERT INTO `lokasi_sekolah` (`id`, `nama_sekolah`, `latitude`, `longitude`, `ra
 (3, 'SMK Negeri 7 Yogyakarta', -7.652036, 110.412129, 300, 1),
 (4, 'SMK Negeri 7 Yogyakarta', -7.652164, 110.41374, 400, 1),
 (5, 'SMK Negeri 7 Yogyakarta', -7.649973, 110.412988, 400, 1),
-(6, 'SMK Negeri 7 Yogyakarta', -7.649731, 110.416681, 400, 1);
+(6, 'SMK Negeri 7 Yogyakarta', -7.649731, 110.416681, 400, 1),
+(7, 'SMK Negeri 7 Yogyakarta', -7.652781, 110.408629, 400, 1),
+(8, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
+(9, 'SMK Negeri 7 Yogyakarta', -7.648272, 110.41709, 400, 1),
+(10, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
+(11, 'SMK Negeri 7 Yogyakarta', -7.654622, 110.42154, 400, 1),
+(12, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
+(13, 'SMK Negeri 7 Yogyakarta', -7.651675, 110.419774, 400, 1),
+(14, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
+(15, 'SMK Negeri 7 Yogyakarta', -7.660007, 110.422757, 400, 1),
+(16, 'SMK Negeri 7 Yogyakarta', -7.660007, 110.422757, 1000, 1),
+(17, 'SMK Negeri 7 Yogyakarta', -7.65754, 110.42032, 1000, 1),
+(18, 'SMK Negeri 7 Yogyakarta', -7.655498, 110.418442, 1000, 1),
+(19, 'SMK Negeri 7 Yogyakarta', -7.656026, 110.419771, 1000, 1),
+(20, 'SMK Negeri 7 Yogyakarta', -7.650471, 110.415945, 500, 1),
+(21, 'SMK Negeri 7 Yogyakarta', -7.656349, 110.423524, 500, 1),
+(22, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 500, 1),
+(23, 'SMK Negeri 7 Yogyakarta', -7.650058, 110.414706, 500, 1),
+(24, 'SMK Negeri 7 Yogyakarta', -7.761999, 110.410064, 500, 1),
+(25, 'SMK Negeri 7 Yogyakarta', -7.652045, 110.416287, 200, 1),
+(26, 'SMK Negeri 7 Yogyakarta', -7.652045, 110.416287, 500, 1),
+(27, 'SMK Negeri 7 Yogyakarta', -7.652045, 110.416287, 500, 1),
+(28, 'SMK Negeri 7 Yogyakarta', -7.652045, 110.416287, 400, 1),
+(29, 'SMK Negeri 7 Yogyakarta', -7.650696, 110.413415, 400, 1),
+(30, 'SMK Negeri 7 Yogyakarta', -7.651483, 110.416638, 400, 1),
+(31, 'SMK Negeri 7 Yogyakarta', -7.650563, 110.415016, 400, 1),
+(32, 'SMK Negeri 7 Yogyakarta', -7.649518, 110.413088, 400, 1),
+(33, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
+(34, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
+(35, 'SMK Negeri 7 Yogyakarta', -7.649612, 110.415243, 400, 1),
+(36, 'SMK Negeri 7 Yogyakarta', -7.782389, 110.415879, 400, 1),
+(37, 'SMK Negeri 7 Yogyakarta', -7.782389, 110.415879, 400, 1),
+(38, 'SMK Negeri 7 Yogyakarta', -7.781402, 110.418032, 400, 1),
+(39, 'SMK Negeri 7 Yogyakarta', -7.649497, 110.413696, 400, 1);
 
 -- --------------------------------------------------------
 
@@ -198,9 +243,27 @@ INSERT INTO `presensi_kelas` (`id`, `user_id`, `kelas_id`, `latitude`, `longitud
 (14, 3, 1, 0, 0, 0, 'valid', '2026-01-06 22:15:01', 12, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
 (15, 5, 1, 0, 0, 0, 'valid', '2026-01-06 22:15:01', 12, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
 (16, 8, 1, 0, 0, 0, 'valid', '2026-01-06 22:15:04', 12, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(17, 3, 1, 0, 0, 0, 'valid', '2026-01-08 13:12:53', 13, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(17, 3, 1, 0, 0, 0, 'valid', '2026-01-08 13:12:53', 13, 'hadir', 'Tidak hadir saat sesi ditutup', ''),
 (18, 5, 1, 0, 0, 0, 'valid', '2026-01-08 13:12:53', 13, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(19, 8, 1, 0, 0, 0, 'valid', '2026-01-08 13:12:57', 13, 'alpha', 'Tidak hadir saat sesi ditutup', NULL);
+(19, 8, 1, 0, 0, 0, 'valid', '2026-01-08 13:12:57', 13, 'alpha', 'Tidak hadir saat sesi ditutup', ''),
+(20, 8, 1, -7.649859, 110.413132, 0, 'valid', '2026-02-01 11:06:16', 14, 'hadir', NULL, NULL),
+(21, 3, 1, 0, 0, 0, 'valid', '2026-02-01 11:07:59', 14, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(22, 5, 1, 0, 0, 0, 'valid', '2026-02-01 11:07:59', 14, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(23, 8, 1, -7.649859, 110.413132, 0, 'valid', '2026-02-01 11:24:24', 15, 'hadir', NULL, NULL),
+(24, 3, 1, -7.649859, 110.413132, 0, 'valid', '2026-02-01 11:26:47', 15, 'hadir', NULL, NULL),
+(25, 5, 1, 0, 0, 0, 'valid', '2026-02-01 11:54:54', 15, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(26, 8, 1, -7.649859, 110.413132, 0, 'valid', '2026-02-01 11:55:18', 16, 'hadir', NULL, NULL),
+(27, 3, 1, 0, 0, 0, 'valid', '2026-02-01 11:56:56', 16, 'izin', 'nlknknkln', NULL),
+(28, 5, 1, 0, 0, 0, 'valid', '2026-02-01 11:57:13', 16, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(29, 3, 1, 0, 0, 0, 'valid', '2026-02-04 13:55:20', 17, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(30, 8, 1, 0, 0, 0, 'valid', '2026-02-04 13:55:20', 17, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(31, 5, 1, 0, 0, 0, 'valid', '2026-02-04 13:55:23', 17, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(32, 3, 1, 0, 0, 0, 'valid', '2026-02-10 13:52:43', 18, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(33, 8, 1, 0, 0, 0, 'valid', '2026-02-10 13:52:43', 18, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(34, 5, 1, 0, 0, 0, 'valid', '2026-02-10 13:52:47', 18, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(35, 3, 1, 0, 0, 0, 'valid', '2026-03-02 13:36:57', 19, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(36, 8, 1, 0, 0, 0, 'valid', '2026-03-02 13:37:18', 19, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(37, 5, 1, 0, 0, 0, 'valid', '2026-03-02 13:37:18', 19, 'alpha', 'Tidak hadir saat sesi ditutup', NULL);
 
 -- --------------------------------------------------------
 
@@ -399,20 +462,120 @@ INSERT INTO `presensi_sekolah` (`id`, `presensi_sekolah_sesi_id`, `user_id`, `la
 (174, 59, 8, 0, 0, 0, 'valid', '2026-01-13 13:38:47', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
 (175, 60, 3, 0, 0, 0, 'valid', '2026-01-20 00:51:56', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
 (176, 60, 5, 0, 0, 0, 'valid', '2026-01-20 00:51:56', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(177, 60, 7, 0, 0, 0, 'valid', '2026-01-20 00:52:00', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(177, 60, 7, 0, 0, 0, 'valid', '2026-01-20 00:52:00', 'alpha', 'Tidak hadir saat sesi ditutup', ''),
 (178, 60, 8, 0, 0, 0, 'valid', '2026-01-20 00:52:00', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(179, 61, 8, 0, 0, 0, 'valid', '2026-01-25 18:59:22', 'izin', 'sad', NULL),
-(180, 61, 7, 0, 0, 0, 'valid', '2026-01-25 18:59:41', 'izin', 'dsa', NULL),
-(181, 61, 3, 0, 0, 0, 'valid', '2026-01-28 15:25:50', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(182, 61, 5, 0, 0, 0, 'valid', '2026-01-28 15:25:50', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(183, 62, 3, 0, 0, 0, 'valid', '2026-01-30 21:11:19', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(184, 62, 5, 0, 0, 0, 'valid', '2026-01-30 21:11:19', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(185, 62, 7, 0, 0, 0, 'valid', '2026-01-30 21:11:23', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(186, 62, 8, 0, 0, 0, 'valid', '2026-01-30 21:11:23', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(187, 63, 3, 0, 0, 0, 'valid', '2026-01-31 22:42:03', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(188, 63, 5, 0, 0, 0, 'valid', '2026-01-31 22:42:03', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(189, 63, 7, 0, 0, 0, 'valid', '2026-01-31 22:42:08', 'alpha', 'Tidak hadir saat sesi ditutup', ''),
-(190, 63, 8, 0, 0, 0, 'valid', '2026-01-31 22:42:08', 'alpha', 'Tidak hadir saat sesi ditutup', NULL);
+(231, 75, 3, 0, 0, 0, 'valid', '2026-02-02 01:05:36', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(232, 75, 5, 0, 0, 0, 'valid', '2026-02-02 01:05:36', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(233, 75, 7, 0, 0, 0, 'valid', '2026-02-02 01:05:40', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(234, 75, 8, 0, 0, 0, 'valid', '2026-02-02 01:05:40', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(235, 76, 3, 0, 0, 0, 'valid', '2026-02-02 05:00:33', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(236, 76, 5, 0, 0, 0, 'valid', '2026-02-02 05:00:33', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(237, 76, 7, 0, 0, 0, 'valid', '2026-02-02 05:00:36', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(238, 76, 8, 0, 0, 0, 'valid', '2026-02-02 05:00:36', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(247, 79, 3, 0, 0, 0, 'valid', '2026-02-02 05:57:35', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(248, 79, 5, 0, 0, 0, 'valid', '2026-02-02 05:57:35', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(249, 79, 7, 0, 0, 0, 'valid', '2026-02-02 05:57:39', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(250, 79, 8, 0, 0, 0, 'valid', '2026-02-02 05:57:39', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(251, 80, 3, 0, 0, 0, 'valid', '2026-02-03 23:21:53', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(252, 80, 5, 0, 0, 0, 'valid', '2026-02-03 23:21:53', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(253, 80, 7, 0, 0, 0, 'valid', '2026-02-03 23:21:56', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(254, 80, 8, 0, 0, 0, 'valid', '2026-02-03 23:21:56', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(255, 81, 8, 0, 0, 0, 'valid', '2026-02-04 13:57:48', 'izin', 'sdada', NULL),
+(256, 81, 3, 0, 0, 0, 'valid', '2026-02-05 10:45:27', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(257, 81, 5, 0, 0, 0, 'valid', '2026-02-05 10:45:27', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(258, 81, 7, 0, 0, 0, 'valid', '2026-02-05 10:45:30', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(259, 82, 8, -7.649859, 110.413132, 317.38855790502, 'valid', '2026-02-05 22:11:13', 'hadir', NULL, NULL),
+(260, 82, 3, 0, 0, 0, 'valid', '2026-02-05 22:19:59', 'izin', 'dadsa', NULL),
+(261, 82, 7, -7.649859, 110.413132, 0, 'valid', '2026-02-05 22:20:19', 'hadir', NULL, NULL),
+(262, 82, 5, 0, 0, 0, 'valid', '2026-02-05 22:20:42', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(263, 83, 8, -7.649859, 110.413132, 174.86877035454, 'valid', '2026-02-05 22:21:25', 'hadir', NULL, NULL),
+(264, 83, 3, 0, 0, 0, 'valid', '2026-02-06 21:35:53', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(265, 83, 5, 0, 0, 0, 'valid', '2026-02-06 21:35:53', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(266, 83, 7, 0, 0, 0, 'valid', '2026-02-06 21:35:57', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(267, 84, 3, 0, 0, 0, 'valid', '2026-02-06 21:36:19', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(268, 84, 5, 0, 0, 0, 'valid', '2026-02-06 21:36:19', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(269, 84, 7, 0, 0, 0, 'valid', '2026-02-06 21:36:22', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(270, 84, 8, 0, 0, 0, 'valid', '2026-02-06 21:36:22', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(271, 85, 3, 0, 0, 0, 'valid', '2026-02-07 22:46:18', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(272, 85, 5, 0, 0, 0, 'valid', '2026-02-07 22:46:18', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(273, 85, 7, 0, 0, 0, 'valid', '2026-02-07 22:46:22', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(274, 85, 8, 0, 0, 0, 'valid', '2026-02-07 22:46:22', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(275, 86, 3, 0, 0, 0, 'valid', '2026-02-08 22:25:06', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(276, 86, 5, 0, 0, 0, 'valid', '2026-02-08 22:25:06', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(277, 86, 7, 0, 0, 0, 'valid', '2026-02-08 22:25:09', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(278, 86, 8, 0, 0, 0, 'valid', '2026-02-08 22:25:09', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(279, 87, 3, 0, 0, 0, 'valid', '2026-02-10 11:14:40', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(280, 87, 5, 0, 0, 0, 'valid', '2026-02-10 11:14:40', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(281, 87, 7, 0, 0, 0, 'valid', '2026-02-10 11:14:43', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(282, 87, 8, 0, 0, 0, 'valid', '2026-02-10 11:14:43', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(283, 88, 3, 0, 0, 0, 'valid', '2026-02-12 11:07:25', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(284, 88, 5, 0, 0, 0, 'valid', '2026-02-12 11:07:25', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(285, 88, 7, 0, 0, 0, 'valid', '2026-02-12 11:07:29', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(286, 88, 8, 0, 0, 0, 'valid', '2026-02-12 11:07:29', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(287, 89, 3, 0, 0, 0, 'valid', '2026-02-12 22:59:49', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(288, 89, 5, 0, 0, 0, 'valid', '2026-02-12 22:59:50', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(289, 89, 7, 0, 0, 0, 'valid', '2026-02-12 22:59:56', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(290, 89, 8, 0, 0, 0, 'valid', '2026-02-12 22:59:56', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(291, 90, 3, 0, 0, 0, 'valid', '2026-02-12 23:05:14', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(292, 90, 5, 0, 0, 0, 'valid', '2026-02-12 23:05:17', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(293, 90, 7, 0, 0, 0, 'valid', '2026-02-12 23:05:17', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(294, 90, 8, 0, 0, 0, 'valid', '2026-02-12 23:05:17', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(295, 91, 3, 0, 0, 0, 'valid', '2026-02-12 23:06:34', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(296, 91, 5, 0, 0, 0, 'valid', '2026-02-12 23:06:34', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(297, 91, 7, 0, 0, 0, 'valid', '2026-02-12 23:06:34', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(298, 91, 8, 0, 0, 0, 'valid', '2026-02-12 23:06:34', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(307, 94, 3, 0, 0, 0, 'valid', '2026-02-12 23:08:19', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(308, 94, 5, 0, 0, 0, 'valid', '2026-02-12 23:08:22', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(309, 94, 7, 0, 0, 0, 'valid', '2026-02-12 23:08:22', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(310, 94, 8, 0, 0, 0, 'valid', '2026-02-12 23:08:22', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(311, 95, 3, 0, 0, 0, 'valid', '2026-02-12 23:09:29', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(312, 95, 5, 0, 0, 0, 'valid', '2026-02-12 23:09:32', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(313, 95, 7, 0, 0, 0, 'valid', '2026-02-12 23:09:32', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(314, 95, 8, 0, 0, 0, 'valid', '2026-02-12 23:09:32', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(315, 97, 3, 0, 0, 0, 'valid', '2026-02-14 19:57:07', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(316, 97, 5, 0, 0, 0, 'valid', '2026-02-14 19:57:10', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(317, 97, 7, 0, 0, 0, 'valid', '2026-02-14 19:57:10', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(318, 97, 8, 0, 0, 0, 'valid', '2026-02-14 19:57:10', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(319, 98, 3, 0, 0, 0, 'valid', '2026-02-14 19:57:46', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(320, 98, 5, 0, 0, 0, 'valid', '2026-02-14 19:57:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(321, 98, 7, 0, 0, 0, 'valid', '2026-02-14 19:57:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(322, 98, 8, 0, 0, 0, 'valid', '2026-02-14 19:57:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(323, 99, 8, -7.649859, 110.413132, 221.89358170725, 'valid', '2026-02-15 21:43:28', 'hadir', NULL, NULL),
+(324, 99, 3, 0, 0, 0, 'valid', '2026-02-15 22:00:47', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(325, 99, 5, 0, 0, 0, 'valid', '2026-02-15 22:00:50', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(326, 99, 7, 0, 0, 0, 'valid', '2026-02-15 22:00:50', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(327, 100, 3, 0, 0, 0, 'valid', '2026-02-16 11:22:32', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(328, 100, 5, 0, 0, 0, 'valid', '2026-02-16 11:22:35', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(329, 100, 7, 0, 0, 0, 'valid', '2026-02-16 11:22:35', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(330, 100, 8, 0, 0, 0, 'valid', '2026-02-16 11:22:35', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(331, 101, 3, 0, 0, 0, 'valid', '2026-02-17 21:36:37', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(332, 101, 5, 0, 0, 0, 'valid', '2026-02-17 21:36:40', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(333, 101, 7, 0, 0, 0, 'valid', '2026-02-17 21:36:40', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(334, 101, 8, 0, 0, 0, 'valid', '2026-02-17 21:36:40', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(335, 102, 3, 0, 0, 0, 'valid', '2026-02-18 11:13:50', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(336, 102, 5, 0, 0, 0, 'valid', '2026-02-18 11:13:54', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(337, 102, 7, 0, 0, 0, 'valid', '2026-02-18 11:13:54', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(338, 102, 8, 0, 0, 0, 'valid', '2026-02-18 11:13:54', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(339, 103, 3, 0, 0, 0, 'valid', '2026-02-19 07:50:09', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(340, 103, 5, 0, 0, 0, 'valid', '2026-02-19 07:50:13', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(341, 103, 7, 0, 0, 0, 'valid', '2026-02-19 07:50:13', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(342, 103, 8, 0, 0, 0, 'valid', '2026-02-19 07:50:13', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(343, 104, 3, 0, 0, 0, 'valid', '2026-03-02 13:04:00', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(344, 104, 5, 0, 0, 0, 'valid', '2026-03-02 13:04:24', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(345, 104, 7, 0, 0, 0, 'valid', '2026-03-02 13:04:24', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(346, 104, 8, 0, 0, 0, 'valid', '2026-03-02 13:04:24', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(347, 105, 3, 0, 0, 0, 'valid', '2026-03-02 13:04:54', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(348, 105, 5, 0, 0, 0, 'valid', '2026-03-02 13:05:16', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(349, 105, 7, 0, 0, 0, 'valid', '2026-03-02 13:05:16', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(350, 105, 8, 0, 0, 0, 'valid', '2026-03-02 13:05:16', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(351, 106, 3, 0, 0, 0, 'valid', '2026-03-02 13:31:36', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(352, 106, 5, 0, 0, 0, 'valid', '2026-03-02 13:31:57', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(353, 106, 7, 0, 0, 0, 'valid', '2026-03-02 13:31:57', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(354, 106, 8, 0, 0, 0, 'valid', '2026-03-02 13:31:57', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(375, 112, 3, 0, 0, 0, 'valid', '2026-03-02 14:09:15', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(376, 112, 5, 0, 0, 0, 'valid', '2026-03-02 14:09:36', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(377, 112, 7, 0, 0, 0, 'valid', '2026-03-02 14:09:36', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(378, 112, 8, 0, 0, 0, 'valid', '2026-03-02 14:09:36', 'alpha', 'Tidak hadir saat sesi ditutup', NULL);
 
 -- --------------------------------------------------------
 
@@ -425,76 +588,102 @@ CREATE TABLE `presensi_sekolah_sesi` (
   `waktu_buka` datetime NOT NULL,
   `waktu_tutup` datetime NOT NULL,
   `status` enum('open','closed') NOT NULL DEFAULT 'open',
-  `created_by` int DEFAULT NULL,
+  `created_by` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `presensi_sekolah_sesi`
 --
 
-INSERT INTO `presensi_sekolah_sesi` (`id`, `waktu_buka`, `waktu_tutup`, `status`, `created_by`, `note`) VALUES
-(1, '2025-11-07 22:46:00', '2025-11-07 22:49:00', 'closed', 1, ''),
-(2, '2025-11-07 22:53:00', '2025-11-07 23:10:50', 'closed', 1, ''),
-(3, '2025-11-07 23:03:00', '2025-11-07 23:21:00', 'closed', 1, ''),
-(4, '2025-12-20 00:17:00', '2025-12-20 00:20:00', 'closed', 1, 'nlknlk'),
-(5, '2025-12-22 01:14:00', '2025-12-22 01:30:00', 'closed', 1, ''),
-(6, '2025-12-22 08:53:00', '2025-12-22 09:05:00', 'closed', 1, ''),
-(7, '2025-12-22 09:03:00', '2025-12-22 09:10:00', 'closed', 1, ''),
-(8, '2025-12-22 09:04:00', '2025-12-22 09:10:00', 'closed', 1, ''),
-(9, '2025-12-22 09:08:00', '2025-12-22 09:24:00', 'closed', 1, ''),
-(10, '2025-12-22 09:23:00', '2025-12-22 09:36:00', 'closed', 1, ''),
-(11, '2025-12-22 09:44:00', '2025-12-22 09:56:00', 'closed', 1, ''),
-(12, '2025-12-22 10:32:00', '2025-12-22 10:43:00', 'closed', 1, ''),
-(13, '2025-12-22 10:39:00', '2025-12-22 10:46:00', 'closed', 1, ''),
-(14, '2025-12-22 11:00:00', '2025-12-22 11:13:00', 'closed', 1, ''),
-(15, '2025-12-22 11:06:00', '2025-12-22 11:16:00', 'closed', 1, ''),
-(16, '2025-12-22 11:40:00', '2025-12-22 11:44:00', 'closed', 1, ''),
-(17, '2025-12-22 11:49:00', '2025-12-22 11:53:00', 'closed', 1, ''),
-(18, '2025-12-23 15:54:00', '2025-12-23 15:59:00', 'closed', 1, ''),
-(19, '2025-12-24 00:07:00', '2025-12-24 00:09:00', 'closed', 1, ''),
-(20, '2025-12-24 00:08:00', '2025-12-24 00:12:00', 'closed', 1, ''),
-(21, '2025-12-24 23:08:00', '2025-12-24 23:11:00', 'closed', 1, ''),
-(22, '2025-12-24 23:19:00', '2025-12-24 23:21:00', 'closed', 1, ''),
-(23, '2025-12-24 23:49:00', '2025-12-24 23:52:00', 'closed', 9, ''),
-(24, '2025-12-24 23:53:00', '2025-12-24 23:57:00', 'closed', 9, ''),
-(25, '2025-12-25 00:05:00', '2025-12-25 00:07:00', 'closed', 9, ''),
-(26, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9, ''),
-(27, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9, ''),
-(28, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9, ''),
-(29, '2025-12-25 00:22:00', '2025-12-25 00:26:00', 'closed', 9, ''),
-(30, '2025-12-25 12:23:00', '2025-12-25 12:26:00', 'closed', 9, ''),
-(31, '2025-12-25 12:48:00', '2025-12-25 12:51:00', 'closed', 9, ''),
-(32, '2025-12-25 12:56:00', '2025-12-25 12:58:00', 'closed', 9, ''),
-(33, '2025-12-25 13:02:00', '2025-12-25 13:04:00', 'closed', 9, ''),
-(34, '2025-12-25 13:04:00', '2025-12-25 13:07:00', 'closed', 9, ''),
-(35, '2025-12-25 13:09:00', '2025-12-25 13:12:00', 'closed', 9, ''),
-(36, '2025-12-25 13:15:00', '2025-12-25 13:30:00', 'closed', 9, ''),
-(37, '2025-12-25 13:25:00', '2025-12-25 13:30:00', 'closed', 9, ''),
-(38, '2025-12-25 14:03:00', '2025-12-25 14:05:00', 'closed', 9, ''),
-(39, '2025-12-25 14:11:00', '2025-12-25 14:14:00', 'closed', 9, ''),
-(40, '2026-01-02 15:23:00', '2026-01-02 15:25:00', 'closed', 1, ''),
-(41, '2026-01-03 11:02:00', '2026-01-03 11:03:00', 'closed', 1, ''),
-(42, '2026-01-03 11:03:00', '2026-01-03 11:07:00', 'closed', 1, ''),
-(43, '2026-01-06 22:17:00', '2026-01-06 22:19:00', 'closed', 1, ''),
-(45, '2026-01-08 21:40:00', '2026-01-08 23:59:59', 'closed', NULL, 'Sesi otomatis - Kamis'),
-(46, '2026-01-09 00:50:00', '2026-01-09 00:53:00', 'closed', 9, ''),
-(47, '2026-01-09 13:23:00', '2026-01-09 13:26:00', 'closed', 1, ''),
-(48, '2026-01-11 21:00:00', '2026-01-11 21:03:00', 'closed', 1, ''),
-(49, '2026-01-12 07:00:00', '2026-01-12 23:59:59', 'closed', NULL, 'Sesi otomatis - Senin'),
-(50, '2026-01-12 11:56:00', '2026-01-13 11:57:00', 'closed', 1, ''),
-(51, '2026-01-12 11:57:00', '2026-01-20 11:58:00', 'closed', 1, ''),
-(52, '2026-01-11 12:02:00', '2026-01-13 12:02:00', 'closed', 1, ''),
-(53, '2026-01-12 12:04:00', '2026-01-13 12:04:00', 'closed', 1, ''),
-(54, '2026-01-12 12:06:00', '2026-01-12 12:08:00', 'closed', 1, ''),
-(55, '2026-01-12 12:14:00', '2026-01-12 12:18:00', 'closed', 1, ''),
-(56, '2026-01-12 12:15:00', '2026-01-12 12:18:00', 'closed', 9, ''),
-(57, '2026-01-13 07:00:00', '2026-01-13 23:59:59', 'closed', NULL, 'Sesi otomatis - Selasa'),
-(58, '2026-01-13 13:36:00', '2026-01-13 13:38:00', 'closed', 1, ''),
-(59, '2026-01-13 13:38:00', '2026-01-13 13:40:00', 'closed', 1, ''),
-(60, '2026-01-19 07:00:00', '2026-01-19 23:59:59', 'closed', NULL, 'Sesi otomatis - Senin'),
-(61, '2026-01-25 18:59:00', '2026-01-25 20:01:00', 'closed', 1, ''),
-(62, '2026-01-28 07:00:00', '2026-01-28 23:59:59', 'closed', NULL, 'Sesi otomatis - Rabu'),
-(63, '2026-01-30 07:00:00', '2026-01-30 23:59:59', 'closed', NULL, 'Sesi otomatis - Jumat');
+INSERT INTO `presensi_sekolah_sesi` (`id`, `waktu_buka`, `waktu_tutup`, `status`, `created_by`) VALUES
+(1, '2025-11-07 22:46:00', '2025-11-07 22:49:00', 'closed', 1),
+(2, '2025-11-07 22:53:00', '2025-11-07 23:10:50', 'closed', 1),
+(3, '2025-11-07 23:03:00', '2025-11-07 23:21:00', 'closed', 1),
+(4, '2025-12-20 00:17:00', '2025-12-20 00:20:00', 'closed', 1),
+(5, '2025-12-22 01:14:00', '2025-12-22 01:30:00', 'closed', 1),
+(6, '2025-12-22 08:53:00', '2025-12-22 09:05:00', 'closed', 1),
+(7, '2025-12-22 09:03:00', '2025-12-22 09:10:00', 'closed', 1),
+(8, '2025-12-22 09:04:00', '2025-12-22 09:10:00', 'closed', 1),
+(9, '2025-12-22 09:08:00', '2025-12-22 09:24:00', 'closed', 1),
+(10, '2025-12-22 09:23:00', '2025-12-22 09:36:00', 'closed', 1),
+(11, '2025-12-22 09:44:00', '2025-12-22 09:56:00', 'closed', 1),
+(12, '2025-12-22 10:32:00', '2025-12-22 10:43:00', 'closed', 1),
+(13, '2025-12-22 10:39:00', '2025-12-22 10:46:00', 'closed', 1),
+(14, '2025-12-22 11:00:00', '2025-12-22 11:13:00', 'closed', 1),
+(15, '2025-12-22 11:06:00', '2025-12-22 11:16:00', 'closed', 1),
+(16, '2025-12-22 11:40:00', '2025-12-22 11:44:00', 'closed', 1),
+(17, '2025-12-22 11:49:00', '2025-12-22 11:53:00', 'closed', 1),
+(18, '2025-12-23 15:54:00', '2025-12-23 15:59:00', 'closed', 1),
+(19, '2025-12-24 00:07:00', '2025-12-24 00:09:00', 'closed', 1),
+(20, '2025-12-24 00:08:00', '2025-12-24 00:12:00', 'closed', 1),
+(21, '2025-12-24 23:08:00', '2025-12-24 23:11:00', 'closed', 1),
+(22, '2025-12-24 23:19:00', '2025-12-24 23:21:00', 'closed', 1),
+(23, '2025-12-24 23:49:00', '2025-12-24 23:52:00', 'closed', 9),
+(24, '2025-12-24 23:53:00', '2025-12-24 23:57:00', 'closed', 9),
+(25, '2025-12-25 00:05:00', '2025-12-25 00:07:00', 'closed', 9),
+(26, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9),
+(27, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9),
+(28, '2025-12-25 00:07:00', '2025-12-25 00:09:00', 'closed', 9),
+(29, '2025-12-25 00:22:00', '2025-12-25 00:26:00', 'closed', 9),
+(30, '2025-12-25 12:23:00', '2025-12-25 12:26:00', 'closed', 9),
+(31, '2025-12-25 12:48:00', '2025-12-25 12:51:00', 'closed', 9),
+(32, '2025-12-25 12:56:00', '2025-12-25 12:58:00', 'closed', 9),
+(33, '2025-12-25 13:02:00', '2025-12-25 13:04:00', 'closed', 9),
+(34, '2025-12-25 13:04:00', '2025-12-25 13:07:00', 'closed', 9),
+(35, '2025-12-25 13:09:00', '2025-12-25 13:12:00', 'closed', 9),
+(36, '2025-12-25 13:15:00', '2025-12-25 13:30:00', 'closed', 9),
+(37, '2025-12-25 13:25:00', '2025-12-25 13:30:00', 'closed', 9),
+(38, '2025-12-25 14:03:00', '2025-12-25 14:05:00', 'closed', 9),
+(39, '2025-12-25 14:11:00', '2025-12-25 14:14:00', 'closed', 9),
+(40, '2026-01-02 15:23:00', '2026-01-02 15:25:00', 'closed', 1),
+(41, '2026-01-03 11:02:00', '2026-01-03 11:03:00', 'closed', 1),
+(42, '2026-01-03 11:03:00', '2026-01-03 11:07:00', 'closed', 1),
+(43, '2026-01-06 22:17:00', '2026-01-06 22:19:00', 'closed', 1),
+(45, '2026-01-08 21:40:00', '2026-01-08 23:59:59', 'closed', NULL),
+(46, '2026-01-09 00:50:00', '2026-01-09 00:53:00', 'closed', 9),
+(47, '2026-01-09 13:23:00', '2026-01-09 13:26:00', 'closed', 1),
+(48, '2026-01-11 21:00:00', '2026-01-11 21:03:00', 'closed', 1),
+(49, '2026-01-12 07:00:00', '2026-01-12 23:59:59', 'closed', NULL),
+(50, '2026-01-12 11:56:00', '2026-01-13 11:57:00', 'closed', 1),
+(51, '2026-01-12 11:57:00', '2026-01-20 11:58:00', 'closed', 1),
+(52, '2026-01-11 12:02:00', '2026-01-13 12:02:00', 'closed', 1),
+(53, '2026-01-12 12:04:00', '2026-01-13 12:04:00', 'closed', 1),
+(54, '2026-01-12 12:06:00', '2026-01-12 12:08:00', 'closed', 1),
+(55, '2026-01-12 12:14:00', '2026-01-12 12:18:00', 'closed', 1),
+(56, '2026-01-12 12:15:00', '2026-01-12 12:18:00', 'closed', 9),
+(57, '2026-01-13 07:00:00', '2026-02-01 23:20:00', 'closed', NULL),
+(58, '2026-01-13 13:36:00', '2026-01-13 13:38:00', 'closed', 1),
+(59, '2026-01-13 13:38:00', '2026-02-01 13:43:00', 'closed', 1),
+(60, '2026-01-19 07:00:00', '2026-01-31 19:31:00', 'closed', NULL),
+(75, '2026-02-02 01:05:00', '2026-02-02 01:09:00', 'closed', 1),
+(76, '2026-02-02 05:00:00', '2026-02-02 06:02:00', 'closed', 1),
+(79, '2026-02-02 05:57:00', '2026-02-02 06:04:00', 'closed', 1),
+(80, '2026-02-03 07:00:00', '2026-02-03 23:59:59', 'closed', NULL),
+(81, '2026-02-04 07:00:00', '2026-02-04 23:59:59', 'closed', NULL),
+(82, '2026-02-05 07:00:00', '2026-02-05 23:59:59', 'closed', NULL),
+(83, '2026-02-05 22:21:00', '2026-02-05 22:24:00', 'closed', 1),
+(84, '2026-02-06 07:00:00', '2026-02-06 23:59:59', 'closed', NULL),
+(85, '2026-02-07 22:46:00', '2026-02-07 22:49:00', 'closed', 1),
+(86, '2026-02-08 22:24:00', '2026-02-08 22:28:00', 'closed', 1),
+(87, '2026-02-09 07:00:00', '2026-02-09 23:59:59', 'closed', NULL),
+(88, '2026-02-10 07:00:00', '2026-02-10 23:59:59', 'closed', NULL),
+(89, '2026-02-12 07:00:00', '2026-02-12 23:59:59', 'closed', NULL),
+(90, '2026-02-12 23:00:00', '2026-02-13 23:04:00', 'closed', 9),
+(91, '2026-02-12 23:06:00', '2026-02-12 23:10:00', 'closed', 1),
+(94, '2026-02-12 23:08:00', '2026-02-13 23:08:00', 'closed', 1),
+(95, '2026-02-12 23:09:00', '2026-02-13 23:09:00', 'closed', 9),
+(97, '2026-02-13 07:00:00', '2026-02-13 23:59:59', 'closed', NULL),
+(98, '2026-02-14 19:57:00', '2026-02-14 19:59:00', 'closed', 1),
+(99, '2026-02-15 21:43:00', '2026-02-15 21:45:00', 'closed', 1),
+(100, '2026-02-15 22:00:00', '2026-02-15 23:00:00', 'closed', 1),
+(101, '2026-02-16 07:00:00', '2026-02-16 23:59:59', 'closed', NULL),
+(102, '2026-02-17 07:00:00', '2026-02-17 23:59:59', 'closed', NULL),
+(103, '2026-02-18 07:00:00', '2026-02-18 23:59:59', 'closed', NULL),
+(104, '2026-02-19 07:00:00', '2026-02-19 23:59:59', 'closed', NULL),
+(105, '2026-03-02 07:00:00', '2026-03-02 23:59:59', 'closed', NULL),
+(106, '2026-03-02 13:31:00', '2026-03-02 13:36:00', 'closed', 1),
+(112, '2026-03-02 14:09:00', '2026-03-02 14:14:00', 'closed', 1),
+(113, '2026-03-03 07:00:00', '2026-03-03 23:59:59', 'open', NULL);
 
 -- --------------------------------------------------------
 
@@ -527,7 +716,13 @@ INSERT INTO `presensi_sesi` (`id`, `kelas_id`, `guru_id`, `waktu_buka`, `waktu_t
 (10, 1, 2, '2025-12-25 12:21:54', '2025-12-25 12:22:00', 'closed'),
 (11, 1, 2, '2026-01-02 22:41:07', '2026-01-02 22:41:15', 'closed'),
 (12, 1, 2, '2026-01-06 22:14:28', '2026-01-06 22:15:05', 'closed'),
-(13, 1, 2, '2026-01-08 13:12:45', '2026-01-08 13:12:59', 'closed');
+(13, 1, 2, '2026-01-08 13:12:45', '2026-01-08 13:12:59', 'closed'),
+(14, 1, 2, '2026-02-01 11:05:30', '2026-02-01 11:08:04', 'closed'),
+(15, 1, 2, '2026-02-01 11:24:08', '2026-02-01 11:54:57', 'closed'),
+(16, 1, 2, '2026-02-01 11:55:07', '2026-02-01 11:57:16', 'closed'),
+(17, 1, 2, '2026-02-01 11:58:04', '2026-02-04 13:55:24', 'closed'),
+(18, 1, 2, '2026-02-04 14:01:34', '2026-02-10 13:52:48', 'closed'),
+(19, 1, 2, '2026-02-10 21:32:55', '2026-03-02 13:37:18', 'closed');
 
 -- --------------------------------------------------------
 
@@ -548,9 +743,12 @@ CREATE TABLE `siswa_kelas` (
 INSERT INTO `siswa_kelas` (`id`, `siswa_id`, `kelas_id`) VALUES
 (1, 3, 1),
 (6, 5, 1),
+(9, 5, 4),
+(8, 5, 6),
 (4, 7, 3),
 (5, 8, 1),
-(7, 8, 3);
+(7, 8, 3),
+(10, 8, 7);
 
 -- --------------------------------------------------------
 
@@ -563,7 +761,7 @@ CREATE TABLE `users` (
   `nama` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `role` enum('admin','admin_kesiswaan','guru','siswa','orangtua') NOT NULL
+  `role` enum('admin','admin_kesiswaan','guru','siswa') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -571,15 +769,15 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `nama`, `email`, `password`, `role`) VALUES
-(1, 'Admin Utama', 'admin@smk7.sch.id', 'admin123', 'admin'),
-(2, 'Guru Informatika', 'guru@smk7.sch.id', 'guru123', 'guru'),
-(3, 'Luthfi', 'siswa@smk7.sch.id', 'siswa123', 'siswa'),
-(5, 'Fakhri', 'fakhri@gmail.com', '123', 'siswa'),
-(6, 'Bagas', 'bagas@gmail.com', 'bagas123', 'guru'),
-(7, 'Habib', 'habib@gmail.com', 'admin123', 'siswa'),
-(8, 'Zola', 'zola@gmail.com', '123', 'siswa'),
-(9, 'Yoga', 'yoga@gmail.com', 'yoga123', 'admin_kesiswaan'),
-(10, 'admin k2', 'admink2@smk7.sch.id', 'admink2', 'admin_kesiswaan');
+(1, 'Setyo Budi Sungkowo, S.Pd., M.Pd.', 'admin@smk7.sch.id', '$2y$10$3Q6gG59W7Ewksl2IW68gPehtOCTh.aMOvMtJHn32Yq7svLwMmOqL.', 'admin'),
+(2, 'Adik Kristien, S.Pd.', 'guru@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(3, 'Luthfi', 'siswa@smk7.sch.id', '$2y$10$1N4Zf0ftXXK5aiXZH/gYTehCZd1gZbVdFem2e7B6dgHEAe42P/lPC', 'siswa'),
+(5, 'Fakhri', 'fakhri@gmail.com', '$2y$10$AWiHc9JLrLnmzjvEPat0deqUBIEvT9arFFzmMVLwyUqQDMItmYAP.', 'siswa'),
+(6, 'Bagas Nur, S.Pd.', 'bagas@gmail.com', '$2y$10$YRyEZtmkiEjcgH3qwNtKCuH9RFLKyyOyyujZ21XnS5wrZMPixDZWG', 'guru'),
+(7, 'Habib', 'habib@gmail.com', '$2y$10$pR8LKq2ueQf5fX1uCEpnX.bwvhwsihases0t27cXfz0X6J0Nwt45u', 'siswa'),
+(8, 'Zola', 'zola@gmail.com', '$2y$10$pRwU1JSRQMtnPQ78fy5D.eSYowRWM2qk2jdb9jf/uJEWpaNds7Fea', 'siswa'),
+(9, 'Faisal Raihan, S.Pd.', 'yoga@gmail.com', '$2y$10$4NgXv86tghb1o593rHmk5OUFt1vswplgbiEMgkPAxXW5j1BFf55Ha', 'admin_kesiswaan'),
+(13, 'Agus Prihatin, A.Md.', 'admin1@smk7.sch.id', '$2y$10$22Fnakkmf9HznSEdrDV31OWnyfjOAZRMB4uqKYNLU69kfdpOXgk0a', 'admin');
 
 --
 -- Indexes for dumped tables
@@ -675,67 +873,67 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `buku_induk`
 --
 ALTER TABLE `buku_induk`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `buku_induk_dokumen`
 --
 ALTER TABLE `buku_induk_dokumen`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `kelas`
 --
 ALTER TABLE `kelas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `laporan_kemajuan`
 --
 ALTER TABLE `laporan_kemajuan`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `lokasi_sekolah`
 --
 ALTER TABLE `lokasi_sekolah`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `presensi_kelas`
 --
 ALTER TABLE `presensi_kelas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `presensi_sekolah`
 --
 ALTER TABLE `presensi_sekolah`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=191;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=379;
 
 --
 -- AUTO_INCREMENT for table `presensi_sekolah_sesi`
 --
 ALTER TABLE `presensi_sekolah_sesi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
 
 --
 -- AUTO_INCREMENT for table `presensi_sesi`
 --
 ALTER TABLE `presensi_sesi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `siswa_kelas`
 --
 ALTER TABLE `siswa_kelas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- Constraints for dumped tables

@@ -26,7 +26,7 @@ define('DEFAULT_LONGITUDE', 110.3695);
 // Email Configuration untuk SwiftMailer
 define('EMAIL_HOST', 'smtp.gmail.com'); // Ganti dengan SMTP server Anda
 define('EMAIL_PORT', 587); // 465 untuk SSL (lebih stabil jika 587 diblokir)
-define('EMAIL_ENCRYPTION', 'ssl'); // 'ssl' untuk port 465
+define('EMAIL_ENCRYPTION', 'tls'); // 'ssl' untuk port 465
 define('EMAIL_USERNAME', 'kristinluthfi@gmail.com'); // Email pengirim
 define('EMAIL_PASSWORD', 'ggwh hjvb rzja jkfh'); // App password atau password email
 define('EMAIL_FROM', 'kristinluthfi@gmail.com'); // Email pengirim
