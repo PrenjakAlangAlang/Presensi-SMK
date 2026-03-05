@@ -100,41 +100,41 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
         </div>
 
-        <!-- Presensi Kelas -->
+        <!-- Presensi Mata Pelajaran -->
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div class="flex items-center space-x-3 mb-6">
                 <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-chalkboard text-green-600 text-xl"></i>
+                    <i class="fas fa-book text-green-600 text-xl"></i>
                 </div>
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-800">Presensi Kelas</h2>
-                    <p class="text-gray-600">Presensi kehadiran di kelas</p>
+                    <h2 class="text-xl font-semibold text-gray-800">Presensi Mata Pelajaran</h2>
+                    <p class="text-gray-600">Presensi kehadiran di mata pelajaran</p>
                 </div>
             </div>
 
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Kelas</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Mata Pelajaran</label>
                     <select id="kelasSelect" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition">
-                        <option value="">-- Pilih Kelas yang Akan Diikuti --</option>
+                        <option value="">-- Pilih Mata Pelajaran yang Akan Diikuti --</option>
                         <?php foreach($kelas as $k): ?>
                             <option value="<?php echo $k->id; ?>" 
-                                    data-nama="<?php echo htmlspecialchars($k->nama_kelas); ?>"
+                                    data-nama="<?php echo htmlspecialchars($k->nama_mata_pelajaran); ?>"
                                     data-tahun="<?php echo htmlspecialchars($k->tahun_ajaran ?? '-'); ?>"
-                                    data-wali="<?php echo htmlspecialchars($k->wali_kelas_nama ?? 'Belum ditentukan'); ?>"
+                                    data-wali="<?php echo htmlspecialchars($k->guru_pengampu_nama ?? 'Belum ditentukan'); ?>"
                                     data-jadwal="<?php echo htmlspecialchars($k->jadwal ?? 'Belum diatur'); ?>">
-                                <?php echo htmlspecialchars($k->nama_kelas); ?>
+                                <?php echo htmlspecialchars($k->nama_mata_pelajaran); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
 
-                <!-- Info Kelas Detail (ditampilkan setelah kelas dipilih) -->
+                <!-- Info Mata Pelajaran Detail (ditampilkan setelah mata pelajaran dipilih) -->
                 <div id="kelasDetailCard" class="hidden">
                     <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 border border-green-200">
                         <div class="flex items-start space-x-4">
                             <div class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-chalkboard-teacher text-white text-2xl"></i>
+                                <i class="fas fa-book-open text-white text-2xl"></i>
                             </div>
                             <div class="flex-1">
                                 <h3 id="kelasDetailNama" class="text-lg font-bold text-gray-800 mb-1">-</h3>
@@ -142,8 +142,8 @@ require_once __DIR__ . '/../layouts/header.php';
                                 
                                 <div class="grid grid-cols-1 gap-2 text-sm">
                                     <div class="flex items-center text-gray-700">
-                                        <i class="fas fa-user-tie w-5 text-green-600"></i>
-                                        <span class="ml-2"><strong>Wali Kelas:</strong> <span id="kelasDetailWali">-</span></span>
+                                        <i class="fas fa-chalkboard-teacher w-5 text-green-600"></i>
+                                        <span class="ml-2"><strong>Guru Pengampu:</strong> <span id="kelasDetailWali">-</span></span>
                                     </div>
                                     <div class="flex items-center text-gray-700">
                                         <i class="fas fa-clock w-5 text-green-600"></i>
@@ -183,8 +183,8 @@ require_once __DIR__ . '/../layouts/header.php';
                         onclick="submitPresensiKelas()" 
                         disabled
                         class="w-full bg-gray-400 cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                    <span>Presensi Kelas</span>
+                    <i class="fas fa-book"></i>
+                    <span>Presensi Mata Pelajaran</span>
                 </button>
                 
                 <div class="text-center">

@@ -11,10 +11,10 @@ class PresensiSesiModel {
         $this->db = new Database();
     }
 
-    public function createSession($kelas_id, $guru_id) {
+    public function createSession($mata_pelajaran_id, $guru_id) {
         // Buat sesi presensi baru dan kembalikan id jika sukses
-        $this->db->query('INSERT INTO presensi_sesi (kelas_id, guru_id, waktu_buka, status) VALUES (:kelas_id, :guru_id, NOW(), "open")');
-        $this->db->bind(':kelas_id', $kelas_id);
+        $this->db->query('INSERT INTO presensi_sesi (mata_pelajaran_id, guru_id, waktu_buka, status) VALUES (:mata_pelajaran_id, :guru_id, NOW(), "open")');
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         $this->db->bind(':guru_id', $guru_id);
         if ($this->db->execute()) {
             return $this->db->lastInsertId();
@@ -22,34 +22,34 @@ class PresensiSesiModel {
         return false;
     }
 
-    public function closeSession($kelas_id, $guru_id) {
-        // Close the active session for the kelas (if exists)
-        // Tutup sesi yang sedang open untuk kelas tersebut
-        $this->db->query('UPDATE presensi_sesi SET waktu_tutup = NOW(), status = "closed" WHERE kelas_id = :kelas_id AND status = "open"');
-        $this->db->bind(':kelas_id', $kelas_id);
+    public function closeSession($mata_pelajaran_id, $guru_id) {
+        // Close the active session for the mata pelajaran (if exists)
+        // Tutup sesi yang sedang open untuk mata pelajaran tersebut
+        $this->db->query('UPDATE presensi_sesi SET waktu_tutup = NOW(), status = "closed" WHERE mata_pelajaran_id = :mata_pelajaran_id AND status = "open"');
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         return $this->db->execute();
     }
 
-    public function getActiveSessionByKelas($kelas_id) {
-        // Ambil sesi aktif (status open) untuk kelas tertentu
-        $this->db->query('SELECT * FROM presensi_sesi WHERE kelas_id = :kelas_id AND status = "open" LIMIT 1');
-        $this->db->bind(':kelas_id', $kelas_id);
+    public function getActiveSessionByKelas($mata_pelajaran_id) {
+        // Ambil sesi aktif (status open) untuk mata pelajaran tertentu
+        $this->db->query('SELECT * FROM presensi_sesi WHERE mata_pelajaran_id = :mata_pelajaran_id AND status = "open" LIMIT 1');
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         return $this->db->single();
     }
 
-    public function isSessionActive($kelas_id) {
+    public function isSessionActive($mata_pelajaran_id) {
         // Cek apakah ada sesi aktif
-        $s = $this->getActiveSessionByKelas($kelas_id);
+        $s = $this->getActiveSessionByKelas($mata_pelajaran_id);
         return $s ? true : false;
     }
 
     /**
-     * Get all sessions for a kelas ordered by waktu_buka desc
+     * Get all sessions for a mata pelajaran ordered by waktu_buka desc
      */
-    public function getSessionsByKelas($kelas_id) {
-        // Ambil semua sesi untuk kelas, urut berdasarkan waktu buka desc
-        $this->db->query('SELECT * FROM presensi_sesi WHERE kelas_id = :kelas_id ORDER BY waktu_buka DESC');
-        $this->db->bind(':kelas_id', $kelas_id);
+    public function getSessionsByKelas($mata_pelajaran_id) {
+        // Ambil semua sesi untuk mata pelajaran, urut berdasarkan waktu buka desc
+        $this->db->query('SELECT * FROM presensi_sesi WHERE mata_pelajaran_id = :mata_pelajaran_id ORDER BY waktu_buka DESC');
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         return $this->db->resultSet();
     }
 

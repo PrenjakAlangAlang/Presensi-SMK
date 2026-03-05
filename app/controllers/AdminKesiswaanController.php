@@ -5,7 +5,7 @@ require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/BukuIndukModel.php';
 require_once __DIR__ . '/../models/PresensiSekolahSesiModel.php';
 require_once __DIR__ . '/../models/PresensiModel.php';
-require_once __DIR__ . '/../models/KelasModel.php';
+require_once __DIR__ . '/../models/MataPelajaranModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../models/LaporanModel.php';
 require_once __DIR__ . '/../models/PresensiSesiModel.php';
@@ -15,7 +15,7 @@ class AdminKesiswaanController {
     private $bukuIndukModel;
     private $presensiSekolahSesiModel;
     private $presensiModel;
-    private $kelasModel;
+    private $mataPelajaranModel;
     private $locationModel;
     private $laporanModel;
     private $presensiSesiModel;
@@ -25,7 +25,7 @@ class AdminKesiswaanController {
         $this->bukuIndukModel = new BukuIndukModel();
         $this->presensiSekolahSesiModel = new PresensiSekolahSesiModel();
         $this->presensiModel = new PresensiModel();
-        $this->kelasModel = new KelasModel();
+        $this->mataPelajaranModel = new MataPelajaranModel();
         $this->locationModel = new LocationModel();
         $this->laporanModel = new LaporanModel();
         $this->presensiSesiModel = new PresensiSesiModel();
@@ -302,8 +302,8 @@ class AdminKesiswaanController {
         // Ambil tipe laporan (sekolah atau kelas)
         $tipe_laporan = $_GET['tipe'] ?? 'sekolah';
         
-        // Ambil list kelas untuk dropdown
-        $kelas_list = $this->kelasModel->getAllKelas();
+        // Ambil list mata pelajaran untuk dropdown
+        $kelas_list = $this->mataPelajaranModel->getAllMataPelajaran();
         
         // Ambil parameter filter periode
         $periode = $_GET['periode'] ?? 'bulanan';
@@ -338,10 +338,10 @@ class AdminKesiswaanController {
             if ($kelas_id) {
                 // Get all presensi kelas for the period
                 $db = new Database();
-                $db->query('SELECT pk.*, u.nama, u.email, k.nama_kelas
+                $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
                             FROM presensi_kelas pk
                             JOIN users u ON pk.user_id = u.id
-                            JOIN kelas k ON pk.kelas_id = k.id
+                            JOIN mata_pelajaran k ON pk.kelas_id = k.id
                             WHERE pk.kelas_id = :kelas_id 
                             AND DATE(pk.waktu) BETWEEN :start_date AND :end_date
                             ORDER BY pk.waktu DESC');
@@ -465,10 +465,10 @@ class AdminKesiswaanController {
         // Get all data (no pagination for export)
         if ($tipe === 'kelas' && $kelas_id) {
             $db = new Database();
-            $db->query('SELECT pk.*, u.nama, u.email, k.nama_kelas
+            $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
                         FROM presensi_kelas pk
                         JOIN users u ON pk.user_id = u.id
-                        JOIN kelas k ON pk.kelas_id = k.id
+                        JOIN mata_pelajaran k ON pk.kelas_id = k.id
                         WHERE pk.kelas_id = :kelas_id 
                         AND MONTH(pk.waktu) = :bulan 
                         AND YEAR(pk.waktu) = :tahun
@@ -478,8 +478,8 @@ class AdminKesiswaanController {
             $db->bind(':tahun', $tahun);
             $presensi = $db->resultSet();
             
-            $kelas_info = $this->kelasModel->getKelasById($kelas_id);
-            $report_title = 'Laporan Presensi Kelas ' . ($kelas_info ? $kelas_info->nama_kelas : $kelas_id);
+            $kelas_info = $this->mataPelajaranModel->getMataPelajaranById($kelas_id);
+            $report_title = 'Laporan Presensi Mata Pelajaran ' . ($kelas_info ? $kelas_info->nama_mata_pelajaran : $kelas_id);
             
             // Calculate statistics from actual data
             $statistik = new stdClass();
@@ -603,7 +603,7 @@ class AdminKesiswaanController {
             echo '<td>' . htmlspecialchars($p->nama ?? '') . '</td>';
             echo '<td>' . htmlspecialchars($p->email ?? '') . '</td>';
             if ($tipe === 'kelas') {
-                echo '<td>' . htmlspecialchars($p->nama_kelas ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($p->nama_mata_pelajaran ?? '') . '</td>';
             }
             
             $waktuTs = (isset($p->waktu) && $p->waktu) ? strtotime($p->waktu) : null;
@@ -656,10 +656,10 @@ class AdminKesiswaanController {
         // Get all data (no pagination for export)
         if ($tipe === 'kelas' && $kelas_id) {
             $db = new Database();
-            $db->query('SELECT pk.*, u.nama, u.email, k.nama_kelas
+            $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
                         FROM presensi_kelas pk
                         JOIN users u ON pk.user_id = u.id
-                        JOIN kelas k ON pk.kelas_id = k.id
+                        JOIN mata_pelajaran k ON pk.kelas_id = k.id
                         WHERE pk.kelas_id = :kelas_id 
                         AND DATE(pk.waktu) BETWEEN :start_date AND :end_date' . 
                         ($filter_status ? ' AND pk.jenis = :status' : '') . '
@@ -672,8 +672,8 @@ class AdminKesiswaanController {
             }
             $presensi = $db->resultSet();
             
-            $kelas_info = $this->kelasModel->getKelasById($kelas_id);
-            $report_title = 'Laporan Presensi Kelas ' . ($kelas_info ? $kelas_info->nama_kelas : $kelas_id);
+            $kelas_info = $this->mataPelajaranModel->getMataPelajaranById($kelas_id);
+            $report_title = 'Laporan Presensi Mata Pelajaran ' . ($kelas_info ? $kelas_info->nama_mata_pelajaran : $kelas_id);
             
             // Get laporan kemajuan for the selected date range
             $laporan_kemajuan = $this->laporanModel->getLaporanByKelasWithDateRange($kelas_id, $startDate, $endDate);
@@ -882,7 +882,7 @@ class AdminKesiswaanController {
                 <td><?php echo htmlspecialchars($p->nama ?? ''); ?></td>
                 <td><?php echo htmlspecialchars($p->email ?? ''); ?></td>
                 <?php if ($tipe === 'kelas'): ?>
-                <td><?php echo htmlspecialchars($p->nama_kelas ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($p->nama_mata_pelajaran ?? ''); ?></td>
                 <?php endif; ?>
                 <td><?php echo $waktuTs ? date('d M Y', $waktuTs) : '-'; ?></td>
                 <td><?php echo $waktuTs ? date('H:i', $waktuTs) : '-'; ?></td>

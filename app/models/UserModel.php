@@ -94,10 +94,10 @@ class UserModel {
     }
     
     public function getGuruWithKelas() {
-        // Ambil guru beserta info kelas jika ada (left join)
-        $this->db->query('SELECT u.*, k.nama_kelas 
+        // Ambil guru beserta info mata pelajaran jika ada (left join)
+        $this->db->query('SELECT u.*, k.nama_mata_pelajaran 
                          FROM users u 
-                         LEFT JOIN kelas k ON u.id = k.wali_kelas 
+                         LEFT JOIN mata_pelajaran k ON u.id = k.guru_pengampu 
                          WHERE u.role = "guru"');
         return $this->db->resultSet();
     }

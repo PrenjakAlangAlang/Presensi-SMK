@@ -41,11 +41,11 @@ require_once __DIR__ . '/../layouts/header.php';
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-sm">Total Kelas</p>
-                <h3 class="text-2xl font-bold text-gray-800 mt-1"><?php echo $totalKelas ?? '0'; ?></h3>
+                <p class="text-gray-500 text-sm">Total Mata Pelajaran</p>
+                <h3 class="text-2xl font-bold text-gray-800 mt-1"><?php echo $totalMataPelajaran ?? '0'; ?></h3>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-chalkboard text-purple-600 text-xl"></i>
+                <i class="fas fa-book text-purple-600 text-xl"></i>
             </div>
         </div>
         

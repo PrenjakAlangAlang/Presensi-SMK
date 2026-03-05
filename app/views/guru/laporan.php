@@ -1,5 +1,5 @@
 <?php
-$page_title = "Laporan Kelas";
+$page_title = "Laporan Mata Pelajaran";
 require_once __DIR__ . '/../layouts/header.php';
 
 $kelas_id = $_GET['kelas_id'] ?? null;
@@ -19,18 +19,18 @@ if ($kelas_id) {
 ?>
 
 <div class="mb-6 no-print">
-    <h2 class="text-2xl font-bold text-gray-800">Laporan Kelas</h2>
-    <p class="text-gray-600">Monitoring dan analisis kehadiran siswa per kelas</p>
+    <h2 class="text-2xl font-bold text-gray-800">Laporan Mata Pelajaran</h2>
+    <p class="text-gray-600">Monitoring dan analisis kehadiran siswa per mata pelajaran</p>
 </div>
 
-<!-- Pilih Kelas -->
+<!-- Pilih Mata Pelajaran -->
 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6 no-print">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">Pilih Kelas</h3>
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Pilih Mata Pelajaran</h3>
     <div class="flex flex-wrap gap-3">
         <?php foreach($kelasSaya as $kelas): ?>
             <a href="index.php?action=guru_laporan&kelas_id=<?php echo $kelas->id; ?>" 
                class="px-4 py-2 rounded-lg border transition-colors <?php echo $selected_kelas && $selected_kelas->id == $kelas->id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'; ?>">
-                <?php echo htmlspecialchars($kelas->nama_kelas); ?>
+                <?php echo htmlspecialchars($kelas->nama_mata_pelajaran); ?>
             </a>
         <?php endforeach; ?>
     </div>
@@ -175,8 +175,8 @@ $presentase = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
 <!-- Header Cetak (hanya muncul saat print) -->
 <div class="print-only" style="display: none;">
     <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">Laporan Presensi Kelas</h1>
-        <h2 class="text-xl font-semibold text-gray-700 mt-2"><?php echo htmlspecialchars($selected_kelas->nama_kelas ?? ''); ?></h2>
+        <h1 class="text-2xl font-bold text-gray-800">Laporan Presensi Mata Pelajaran</h1>
+        <h2 class="text-xl font-semibold text-gray-700 mt-2"><?php echo htmlspecialchars($selected_kelas->nama_mata_pelajaran ?? ''); ?></h2>
         <p class="text-gray-600 mt-2">Tanggal Cetak: <?php echo date('d F Y, H:i'); ?></p>
         <?php if(isset($laporan[$selected_kelas->id]['selected_sesi'])): ?>
             <p class="text-gray-600">Sesi: <?php echo date('d-m-Y H:i', strtotime($laporan[$selected_kelas->id]['selected_sesi']->waktu_buka)); ?></p>
@@ -188,7 +188,7 @@ $presentase = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
 <!-- Daftar Presensi -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
     <div class="p-6 border-b border-gray-200 flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-800">Daftar Presensi - <?php echo htmlspecialchars($selected_kelas->nama_kelas); ?></h3>
+        <h3 class="text-lg font-semibold text-gray-800">Daftar Presensi - <?php echo htmlspecialchars($selected_kelas->nama_mata_pelajaran); ?></h3>
         <div class="flex space-x-2 no-print">
             <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
                 <i class="fas fa-file-pdf"></i>
@@ -336,9 +336,9 @@ $presentase = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
 <?php else: ?>
 <!-- Placeholder when no class selected -->
 <div class="bg-white rounded-xl shadow-sm p-12 border border-gray-100 text-center">
-    <i class="fas fa-chalkboard-teacher text-4xl text-gray-300 mb-4"></i>
-    <h3 class="text-xl font-semibold text-gray-600 mb-2">Pilih Kelas</h3>
-    <p class="text-gray-500">Silakan pilih kelas terlebih dahulu untuk melihat laporan</p>
+    <i class="fas fa-book text-4xl text-gray-300 mb-4"></i>
+    <h3 class="text-xl font-semibold text-gray-600 mb-2">Pilih Mata Pelajaran</h3>
+    <p class="text-gray-500">Silakan pilih mata pelajaran terlebih dahulu untuk melihat laporan</p>
 </div>
 <?php endif; ?>
 

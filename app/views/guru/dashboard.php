@@ -5,7 +5,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-800">Dashboard Guru</h2>
-    <p class="text-gray-600">Monitor kelas dan presensi siswa</p>
+    <p class="text-gray-600">Monitor mata pelajaran dan presensi siswa</p>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -13,11 +13,11 @@ require_once __DIR__ . '/../layouts/header.php';
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-sm">Total Kelas</p>
+                <p class="text-gray-500 text-sm">Total Mata Pelajaran</p>
                 <h3 class="text-2xl font-bold text-gray-800 mt-1"><?php echo count($kelasSaya); ?></h3>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-chalkboard text-blue-600 text-xl"></i>
+                <i class="fas fa-book text-blue-600 text-xl"></i>
             </div>
         </div>
         <div class="mt-4">
@@ -53,16 +53,16 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
         </div>
         <div class="mt-4">
-            <span class="<?php echo $presensiAktif > 0 ? 'text-green-600' : 'text-gray-600'; ?> text-sm font-medium"><?php echo $presensiAktif > 0 ? 'Kelas dibuka' : 'Tidak ada kelas aktif'; ?></span>
+            <span class="<?php echo $presensiAktif > 0 ? 'text-green-600' : 'text-gray-600'; ?> text-sm font-medium"><?php echo $presensiAktif > 0 ? 'Mata pelajaran dibuka' : 'Tidak ada mata pelajaran aktif'; ?></span>
         </div>
     </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-1 gap-8 mb-8">
-    <!-- Kelas Saya -->
+    <!-- Mata Pelajaran Saya -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-semibold text-gray-800">Kelas Saya</h3>
+            <h3 class="text-lg font-semibold text-gray-800">Mata Pelajaran Saya</h3>
             <a href="index.php?action=guru_kelas" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                 Lihat Semua →
             </a>
@@ -72,16 +72,16 @@ require_once __DIR__ . '/../layouts/header.php';
             <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <div class="flex items-center space-x-4">
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-chalkboard text-blue-600"></i>
+                        <i class="fas fa-book text-blue-600"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-gray-800"><?php echo $kelas->nama_kelas; ?></h4>
+                        <h4 class="font-semibold text-gray-800"><?php echo $kelas->nama_mata_pelajaran; ?></h4>
                         <p class="text-sm text-gray-600"><?php echo $kelas->tahun_ajaran; ?></p>
                     </div>
                 </div>
                 <div class="text-right">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        <?php echo count($this->kelasModel->getSiswaInKelas($kelas->id)); ?> siswa
+                        <?php echo $kelas->total_siswa; ?> siswa
                     </span>
                 </div>
             </div>
@@ -99,7 +99,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <thead>
                 <tr class="bg-gray-50">
                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Siswa</th>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kelas</th>
+                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Mata Pelajaran</th>
                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Waktu</th>
                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Lokasi</th>
@@ -117,7 +117,7 @@ require_once __DIR__ . '/../layouts/header.php';
                                 <span class="font-medium text-gray-800"><?php echo htmlspecialchars($aktivitas->nama ?? 'Siswa'); ?></span>
                             </div>
                         </td>
-                        <td class="px-4 py-3 text-gray-600"><?php echo htmlspecialchars($aktivitas->nama_kelas ?? '-'); ?></td>
+                        <td class="px-4 py-3 text-gray-600"><?php echo htmlspecialchars($aktivitas->nama_mata_pelajaran ?? '-'); ?></td>
                         <td class="px-4 py-3 text-gray-600">
                             <?php echo $aktivitas->waktu ? date('H:i', strtotime($aktivitas->waktu)) : '-'; ?>
                         </td>

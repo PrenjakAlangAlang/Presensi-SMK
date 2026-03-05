@@ -3,7 +3,7 @@
 // Controller untuk peran siswa: melihat dashboard, presensi, riwayat, dan mengajukan izin
 require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
-require_once __DIR__ . '/../models/KelasModel.php';
+require_once __DIR__ . '/../models/MataPelajaranModel.php';
 require_once __DIR__ . '/../models/PresensiSesiModel.php';
 require_once __DIR__ . '/../models/PresensiSekolahSesiModel.php';
 require_once __DIR__ . '/../models/BukuIndukModel.php';
@@ -11,7 +11,7 @@ require_once __DIR__ . '/../models/BukuIndukModel.php';
 class SiswaController {
     private $presensiModel;
     private $locationModel;
-    private $kelasModel;
+    private $mataPelajaranModel;
     private $presensiSesiModel;
     private $presensiSekolahSesiModel;
     private $bukuIndukModel;
@@ -19,7 +19,7 @@ class SiswaController {
     public function __construct() {
         $this->presensiModel = new PresensiModel();
         $this->locationModel = new LocationModel();
-        $this->kelasModel = new KelasModel();
+        $this->mataPelajaranModel = new MataPelajaranModel();
         $this->presensiSesiModel = new PresensiSesiModel();
         $this->presensiSekolahSesiModel = new PresensiSekolahSesiModel();
         $this->bukuIndukModel = new BukuIndukModel();
@@ -30,7 +30,7 @@ class SiswaController {
         $statistik = $this->presensiModel->getStatistikKehadiran($user_id);
         $presensiTerakhir = $this->presensiModel->getPresensiSekolahByUser($user_id, 5);
         $presensiHariIni = $this->presensiModel->getPresensiHariIni($user_id);
-        $kelas = $this->kelasModel->getKelasBySiswa($user_id);
+        $kelas = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
         
     require_once __DIR__ . '/../views/siswa/dashboard.php';
     }
@@ -38,7 +38,7 @@ class SiswaController {
     public function presensi() {
         $user_id = $_SESSION['user_id'];
         $lokasiSekolah = $this->locationModel->getLokasiSekolah();
-        $kelas = $this->kelasModel->getKelasBySiswa($user_id);
+        $kelas = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
         // Attach active session info to each kelas so frontend can enable presensi per kelas
         foreach ($kelas as $k) {
             $k->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($k->id);
@@ -96,14 +96,14 @@ class SiswaController {
         $user_id = $_SESSION['user_id'];
         $riwayatIzin = $this->presensiModel->getIzinBySiswa($user_id);
         
-        // Get kelas yang diikuti siswa
-        $kelasSiswa = $this->kelasModel->getKelasBySiswa($user_id);
+        // Get mata pelajaran yang diikuti siswa
+        $kelasSiswa = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
         
         // Check sesi presensi sekolah aktif
         $this->presensiSekolahSesiModel->closeExpiredSessions();
         $sesiSekolahAktif = $this->presensiSekolahSesiModel->getActiveSession();
         
-        // Check sesi presensi kelas aktif untuk setiap kelas
+        // Check sesi presensi kelas aktif untuk setiap mata pelajaran
         foreach ($kelasSiswa as $kelas) {
             $kelas->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($kelas->id);
         }
@@ -212,14 +212,14 @@ class SiswaController {
     public function submitPresensiKelas() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $user_id = $_SESSION['user_id'];
-            $kelas_id = $_POST['kelas_id'];
+            $mata_pelajaran_id = $_POST['kelas_id']; // frontend sends kelas_id but it's actually mata_pelajaran_id
             $latitude = $_POST['latitude'] ?? 0;
             $longitude = $_POST['longitude'] ?? 0;
             $jenis = $_POST['jenis'] ?? 'hadir'; // hadir, izin, sakit
             $alasan = $_POST['alasan'] ?? null;
             
-            // Attach active presensi session id for the kelas
-            $activeSession = $this->presensiSesiModel->getActiveSessionByKelas($kelas_id);
+            // Attach active presensi session id for the mata pelajaran
+            $activeSession = $this->presensiSesiModel->getActiveSessionByKelas($mata_pelajaran_id);
             if (!$activeSession) {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Tidak ada sesi presensi aktif untuk kelas ini.']);
@@ -273,7 +273,7 @@ class SiswaController {
             $data = [
                 'presensi_sesi_id' => $activeSession->id,
                 'user_id' => $user_id,
-                'kelas_id' => $kelas_id,
+                'mata_pelajaran_id' => $mata_pelajaran_id,
                 'latitude' => $latitude,
                 'longitude' => $longitude,
                 'jarak' => $distance,

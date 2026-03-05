@@ -1,9 +1,10 @@
 <?php
 // app/controllers/AdminController.php
-// Controller untuk fitur administratif: manajemen user, kelas, lokasi, dan laporan
+// Controller untuk fitur administratif: manajemen user, kelas, mata pelajaran, lokasi, dan laporan
 // Menyediakan endpoint untuk view admin dan beberapa API JSON untuk AJAX
 require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/KelasModel.php';
+require_once __DIR__ . '/../models/MataPelajaranModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/PresensiSekolahSesiModel.php';
@@ -14,6 +15,7 @@ require_once __DIR__ . '/../models/BukuIndukModel.php';
 class AdminController {
     private $userModel;
     private $kelasModel;
+    private $mataPelajaranModel;
     private $locationModel;
     private $presensiModel;
     private $presensiSekolahSesiModel;
@@ -24,6 +26,7 @@ class AdminController {
     public function __construct() {
         $this->userModel = new UserModel();
         $this->kelasModel = new KelasModel();
+        $this->mataPelajaranModel = new MataPelajaranModel();
         $this->locationModel = new LocationModel();
         $this->presensiModel = new PresensiModel();
         $this->presensiSekolahSesiModel = new PresensiSekolahSesiModel();
@@ -163,7 +166,7 @@ class AdminController {
         // Hitung statistik singkat untuk ditampilkan di dashboard admin
         $totalSiswa = count($this->userModel->getUsersByRole('siswa'));
         $totalGuru = count($this->userModel->getUsersByRole('guru'));
-        $totalKelas = count($this->kelasModel->getAllKelas());
+        $totalMataPelajaran = count($this->mataPelajaranModel->getAllMataPelajaran());
         $sessions = $this->presensiSekolahSesiModel->getSessions();
         
         // Pagination variables
@@ -183,28 +186,32 @@ class AdminController {
     }
     
     public function kelas() {
-        // Halaman manajemen kelas (tampilkan list kelas, guru, dll.)
+        // Halaman manajemen kelas
         $kelas = $this->kelasModel->getAllKelas();
-        $guru = $this->userModel->getUsersByRole('guru');
         $totalSiswa = count($this->userModel->getUsersByRole('siswa'));
         $totalGuru = count($this->userModel->getUsersByRole('guru'));
-        // expose the model to the view so it can call helper methods
         $kelasModel = $this->kelasModel;
     require_once __DIR__ . '/../views/admin/kelas.php';
     }
+    
+    public function mataPelajaran() {
+        // Halaman manajemen mata pelajaran
+        $mataPelajaran = $this->mataPelajaranModel->getAllMataPelajaran();
+        $guru = $this->userModel->getUsersByRole('guru');
+        $kelas = $this->kelasModel->getAllKelas();
+        $mataPelajaranModel = $this->mataPelajaranModel;
+    require_once __DIR__ . '/../views/admin/mata_pelajaran.php';
+    }
 
-    // Create Kelas (dari form tambah)
+    // CRUD Kelas
     public function createKelas() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = [
                 'nama_kelas' => $_POST['nama_kelas'],
-                'tahun_ajaran' => $_POST['tahun_ajaran'],
-                'wali_kelas' => $_POST['wali_kelas'] ?? null,
-                'jadwal' => $_POST['jadwal'] ?? null
+                'tahun_ajaran' => $_POST['tahun_ajaran']
             ];
 
             if($this->kelasModel->createKelas($data)) {
-                // set pesan sukses untuk ditampilkan setelah redirect
                 $_SESSION['success'] = 'Kelas berhasil dibuat!';
             } else {
                 $_SESSION['error'] = 'Gagal membuat kelas!';
@@ -215,15 +222,12 @@ class AdminController {
         }
     }
 
-    // Update kelas
     public function updateKelas() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = [
                 'id' => $_POST['id'],
                 'nama_kelas' => $_POST['nama_kelas'],
-                'tahun_ajaran' => $_POST['tahun_ajaran'],
-                'wali_kelas' => $_POST['wali_kelas'] ?? null,
-                'jadwal' => $_POST['jadwal'] ?? null
+                'tahun_ajaran' => $_POST['tahun_ajaran']
             ];
 
             if($this->kelasModel->updateKelas($data)) {
@@ -237,7 +241,6 @@ class AdminController {
         }
     }
 
-    // Delete kelas
     public function deleteKelas() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id = $_POST['id'];
@@ -250,45 +253,145 @@ class AdminController {
             exit;
         }
     }
+    
+    // CRUD Mata Pelajaran
+    public function createMataPelajaran() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $data = [
+                'nama_mata_pelajaran' => $_POST['nama_mata_pelajaran'],
+                'guru_pengampu' => $_POST['guru_pengampu'] ?? null,
+                'jadwal' => $_POST['jadwal'] ?? null
+            ];
 
-    // API: get siswa in kelas (JSON)
-    public function getSiswaDalamKelas() {
-        if(isset($_GET['kelas_id'])) {
-            $kelas_id = $_GET['kelas_id'];
-            $siswa = $this->kelasModel->getSiswaInKelas($kelas_id);
+            if($this->mataPelajaranModel->createMataPelajaran($data)) {
+                $_SESSION['success'] = 'Mata pelajaran berhasil dibuat!';
+            } else {
+                $_SESSION['error'] = 'Gagal membuat mata pelajaran!';
+            }
+
+            header('Location: ' . BASE_URL . '/index.php?action=admin_mata_pelajaran');
+            exit;
+        }
+    }
+
+    public function updateMataPelajaran() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $data = [
+                'id' => $_POST['id'],
+                'nama_mata_pelajaran' => $_POST['nama_mata_pelajaran'],
+                'guru_pengampu' => $_POST['guru_pengampu'] ?? null,
+                'jadwal' => $_POST['jadwal'] ?? null
+            ];
+
+            if($this->mataPelajaranModel->updateMataPelajaran($data)) {
+                $_SESSION['success'] = 'Mata pelajaran berhasil diperbarui!';
+            } else {
+                $_SESSION['error'] = 'Gagal memperbarui mata pelajaran!';
+            }
+
+            header('Location: ' . BASE_URL . '/index.php?action=admin_mata_pelajaran');
+            exit;
+        }
+    }
+
+    public function deleteMataPelajaran() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $id = $_POST['id'];
+            if($this->mataPelajaranModel->deleteMataPelajaran($id)) {
+                $_SESSION['success'] = 'Mata pelajaran berhasil dihapus!';
+            } else {
+                $_SESSION['error'] = 'Gagal menghapus mata pelajaran!';
+            }
+            header('Location: ' . BASE_URL . '/index.php?action=admin_mata_pelajaran');
+            exit;
+        }
+    }
+
+    // NOTE: Siswa dikelola PER MATA PELAJARAN, bukan per kelas
+    // API untuk mengelola siswa per mata pelajaran
+    
+    // API: get siswa in mata pelajaran (JSON)
+    public function getSiswaDalamMapel() {
+        if(isset($_GET['mapel_id'])) {
+            $mapel_id = $_GET['mapel_id'];
+            $siswa = $this->mataPelajaranModel->getSiswaInMataPelajaran($mapel_id);
             header('Content-Type: application/json');
             echo json_encode($siswa);
             exit;
         }
     }
 
-    // API: get siswa available (JSON)
-    public function getSiswaTersedia() {
-        $kelas_id = $_GET['kelas_id'] ?? null;
-        $siswa = $this->kelasModel->getAvailableSiswa($kelas_id);
+    // API: get siswa available for mata pelajaran (JSON)
+    public function getSiswaTersediaMapel() {
+        $mapel_id = $_GET['mapel_id'] ?? null;
+        $siswa = $this->mataPelajaranModel->getAvailableSiswa($mapel_id);
         header('Content-Type: application/json');
         echo json_encode($siswa);
         exit;
     }
 
-    // API: add siswa to kelas
-    public function addSiswaToKelas() {
+    // API: add siswa to mata pelajaran
+    public function addSiswaToMapel() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $siswa_id = $_POST['siswa_id'];
-            $kelas_id = $_POST['kelas_id'];
-            $ok = $this->kelasModel->addSiswaToKelas($siswa_id, $kelas_id);
+            $mapel_id = $_POST['mapel_id'];
+            $ok = $this->mataPelajaranModel->addSiswaToMataPelajaran($siswa_id, $mapel_id);
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$ok]);
             exit;
         }
     }
 
-    // API: remove siswa from kelas
-    public function removeSiswaFromKelas() {
+    // API: remove siswa from mata pelajaran
+    public function removeSiswaFromMapel() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $siswa_id = $_POST['siswa_id'];
+            $mapel_id = $_POST['mapel_id'];
+            $ok = $this->mataPelajaranModel->removeSiswaFromMataPelajaran($siswa_id, $mapel_id);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => (bool)$ok]);
+            exit;
+        }
+    }
+    
+    // API: get mata pelajaran in kelas (JSON)
+    public function getMataPelajaranDalamKelas() {
+        if(isset($_GET['kelas_id'])) {
+            $kelas_id = $_GET['kelas_id'];
+            $mapel = $this->kelasModel->getMataPelajaranInKelas($kelas_id);
+            header('Content-Type: application/json');
+            echo json_encode($mapel);
+            exit;
+        }
+    }
+
+    // API: get mata pelajaran available for kelas (JSON)
+    public function getMataPelajaranTersediaKelas() {
+        $kelas_id = $_GET['kelas_id'] ?? null;
+        $mapel = $this->kelasModel->getAvailableMataPelajaran($kelas_id);
+        header('Content-Type: application/json');
+        echo json_encode($mapel);
+        exit;
+    }
+
+    // API: add mata pelajaran to kelas
+    public function addMataPelajaranToKelas() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $mata_pelajaran_id = $_POST['mata_pelajaran_id'];
             $kelas_id = $_POST['kelas_id'];
-            $ok = $this->kelasModel->removeSiswaFromKelas($siswa_id, $kelas_id);
+            $ok = $this->kelasModel->addMataPelajaranToKelas($mata_pelajaran_id, $kelas_id);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => (bool)$ok]);
+            exit;
+        }
+    }
+
+    // API: remove mata pelajaran from kelas
+    public function removeMataPelajaranFromKelas() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $mata_pelajaran_id = $_POST['mata_pelajaran_id'];
+            $kelas_id = $_POST['kelas_id'];
+            $ok = $this->kelasModel->removeMataPelajaranFromKelas($mata_pelajaran_id, $kelas_id);
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$ok]);
             exit;
@@ -306,8 +409,8 @@ class AdminController {
         // Ambil tipe laporan (sekolah atau kelas)
         $tipe_laporan = $_GET['tipe'] ?? 'sekolah';
         
-        // Ambil list kelas untuk dropdown
-        $kelas_list = $this->kelasModel->getAllKelas();
+        // Ambil list mata pelajaran untuk dropdown
+        $kelas_list = $this->mataPelajaranModel->getAllMataPelajaran();
         
         // Ambil parameter filter periode
         $periode = $_GET['periode'] ?? 'bulanan';
@@ -342,10 +445,10 @@ class AdminController {
             if ($kelas_id) {
                 // Get all presensi kelas for the period
                 $db = new Database();
-                $db->query('SELECT pk.*, u.nama, u.email, k.nama_kelas
+                $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
                             FROM presensi_kelas pk
                             JOIN users u ON pk.user_id = u.id
-                            JOIN kelas k ON pk.kelas_id = k.id
+                            JOIN mata_pelajaran k ON pk.kelas_id = k.id
                             WHERE pk.kelas_id = :kelas_id 
                             AND DATE(pk.waktu) BETWEEN :start_date AND :end_date
                             ORDER BY pk.waktu DESC');
@@ -561,10 +664,10 @@ class AdminController {
         // Get all data (no pagination for export)
         if ($tipe === 'kelas' && $kelas_id) {
             $db = new Database();
-            $db->query('SELECT pk.*, u.nama, u.email, k.nama_kelas
+            $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
                         FROM presensi_kelas pk
                         JOIN users u ON pk.user_id = u.id
-                        JOIN kelas k ON pk.kelas_id = k.id
+                        JOIN mata_pelajaran k ON pk.kelas_id = k.id
                         WHERE pk.kelas_id = :kelas_id 
                         AND DATE(pk.waktu) BETWEEN :start_date AND :end_date' . 
                         ($filter_status ? ' AND pk.jenis = :status' : '') . '
@@ -577,8 +680,8 @@ class AdminController {
             }
             $presensi = $db->resultSet();
             
-            $kelas_info = $this->kelasModel->getKelasById($kelas_id);
-            $report_title = 'Laporan Presensi Kelas ' . ($kelas_info ? $kelas_info->nama_kelas : $kelas_id);
+            $kelas_info = $this->mataPelajaranModel->getMataPelajaranById($kelas_id);
+            $report_title = 'Laporan Presensi Mata Pelajaran ' . ($kelas_info ? $kelas_info->nama_mata_pelajaran : $kelas_id);
             
             // Calculate statistics from actual data
             $statistik = new stdClass();
@@ -717,7 +820,7 @@ class AdminController {
             echo '<td>' . htmlspecialchars($p->nama ?? '') . '</td>';
             echo '<td>' . htmlspecialchars($p->email ?? '') . '</td>';
             if ($tipe === 'kelas') {
-                echo '<td>' . htmlspecialchars($p->nama_kelas ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($p->nama_mata_pelajaran ?? '') . '</td>';
             }
             
             $waktuTs = (isset($p->waktu) && $p->waktu) ? strtotime($p->waktu) : null;
@@ -770,10 +873,10 @@ class AdminController {
         // Get all data (no pagination for export)
         if ($tipe === 'kelas' && $kelas_id) {
             $db = new Database();
-            $db->query('SELECT pk.*, u.nama, u.email, k.nama_kelas
+            $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
                         FROM presensi_kelas pk
                         JOIN users u ON pk.user_id = u.id
-                        JOIN kelas k ON pk.kelas_id = k.id
+                        JOIN mata_pelajaran k ON pk.kelas_id = k.id
                         WHERE pk.kelas_id = :kelas_id 
                         AND DATE(pk.waktu) BETWEEN :start_date AND :end_date' . 
                         ($filter_status ? ' AND pk.jenis = :status' : '') . '
@@ -786,8 +889,8 @@ class AdminController {
             }
             $presensi = $db->resultSet();
             
-            $kelas_info = $this->kelasModel->getKelasById($kelas_id);
-            $report_title = 'Laporan Presensi Kelas ' . ($kelas_info ? $kelas_info->nama_kelas : $kelas_id);
+            $kelas_info = $this->mataPelajaranModel->getMataPelajaranById($kelas_id);
+            $report_title = 'Laporan Presensi Mata Pelajaran ' . ($kelas_info ? $kelas_info->nama_mata_pelajaran : $kelas_id);
             
             // Calculate statistics from actual data
             $statistik = new stdClass();
@@ -994,7 +1097,7 @@ class AdminController {
                 <td><?php echo htmlspecialchars($p->nama ?? ''); ?></td>
                 <td><?php echo htmlspecialchars($p->email ?? ''); ?></td>
                 <?php if ($tipe === 'kelas'): ?>
-                <td><?php echo htmlspecialchars($p->nama_kelas ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($p->nama_mata_pelajaran ?? ''); ?></td>
                 <?php endif; ?>
                 <td><?php echo $waktuTs ? date('d M Y', $waktuTs) : '-'; ?></td>
                 <td><?php echo $waktuTs ? date('H:i', $waktuTs) : '-'; ?></td>

@@ -1,7 +1,7 @@
 <?php
 // app/controllers/GuruController.php
-// Controller untuk peran guru: melihat kelas, membuka/tutup sesi presensi, dan laporan
-require_once __DIR__ . '/../models/KelasModel.php';
+// Controller untuk peran guru: melihat mata pelajaran, membuka/tutup sesi presensi, dan laporan
+require_once __DIR__ . '/../models/MataPelajaranModel.php';
 require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/LaporanModel.php';
@@ -9,7 +9,7 @@ require_once __DIR__ . '/../models/PresensiSesiModel.php';
 require_once __DIR__ . '/../models/BukuIndukModel.php';
 
 class GuruController {
-    private $kelasModel;
+    private $mataPelajaranModel;
     private $presensiModel;
     private $userModel;
     private $laporanModel;
@@ -17,7 +17,7 @@ class GuruController {
     private $bukuIndukModel;
     
     public function __construct() {
-        $this->kelasModel = new KelasModel();
+        $this->mataPelajaranModel = new MataPelajaranModel();
         $this->presensiModel = new PresensiModel();
         $this->userModel = new UserModel();
         $this->laporanModel = new LaporanModel();
@@ -26,14 +26,16 @@ class GuruController {
     }
     
     public function dashboard() {
-        // Dashboard guru: hitung total siswa di semua kelas yang dia asuh
+        // Dashboard guru: hitung total siswa di semua mata pelajaran yang dia ampu
         $guru_id = $_SESSION['user_id'];
-        $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
+        $kelasSaya = $this->mataPelajaranModel->getMataPelajaranByGuru($guru_id);
         $totalSiswa = 0;
         $presensiAktif = 0;
         
         foreach($kelasSaya as $kelas) {
-            $siswa = $this->kelasModel->getSiswaInKelas($kelas->id);
+            $siswa = $this->mataPelajaranModel->getSiswaInMataPelajaran($kelas->id);
+            $kelas->siswa = $siswa; // Attach siswa to kelas object for view
+            $kelas->total_siswa = count($siswa); // Attach count to kelas object
             $totalSiswa += count($siswa);
             
             // Hitung kelas dengan sesi presensi aktif
@@ -48,7 +50,7 @@ class GuruController {
             $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas->id, date('Y-m-d'));
             foreach($presensi as $p) {
                 if($p->status) { // Hanya yang sudah presensi
-                    $p->nama_kelas = $kelas->nama_kelas;
+                    $p->nama_mata_pelajaran = $kelas->nama_mata_pelajaran;
                     $aktivitasTerbaru[] = $p;
                 }
             }
@@ -65,14 +67,14 @@ class GuruController {
     
     public function kelas() {
         $guru_id = $_SESSION['user_id'];
-        $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
+        $kelasSaya = $this->mataPelajaranModel->getMataPelajaranByGuru($guru_id);
         
         // Get siswa for each class
-        // Per kelas, lampirkan daftar siswa, total, laporan hari ini, dan info sesi aktif
+        // Per mata pelajaran, lampirkan daftar siswa, total, laporan hari ini, dan info sesi aktif
         foreach($kelasSaya as $kelas) {
-            $kelas->siswa = $this->kelasModel->getSiswaInKelas($kelas->id);
+            $kelas->siswa = $this->mataPelajaranModel->getSiswaInMataPelajaran($kelas->id);
             // total siswa (use dedicated method for efficiency)
-            $kelas->total_siswa = $this->kelasModel->getTotalSiswaByKelas($kelas->id);
+            $kelas->total_siswa = $this->mataPelajaranModel->getTotalSiswaByMataPelajaran($kelas->id);
             $kelas->presensi_hari_ini = $this->presensiModel->getLaporanPresensiKelas($kelas->id);
             // Attach sesi aktif info from DB
             $kelas->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($kelas->id);
@@ -83,17 +85,17 @@ class GuruController {
     
     public function laporan() {
         $guru_id = $_SESSION['user_id'];
-        $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
+        $kelasSaya = $this->mataPelajaranModel->getMataPelajaranByGuru($guru_id);
         
         $laporan = [];
         // allow selecting sesi via GET param
         $requested_sesi = isset($_GET['sesi_id']) ? intval($_GET['sesi_id']) : null;
 
-    // Untuk tiap kelas, ambil data siswa, sesi, dan laporan kemajuan terkait sesi
+    // Untuk tiap mata pelajaran, ambil data siswa, sesi, dan laporan kemajuan terkait sesi
     foreach($kelasSaya as $kelas) {
             // ensure siswa list and total are available for the view
-            $kelas->siswa = $this->kelasModel->getSiswaInKelas($kelas->id);
-            $kelas->total_siswa = $this->kelasModel->getTotalSiswaByKelas($kelas->id);
+            $kelas->siswa = $this->mataPelajaranModel->getSiswaInMataPelajaran($kelas->id);
+            $kelas->total_siswa = $this->mataPelajaranModel->getTotalSiswaByMataPelajaran($kelas->id);
             // sessions for this class
             $sessions = $this->presensiSesiModel->getSessionsByKelas($kelas->id);
             $selectedSesi = null;
@@ -147,15 +149,15 @@ class GuruController {
     
     public function bukaPresensiKelas() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $kelas_id = $_POST['kelas_id'];
+            $mata_pelajaran_id = $_POST['kelas_id']; // frontend sends kelas_id but it's actually mata_pelajaran_id
             $guru_id = $_SESSION['user_id'];
             
             // Persist session to DB
-            $created = $this->presensiSesiModel->createSession($kelas_id, $guru_id);
+            $created = $this->presensiSesiModel->createSession($mata_pelajaran_id, $guru_id);
 
             if ($created) {
                 // Also set quick session in PHP session for immediate UI effect
-                $_SESSION['kelas_buka_' . $kelas_id] = [
+                $_SESSION['kelas_buka_' . $mata_pelajaran_id] = [
                     'waktu_buka' => time(),
                     'guru_id' => $guru_id,
                     'status' => 'buka'
@@ -205,10 +207,10 @@ class GuruController {
         }
     }
     
-    private function simpanLaporanKemajuan($kelas_id, $guru_id, $catatan) {
+    private function simpanLaporanKemajuan($mata_pelajaran_id, $guru_id, $catatan) {
         // Build data for model
         $data = [
-            'kelas_id' => $kelas_id,
+            'kelas_id' => $mata_pelajaran_id, // Note: LaporanModel still uses kelas_id as field name
             'guru_id' => $guru_id,
             'catatan' => $catatan
         ];
@@ -223,12 +225,12 @@ class GuruController {
         }
     }
     
-    public function getPresensiKelas($kelas_id) {
+    public function getPresensiKelas($mata_pelajaran_id) {
         $sesi_id = isset($_GET['sesi_id']) ? intval($_GET['sesi_id']) : null;
         if ($sesi_id) {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, null, $sesi_id);
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, null, $sesi_id);
         } else {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, date('Y-m-d'));
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, date('Y-m-d'));
         }
         echo json_encode($presensi);
     }
@@ -255,19 +257,19 @@ class GuruController {
     
     public function exportExcel() {
         $guru_id = $_SESSION['user_id'];
-        $kelas_id = $_GET['kelas_id'] ?? null;
+        $mata_pelajaran_id = $_GET['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id
         $sesi_id = $_GET['sesi_id'] ?? null;
         
-        if (!$kelas_id) {
-            die('Kelas tidak dipilih');
+        if (!$mata_pelajaran_id) {
+            die('Mata pelajaran tidak dipilih');
         }
         
-        // Validasi guru mengajar kelas ini
-        $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
+        // Validasi guru mengajar mata pelajaran ini
+        $kelasSaya = $this->mataPelajaranModel->getMataPelajaranByGuru($guru_id);
         $isMyClass = false;
         $selectedKelas = null;
         foreach($kelasSaya as $kelas) {
-            if ($kelas->id == $kelas_id) {
+            if ($kelas->id == $mata_pelajaran_id) {
                 $isMyClass = true;
                 $selectedKelas = $kelas;
                 break;
@@ -275,23 +277,23 @@ class GuruController {
         }
         
         if (!$isMyClass) {
-            die('Anda tidak mengajar kelas ini');
+            die('Anda tidak mengajar mata pelajaran ini');
         }
         
         // Get presensi data
         if ($sesi_id) {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, null, $sesi_id);
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, null, $sesi_id);
             $session = $this->presensiSesiModel->getSessionById($sesi_id);
             $periode_text = $session ? date('d/m/Y H:i', strtotime($session->waktu_buka)) : 'Sesi Dipilih';
         } else {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, date('Y-m-d'));
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, date('Y-m-d'));
             $periode_text = date('d F Y');
         }
         
         // Get laporan kemajuan
         $laporan_kemajuan = [];
         if ($sesi_id) {
-            $allLaporan = $this->laporanModel->getLaporanByKelas($kelas_id);
+            $allLaporan = $this->laporanModel->getLaporanByKelas($mata_pelajaran_id);
             $session = $this->presensiSesiModel->getSessionById($sesi_id);
             if ($session) {
                 $start = $session->waktu_buka;
@@ -320,13 +322,13 @@ class GuruController {
             }
         }
         
-        $totalSiswa = $this->kelasModel->getTotalSiswaByKelas($kelas_id);
+        $totalSiswa = $this->mataPelajaranModel->getTotalSiswaByMataPelajaran($mata_pelajaran_id);
         $belumPresensi = $totalSiswa - ($hadir + $izin + $sakit + $alpha);
         $alpha += $belumPresensi;
         
         // Set headers for Excel download
         header('Content-Type: application/vnd.ms-excel');
-        header('Content-Disposition: attachment; filename="Laporan_Presensi_' . str_replace(' ', '_', $selectedKelas->nama_kelas) . '_' . date('Y-m-d') . '.xls"');
+        header('Content-Disposition: attachment; filename="Laporan_Presensi_' . str_replace(' ', '_', $selectedKelas->nama_mata_pelajaran) . '_' . date('Y-m-d') . '.xls"');
         header('Cache-Control: max-age=0');
         
         echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
@@ -349,7 +351,7 @@ class GuruController {
         echo '</div>';
         
         echo '<h1>Laporan Presensi Kelas</h1>';
-        echo '<h2>' . htmlspecialchars($selectedKelas->nama_kelas) . '</h2>';
+        echo '<h2>' . htmlspecialchars($selectedKelas->nama_mata_pelajaran) . '</h2>';
         echo '<p>Periode: ' . htmlspecialchars($periode_text) . '</p>';
         echo '<br/>';
         
@@ -426,19 +428,19 @@ class GuruController {
     
     public function exportPDF() {
         $guru_id = $_SESSION['user_id'];
-        $kelas_id = $_GET['kelas_id'] ?? null;
+        $mata_pelajaran_id = $_GET['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id
         $sesi_id = $_GET['sesi_id'] ?? null;
         
-        if (!$kelas_id) {
-            die('Kelas tidak dipilih');
+        if (!$mata_pelajaran_id) {
+            die('Mata pelajaran tidak dipilih');
         }
         
-        // Validasi guru mengajar kelas ini
-        $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
+        // Validasi guru mengajar mata pelajaran ini
+        $kelasSaya = $this->mataPelajaranModel->getMataPelajaranByGuru($guru_id);
         $isMyClass = false;
         $selectedKelas = null;
         foreach($kelasSaya as $kelas) {
-            if ($kelas->id == $kelas_id) {
+            if ($kelas->id == $mata_pelajaran_id) {
                 $isMyClass = true;
                 $selectedKelas = $kelas;
                 break;
@@ -446,23 +448,23 @@ class GuruController {
         }
         
         if (!$isMyClass) {
-            die('Anda tidak mengajar kelas ini');
+            die('Anda tidak mengajar mata pelajaran ini');
         }
         
         // Get presensi data
         if ($sesi_id) {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, null, $sesi_id);
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, null, $sesi_id);
             $session = $this->presensiSesiModel->getSessionById($sesi_id);
             $periode_text = $session ? date('d/m/Y H:i', strtotime($session->waktu_buka)) : 'Sesi Dipilih';
         } else {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas_id, date('Y-m-d'));
+            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, date('Y-m-d'));
             $periode_text = date('d F Y');
         }
         
         // Get laporan kemajuan
         $laporan_kemajuan = [];
         if ($sesi_id) {
-            $allLaporan = $this->laporanModel->getLaporanByKelas($kelas_id);
+            $allLaporan = $this->laporanModel->getLaporanByKelas($mata_pelajaran_id);
             $session = $this->presensiSesiModel->getSessionById($sesi_id);
             if ($session) {
                 $start = $session->waktu_buka;
@@ -491,7 +493,7 @@ class GuruController {
             }
         }
         
-        $totalSiswa = $this->kelasModel->getTotalSiswaByKelas($kelas_id);
+        $totalSiswa = $this->mataPelajaranModel->getTotalSiswaByMataPelajaran($mata_pelajaran_id);
         $belumPresensi = $totalSiswa - ($hadir + $izin + $sakit + $alpha);
         $alpha += $belumPresensi;
         
@@ -499,7 +501,7 @@ class GuruController {
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Laporan Presensi Kelas - <?php echo htmlspecialchars($selectedKelas->nama_kelas); ?></title>
+    <title>Laporan Presensi Mata Pelajaran - <?php echo htmlspecialchars($selectedKelas->nama_mata_pelajaran); ?></title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .kop-surat { text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
@@ -539,7 +541,7 @@ class GuruController {
     </div>
     
     <h1>Laporan Presensi Kelas</h1>
-    <h2><?php echo htmlspecialchars($selectedKelas->nama_kelas); ?></h2>
+    <h2><?php echo htmlspecialchars($selectedKelas->nama_mata_pelajaran); ?></h2>
     <h3>Periode: <?php echo htmlspecialchars($periode_text); ?></h3>
     
     <h3>Ringkasan Kehadiran</h3>
@@ -652,7 +654,7 @@ class GuruController {
     public function ubahStatusPresensi() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $siswa_id = $_POST['siswa_id'] ?? null;
-            $kelas_id = $_POST['kelas_id'] ?? null;
+            $mata_pelajaran_id = $_POST['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id
             $jenis = $_POST['jenis'] ?? 'hadir';
             $alasan = $_POST['alasan'] ?? null;
             $foto_bukti = $_POST['foto_bukti'] ?? null;
@@ -660,23 +662,23 @@ class GuruController {
             $guru_id = $_SESSION['user_id'];
             
             // Validasi input
-            if (!$siswa_id || !$kelas_id) {
+            if (!$siswa_id || !$mata_pelajaran_id) {
                 echo json_encode(['success' => false, 'message' => 'Data tidak lengkap']);
                 return;
             }
             
-            // Validasi guru mengajar kelas ini
-            $kelasSaya = $this->kelasModel->getKelasByGuru($guru_id);
+            // Validasi guru mengajar mata pelajaran ini
+            $kelasSaya = $this->mataPelajaranModel->getMataPelajaranByGuru($guru_id);
             $isMyClass = false;
             foreach($kelasSaya as $kelas) {
-                if ($kelas->id == $kelas_id) {
+                if ($kelas->id == $mata_pelajaran_id) {
                     $isMyClass = true;
                     break;
                 }
             }
             
             if (!$isMyClass) {
-                echo json_encode(['success' => false, 'message' => 'Anda tidak memiliki akses ke kelas ini']);
+                echo json_encode(['success' => false, 'message' => 'Anda tidak memiliki akses ke mata pelajaran ini']);
                 return;
             }
             
@@ -689,7 +691,7 @@ class GuruController {
             // Update atau buat presensi
             $result = $this->presensiModel->createOrUpdatePresensiKelas(
                 $siswa_id,
-                $kelas_id,
+                $mata_pelajaran_id,
                 $jenis,
                 $alasan,
                 $foto_bukti,

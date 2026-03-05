@@ -19,6 +19,10 @@ $protectedRoutes = [
     'admin_update_user', 'admin_delete_user', 'admin_export_excel', 'admin_export_pdf',
     'admin_presensi_sekolah', 'admin_create_presensi_sekolah', 'admin_extend_presensi_sekolah', 'admin_close_presensi_sekolah',
     'admin_delete_presensi_sekolah', 'admin_delete_multiple_presensi_sekolah',
+    'admin_create_kelas', 'admin_update_kelas', 'admin_delete_kelas',
+    'admin_mata_pelajaran', 'admin_create_mata_pelajaran', 'admin_update_mata_pelajaran', 'admin_delete_mata_pelajaran',
+    'admin_get_siswa_mapel', 'admin_get_siswa_tersedia_mapel', 'admin_add_siswa_mapel', 'admin_remove_siswa_mapel',
+    'admin_get_mapel_kelas', 'admin_get_mapel_tersedia_kelas', 'admin_add_mapel_kelas', 'admin_remove_mapel_kelas',
     'admin_buku_induk', 'admin_save_buku_induk', 'admin_delete_dokumen',
     'admin_kesiswaan_dashboard', 'admin_kesiswaan_buku_induk', 'admin_kesiswaan_presensi_sekolah',
     'admin_kesiswaan_create_presensi_sekolah', 'admin_kesiswaan_extend_presensi_sekolah', 'admin_kesiswaan_close_presensi_sekolah',
@@ -172,28 +176,79 @@ switch($action) {
         $admin->deleteKelas();
         break;
 
-    case 'admin_get_siswa_kelas':
+    // NOTE: Siswa dikelola PER MATA PELAJARAN, bukan per kelas
+    // API endpoints untuk kelola siswa per mata pelajaran
+
+    case 'admin_get_siswa_mapel':
         require_once __DIR__ . '/app/controllers/AdminController.php';
         $admin = new AdminController();
-        $admin->getSiswaDalamKelas();
+        $admin->getSiswaDalamMapel();
         break;
 
-    case 'admin_get_siswa_tersedia':
+    case 'admin_get_siswa_tersedia_mapel':
         require_once __DIR__ . '/app/controllers/AdminController.php';
         $admin = new AdminController();
-        $admin->getSiswaTersedia();
+        $admin->getSiswaTersediaMapel();
         break;
 
-    case 'admin_add_siswa_kelas':
+    case 'admin_add_siswa_mapel':
         require_once __DIR__ . '/app/controllers/AdminController.php';
         $admin = new AdminController();
-        $admin->addSiswaToKelas();
+        $admin->addSiswaToMapel();
         break;
 
-    case 'admin_remove_siswa_kelas':
+    case 'admin_remove_siswa_mapel':
         require_once __DIR__ . '/app/controllers/AdminController.php';
         $admin = new AdminController();
-        $admin->removeSiswaFromKelas();
+        $admin->removeSiswaFromMapel();
+        break;
+
+    case 'admin_mata_pelajaran':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->mataPelajaran();
+        break;
+
+    case 'admin_create_mata_pelajaran':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->createMataPelajaran();
+        break;
+
+    case 'admin_update_mata_pelajaran':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->updateMataPelajaran();
+        break;
+
+    case 'admin_delete_mata_pelajaran':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->deleteMataPelajaran();
+        break;
+
+    case 'admin_get_mapel_kelas':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->getMataPelajaranDalamKelas();
+        break;
+
+    case 'admin_get_mapel_tersedia_kelas':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->getMataPelajaranTersediaKelas();
+        break;
+
+    case 'admin_add_mapel_kelas':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->addMataPelajaranToKelas();
+        break;
+
+    case 'admin_remove_mapel_kelas':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->removeMataPelajaranFromKelas();
         break;
 
     case 'admin_buku_induk':

@@ -168,15 +168,15 @@ require_once __DIR__ . '/../layouts/header.php';
         </a>
     </div>
 
-    <!-- Kelas Aktif -->
+    <!-- Mata Pelajaran Aktif -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div class="flex items-center space-x-3 mb-4">
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-chalkboard text-purple-600 text-xl"></i>
+                <i class="fas fa-book text-purple-600 text-xl"></i>
             </div>
             <div>
-                <h3 class="text-lg font-semibold text-gray-800">Kelas Anda</h3>
-                <p class="text-gray-600 text-sm">Jadwal kelas</p>
+                <h3 class="text-lg font-semibold text-gray-800">Mata Pelajaran Anda</h3>
+                <p class="text-gray-600 text-sm">Jadwal mata pelajaran</p>
             </div>
         </div>
         <div class="space-y-3">
@@ -184,7 +184,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <?php foreach($kelas as $k): ?>
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                        <p class="font-medium text-gray-800"><?php echo htmlspecialchars($k->nama_kelas); ?></p>
+                        <p class="font-medium text-gray-800"><?php echo htmlspecialchars($k->nama_mata_pelajaran); ?></p>
                         <p class="text-sm text-gray-600">
                             <i class="fas fa-clock text-gray-500 mr-1"></i>
                             <?php echo htmlspecialchars($k->jadwal ?? 'Jadwal belum diatur'); ?>
@@ -196,7 +196,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <?php else: ?>
                 <div class="text-center py-4 text-gray-500">
                     <i class="fas fa-info-circle mb-2"></i>
-                    <p class="text-sm">Anda belum terdaftar di kelas manapun</p>
+                    <p class="text-sm">Anda belum terdaftar di mata pelajaran manapun</p>
                 </div>
             <?php endif; ?>
         </div>

@@ -36,11 +36,11 @@ class PresensiModel {
     
     public function recordPresensiKelas($data) {
         // support presensi_sesi_id if provided (nullable)
-        $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, kelas_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu) 
-                         VALUES (:presensi_sesi_id, :user_id, :kelas_id, :latitude, :longitude, :jarak, :status, :jenis, :alasan, :foto_bukti, NOW())');
+        $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, mata_pelajaran_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu) 
+                         VALUES (:presensi_sesi_id, :user_id, :mata_pelajaran_id, :latitude, :longitude, :jarak, :status, :jenis, :alasan, :foto_bukti, NOW())');
         $this->db->bind(':presensi_sesi_id', $data['presensi_sesi_id'] ?? null);
         $this->db->bind(':user_id', $data['user_id']);
-        $this->db->bind(':kelas_id', $data['kelas_id']);
+        $this->db->bind(':mata_pelajaran_id', $data['mata_pelajaran_id']);
         $this->db->bind(':latitude', $data['latitude']);
         $this->db->bind(':longitude', $data['longitude']);
         $this->db->bind(':jarak', $data['jarak']);
@@ -93,9 +93,9 @@ class PresensiModel {
     }
     
     public function getPresensiKelasByUser($user_id, $limit = null) {
-        $sql = 'SELECT pk.*, k.nama_kelas 
+        $sql = 'SELECT pk.*, k.nama_mata_pelajaran 
                 FROM presensi_kelas pk 
-                INNER JOIN kelas k ON pk.kelas_id = k.id 
+                INNER JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id 
                 WHERE pk.user_id = :user_id 
                 ORDER BY pk.waktu DESC';
         
@@ -110,9 +110,9 @@ class PresensiModel {
     
     public function getPresensiKelasByUserPeriode($user_id, $startDate, $endDate = null) {
         if ($endDate) {
-            $sql = 'SELECT pk.*, k.nama_kelas 
+            $sql = 'SELECT pk.*, k.nama_mata_pelajaran 
                     FROM presensi_kelas pk 
-                    INNER JOIN kelas k ON pk.kelas_id = k.id 
+                    INNER JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id 
                     WHERE pk.user_id = :user_id AND DATE(pk.waktu) BETWEEN :start_date AND :end_date 
                     ORDER BY pk.waktu DESC';
             $this->db->query($sql);
@@ -120,9 +120,9 @@ class PresensiModel {
             $this->db->bind(':start_date', $startDate);
             $this->db->bind(':end_date', $endDate);
         } else {
-            $sql = 'SELECT pk.*, k.nama_kelas 
+            $sql = 'SELECT pk.*, k.nama_mata_pelajaran 
                     FROM presensi_kelas pk 
-                    INNER JOIN kelas k ON pk.kelas_id = k.id 
+                    INNER JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id 
                     WHERE pk.user_id = :user_id AND DATE(pk.waktu) = :tanggal 
                     ORDER BY pk.waktu DESC';
             $this->db->query($sql);
@@ -159,23 +159,23 @@ class PresensiModel {
     }
     
     /**
-     * Get presensi laporan for a kelas.
+     * Get presensi laporan for a mata pelajaran.
      * If $sesi_id provided, returns attendance for that session (left join so students without presensi are included).
      * Otherwise if $tanggal provided (or default today) returns presensi_kelas for that date.
      * Returns array of objects with siswa data and presensi fields (status, waktu, jarak, latitude, longitude, presensi_sesi_id)
      */
-    public function getLaporanPresensiKelas($kelas_id, $tanggal = null, $sesi_id = null) {
-        // Base select — list all siswa in kelas and join any matching presensi_kelas
+    public function getLaporanPresensiKelas($mata_pelajaran_id, $tanggal = null, $sesi_id = null) {
+        // Base select — list all siswa in mata pelajaran and join any matching presensi_kelas
         if ($sesi_id) {
             $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
                     FROM users u
                     LEFT JOIN presensi_kelas pk ON u.id = pk.user_id AND pk.presensi_sesi_id = :sesi_id
-                    WHERE u.id IN (SELECT siswa_id FROM siswa_kelas WHERE kelas_id = :kelas_id)
+                    WHERE u.id IN (SELECT siswa_id FROM siswa_mata_pelajaran WHERE mata_pelajaran_id = :mata_pelajaran_id)
                     AND u.role = "siswa"
                     ORDER BY u.nama';
             $this->db->query($sql);
             $this->db->bind(':sesi_id', $sesi_id);
-            $this->db->bind(':kelas_id', $kelas_id);
+            $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
             return $this->db->resultSet();
         }
 
@@ -183,14 +183,14 @@ class PresensiModel {
         $tanggal = $tanggal ?: date('Y-m-d');
         $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
                 FROM users u
-                LEFT JOIN presensi_kelas pk ON u.id = pk.user_id AND DATE(pk.waktu) = :tanggal AND pk.kelas_id = :kelas_id
-                WHERE u.id IN (SELECT siswa_id FROM siswa_kelas WHERE kelas_id = :kelas_id)
+                LEFT JOIN presensi_kelas pk ON u.id = pk.user_id AND DATE(pk.waktu) = :tanggal AND pk.mata_pelajaran_id = :mata_pelajaran_id
+                WHERE u.id IN (SELECT siswa_id FROM siswa_mata_pelajaran WHERE mata_pelajaran_id = :mata_pelajaran_id)
                 AND u.role = "siswa"
                 ORDER BY u.nama';
 
         $this->db->query($sql);
         $this->db->bind(':tanggal', $tanggal);
-        $this->db->bind(':kelas_id', $kelas_id);
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         return $this->db->resultSet();
     }
     
@@ -627,7 +627,7 @@ class PresensiModel {
      */
     public function createPresensiKelasIzin($siswa_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_kelas_id = null) {
         // Get all classes the student is enrolled in
-        $this->db->query('SELECT kelas_id FROM siswa_kelas WHERE siswa_id = :siswa_id');
+        $this->db->query('SELECT mata_pelajaran_id FROM siswa_mata_pelajaran WHERE siswa_id = :siswa_id');
         $this->db->bind(':siswa_id', $siswa_id);
         $kelas_list = $this->db->resultSet();
 
@@ -636,19 +636,19 @@ class PresensiModel {
 
         foreach ($kelas_list as $kelas) {
             // Check if presensi already exists for this class and date
-            $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND kelas_id = :kelas_id AND DATE(waktu) = :tanggal LIMIT 1');
+            $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND mata_pelajaran_id = :mata_pelajaran_id AND DATE(waktu) = :tanggal LIMIT 1');
             $this->db->bind(':user_id', $siswa_id);
-            $this->db->bind(':kelas_id', $kelas->kelas_id);
+            $this->db->bind(':mata_pelajaran_id', $kelas->mata_pelajaran_id);
             $this->db->bind(':tanggal', $tanggal);
             $exists = $this->db->single();
             
             if (!$exists) {
                 // Insert izin record to presensi_kelas
-                $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, kelas_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu) 
-                                 VALUES (:sesi_id, :user_id, :kelas_id, 0, 0, 0, "valid", :jenis, :alasan, :foto_bukti, :waktu)');
+                $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, mata_pelajaran_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu) 
+                                 VALUES (:sesi_id, :user_id, :mata_pelajaran_id, 0, 0, 0, "valid", :jenis, :alasan, :foto_bukti, :waktu)');
                 $this->db->bind(':sesi_id', $sesi_kelas_id);
                 $this->db->bind(':user_id', $siswa_id);
-                $this->db->bind(':kelas_id', $kelas->kelas_id);
+                $this->db->bind(':mata_pelajaran_id', $kelas->mata_pelajaran_id);
                 $this->db->bind(':jenis', $jenis_izin); // Store jenis_izin in jenis field (izin, sakit, etc)
                 $this->db->bind(':alasan', $alasan);
                 $this->db->bind(':foto_bukti', $foto_bukti);
@@ -662,11 +662,11 @@ class PresensiModel {
     /**
      * Create presensi_kelas record for izin for a single specific class
      */
-    public function createPresensiKelasSingleIzin($siswa_id, $kelas_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_kelas_id = null) {
+    public function createPresensiKelasSingleIzin($siswa_id, $mata_pelajaran_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_kelas_id = null) {
         // Check if presensi already exists for this class and date
-        $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND kelas_id = :kelas_id AND DATE(waktu) = :tanggal LIMIT 1');
+        $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND mata_pelajaran_id = :mata_pelajaran_id AND DATE(waktu) = :tanggal LIMIT 1');
         $this->db->bind(':user_id', $siswa_id);
-        $this->db->bind(':kelas_id', $kelas_id);
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         $this->db->bind(':tanggal', $tanggal);
         $exists = $this->db->single();
         
@@ -678,11 +678,11 @@ class PresensiModel {
         $waktu_insert = $waktu_pengajuan ?: ($tanggal . ' 00:00:00');
 
         // Insert izin record to presensi_kelas
-        $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, kelas_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu) 
-                         VALUES (:sesi_id, :user_id, :kelas_id, 0, 0, 0, "valid", :jenis, :alasan, :foto_bukti, :waktu)');
+        $this->db->query('INSERT INTO presensi_kelas (presensi_sesi_id, user_id, mata_pelajaran_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu) 
+                         VALUES (:sesi_id, :user_id, :mata_pelajaran_id, 0, 0, 0, "valid", :jenis, :alasan, :foto_bukti, :waktu)');
         $this->db->bind(':sesi_id', $sesi_kelas_id);
         $this->db->bind(':user_id', $siswa_id);
-        $this->db->bind(':kelas_id', $kelas_id);
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         $this->db->bind(':jenis', $jenis_izin);
         $this->db->bind(':alasan', $alasan);
         $this->db->bind(':foto_bukti', $foto_bukti);
@@ -694,25 +694,25 @@ class PresensiModel {
      * Update presensi kelas status
      * Used by teachers to modify student attendance status
      */
-    public function updatePresensiKelas($siswa_id, $kelas_id, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
+    public function updatePresensiKelas($siswa_id, $mata_pelajaran_id, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
         // Build WHERE clause based on whether sesi_id is provided
         if ($sesi_id) {
             // Update specific session
             $sql = 'UPDATE presensi_kelas 
                     SET jenis = :jenis, alasan = :alasan, foto_bukti = :foto_bukti, status = :status,
                         latitude = :latitude, longitude = :longitude, jarak = :jarak
-                    WHERE user_id = :user_id AND kelas_id = :kelas_id AND presensi_sesi_id = :sesi_id';
+                    WHERE user_id = :user_id AND mata_pelajaran_id = :mata_pelajaran_id AND presensi_sesi_id = :sesi_id';
         } else {
             // Update today's attendance
             $sql = 'UPDATE presensi_kelas 
                     SET jenis = :jenis, alasan = :alasan, foto_bukti = :foto_bukti, status = :status,
                         latitude = :latitude, longitude = :longitude, jarak = :jarak
-                    WHERE user_id = :user_id AND kelas_id = :kelas_id AND DATE(waktu) = CURDATE()';
+                    WHERE user_id = :user_id AND mata_pelajaran_id = :mata_pelajaran_id AND DATE(waktu) = CURDATE()';
         }
         
         $this->db->query($sql);
         $this->db->bind(':user_id', $siswa_id);
-        $this->db->bind(':kelas_id', $kelas_id);
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         $this->db->bind(':jenis', $jenis);
         $this->db->bind(':alasan', $alasan);
         $this->db->bind(':foto_bukti', $foto_bukti);
@@ -741,30 +741,30 @@ class PresensiModel {
      * Create presensi kelas record if it doesn't exist
      * Used when teacher creates attendance record for student who hasn't checked in
      */
-    public function createOrUpdatePresensiKelas($siswa_id, $kelas_id, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
+    public function createOrUpdatePresensiKelas($siswa_id, $mata_pelajaran_id, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
         // Check if record exists
         if ($sesi_id) {
-            $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND kelas_id = :kelas_id AND presensi_sesi_id = :sesi_id LIMIT 1');
+            $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND mata_pelajaran_id = :mata_pelajaran_id AND presensi_sesi_id = :sesi_id LIMIT 1');
             $this->db->bind(':user_id', $siswa_id);
-            $this->db->bind(':kelas_id', $kelas_id);
+            $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
             $this->db->bind(':sesi_id', $sesi_id);
         } else {
-            $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND kelas_id = :kelas_id AND DATE(waktu) = CURDATE() LIMIT 1');
+            $this->db->query('SELECT id FROM presensi_kelas WHERE user_id = :user_id AND mata_pelajaran_id = :mata_pelajaran_id AND DATE(waktu) = CURDATE() LIMIT 1');
             $this->db->bind(':user_id', $siswa_id);
-            $this->db->bind(':kelas_id', $kelas_id);
+            $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         }
         
         $exists = $this->db->single();
         
         if ($exists) {
             // Update existing record
-            return $this->updatePresensiKelas($siswa_id, $kelas_id, $jenis, $alasan, $foto_bukti, $sesi_id);
+            return $this->updatePresensiKelas($siswa_id, $mata_pelajaran_id, $jenis, $alasan, $foto_bukti, $sesi_id);
         } else {
             // Create new record
             $data = [
                 'presensi_sesi_id' => $sesi_id,
                 'user_id' => $siswa_id,
-                'kelas_id' => $kelas_id,
+                'mata_pelajaran_id' => $mata_pelajaran_id,
                 'latitude' => 0,
                 'longitude' => 0,
                 'jarak' => 0,
@@ -951,28 +951,28 @@ class PresensiModel {
      * Mark all students in a class who haven't checked in for a session as alpha
      * Called when class session is closed
      */
-    public function markAbsentStudentsAsAlphaKelas($kelas_id, $sesi_id) {
+    public function markAbsentStudentsAsAlphaKelas($mata_pelajaran_id, $sesi_id) {
         // Get session and class info for notification
-        $this->db->query('SELECT ps.*, k.nama_kelas FROM presensi_sesi ps 
-                         LEFT JOIN kelas k ON ps.kelas_id = k.id 
+        $this->db->query('SELECT ps.*, k.nama_mata_pelajaran FROM presensi_sesi ps 
+                         LEFT JOIN mata_pelajaran k ON ps.mata_pelajaran_id = k.id 
                          WHERE ps.id = :sesi_id');
         $this->db->bind(':sesi_id', $sesi_id);
         $sesiInfo = $this->db->single();
         
         // Get all students in this class who haven't checked in for this session
         $this->db->query('
-            SELECT sk.siswa_id, u.nama
-            FROM siswa_kelas sk
-            LEFT JOIN users u ON sk.siswa_id = u.id
-            WHERE sk.kelas_id = :kelas_id
-            AND sk.siswa_id NOT IN (
+            SELECT smp.siswa_id, u.nama
+            FROM siswa_mata_pelajaran smp
+            LEFT JOIN users u ON smp.siswa_id = u.id
+            WHERE smp.mata_pelajaran_id = :mata_pelajaran_id
+            AND smp.siswa_id NOT IN (
                 SELECT user_id 
                 FROM presensi_kelas 
-                WHERE kelas_id = :kelas_id 
+                WHERE mata_pelajaran_id = :mata_pelajaran_id 
                 AND presensi_sesi_id = :sesi_id
             )
         ');
-        $this->db->bind(':kelas_id', $kelas_id);
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         $this->db->bind(':sesi_id', $sesi_id);
         $absentStudents = $this->db->resultSet();
         
@@ -986,7 +986,7 @@ class PresensiModel {
             $data = [
                 'presensi_sesi_id' => $sesi_id,
                 'user_id' => $student->siswa_id,
-                'kelas_id' => $kelas_id,
+                'mata_pelajaran_id' => $mata_pelajaran_id,
                 'latitude' => 0,
                 'longitude' => 0,
                 'jarak' => 0,
@@ -1000,7 +1000,7 @@ class PresensiModel {
                 
                 $tanggal = date('Y-m-d');
                 $waktu = $sesiInfo->waktu_tutup ?? date('Y-m-d H:i:s');
-                $namaKelas = $sesiInfo->nama_kelas ?? 'Kelas';
+                $namaKelas = $sesiInfo->nama_mata_pelajaran ?? 'Mata Pelajaran';
                 $parentContact = $bukuIndukModel->getParentContact($student->siswa_id);
                 
                 // Kirim email notifikasi ke orang tua

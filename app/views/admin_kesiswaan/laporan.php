@@ -36,7 +36,7 @@ require_once __DIR__ . '/../layouts/header.php';
             </a>
             <a href="?action=admin_kesiswaan_laporan&tipe=kelas&bulan=<?php echo $bulan ?? date('m'); ?>&tahun=<?php echo $tahun ?? date('Y'); ?><?php echo isset($_GET['kelas_id']) ? '&kelas_id='.$_GET['kelas_id'] : ''; ?>" 
                class="<?php echo (isset($_GET['tipe']) && $_GET['tipe'] == 'kelas') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?> whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                <i class="fas fa-chalkboard mr-2"></i>Presensi Kelas
+                <i class="fas fa-book mr-2"></i>Presensi Mata Pelajaran
             </a>
         </nav>
     </div>
@@ -109,12 +109,12 @@ require_once __DIR__ . '/../layouts/header.php';
         
             <?php if ($tipe_laporan === 'kelas'): ?>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Kelas</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Mata Pelajaran</label>
                 <select name="kelas_id" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                    <option value="">Pilih Kelas</option>
+                    <option value="">Pilih Mata Pelajaran</option>
                     <?php foreach($kelas_list as $kls): ?>
                         <option value="<?php echo $kls->id; ?>" <?php echo (isset($_GET['kelas_id']) && $_GET['kelas_id'] == $kls->id) ? 'selected' : ''; ?>>
-                            <?php echo $kls->nama_kelas; ?>
+                            <?php echo $kls->nama_mata_pelajaran; ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -332,7 +332,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <tr class="bg-gray-50 border-b border-gray-200">
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Nama Siswa</th>
                     <?php if ($tipe_laporan === 'kelas'): ?>
-                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Kelas</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Mata Pelajaran</th>
                     <?php endif; ?>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Tanggal</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Waktu</th>
@@ -347,7 +347,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <tr>
                     <td colspan="<?php echo $tipe_laporan === 'kelas' ? '8' : '8'; ?>" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
-                        <p>Tidak ada data presensi untuk <?php echo $tipe_laporan === 'kelas' ? 'kelas dan ' : ''; ?>tanggal yang dipilih</p>
+                        <p>Tidak ada data presensi untuk <?php echo $tipe_laporan === 'kelas' ? 'mata pelajaran dan ' : ''; ?>tanggal yang dipilih</p>
                     </td>
                 </tr>
                 <?php else: ?>
@@ -368,7 +368,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         </td>
                         <?php if ($tipe_laporan === 'kelas'): ?>
                         <td class="px-6 py-4 text-gray-600">
-                            <?php echo isset($p->nama_kelas) ? htmlspecialchars($p->nama_kelas) : '-'; ?>
+                            <?php echo isset($p->nama_mata_pelajaran) ? htmlspecialchars($p->nama_mata_pelajaran) : '-'; ?>
                         </td>
                         <?php endif; ?>
                         <?php 

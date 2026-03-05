@@ -12,19 +12,28 @@ class KelasModel {
     }
     
     public function getAllKelas() {
-        // Ambil semua kelas beserta nama wali kelas (jika ada)
-        $this->db->query('SELECT k.*, u.nama as wali_kelas_nama 
+        // Ambil semua kelas dengan jumlah siswa dan mata pelajaran
+        // Siswa dihitung dari mata pelajaran yang ada di kelas (siswa_mata_pelajaran)
+        $this->db->query('SELECT k.*, 
+                         (SELECT COUNT(DISTINCT smp.siswa_id) 
+                          FROM kelas_mata_pelajaran kmp
+                          INNER JOIN siswa_mata_pelajaran smp ON kmp.mata_pelajaran_id = smp.mata_pelajaran_id
+                          WHERE kmp.kelas_id = k.id) as jumlah_siswa,
+                         (SELECT COUNT(*) FROM kelas_mata_pelajaran WHERE kelas_id = k.id) as jumlah_mapel
                          FROM kelas k 
-                         LEFT JOIN users u ON k.wali_kelas = u.id 
-                         ORDER BY k.nama_kelas');
+                         ORDER BY k.tahun_ajaran DESC, k.nama_kelas ASC');
         return $this->db->resultSet();
     }
     
     public function getKelasById($id) {
-        // Ambil detail satu kelas berdasarkan id
-        $this->db->query('SELECT k.*, u.nama as wali_kelas_nama 
+        // Ambil detail satu kelas berdasarkan id dengan jumlah siswa dan mata pelajaran
+        $this->db->query('SELECT k.*,
+                         (SELECT COUNT(DISTINCT smp.siswa_id) 
+                          FROM kelas_mata_pelajaran kmp
+                          INNER JOIN siswa_mata_pelajaran smp ON kmp.mata_pelajaran_id = smp.mata_pelajaran_id
+                          WHERE kmp.kelas_id = k.id) as jumlah_siswa,
+                         (SELECT COUNT(*) FROM kelas_mata_pelajaran WHERE kelas_id = k.id) as jumlah_mapel
                          FROM kelas k 
-                         LEFT JOIN users u ON k.wali_kelas = u.id 
                          WHERE k.id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
@@ -32,25 +41,25 @@ class KelasModel {
     
     public function createKelas($data) {
         // Buat kelas baru
-        $this->db->query('INSERT INTO kelas (nama_kelas, tahun_ajaran, wali_kelas, jadwal) 
-                         VALUES (:nama_kelas, :tahun_ajaran, :wali_kelas, :jadwal)');
+        $this->db->query('INSERT INTO kelas (nama_kelas, tahun_ajaran) 
+                         VALUES (:nama_kelas, :tahun_ajaran)');
         $this->db->bind(':nama_kelas', $data['nama_kelas']);
         $this->db->bind(':tahun_ajaran', $data['tahun_ajaran']);
-        $this->db->bind(':wali_kelas', $data['wali_kelas']);
-        $this->db->bind(':jadwal', $data['jadwal'] ?? null);
         
-        return $this->db->execute();
+        if ($this->db->execute()) {
+            return $this->db->lastInsertId();
+        }
+        return false;
     }
     
     public function updateKelas($data) {
         // Perbarui data kelas
-        $this->db->query('UPDATE kelas SET nama_kelas = :nama_kelas, tahun_ajaran = :tahun_ajaran, wali_kelas = :wali_kelas, jadwal = :jadwal 
+        $this->db->query('UPDATE kelas 
+                         SET nama_kelas = :nama_kelas, tahun_ajaran = :tahun_ajaran 
                          WHERE id = :id');
         $this->db->bind(':id', $data['id']);
         $this->db->bind(':nama_kelas', $data['nama_kelas']);
         $this->db->bind(':tahun_ajaran', $data['tahun_ajaran']);
-        $this->db->bind(':wali_kelas', $data['wali_kelas']);
-        $this->db->bind(':jadwal', $data['jadwal'] ?? null);
         
         return $this->db->execute();
     }
@@ -62,74 +71,88 @@ class KelasModel {
         return $this->db->execute();
     }
     
-    public function getKelasByGuru($guru_id) {
-        // Ambil semua kelas yang wali_kelas-nya adalah guru tertentu
-        $this->db->query('SELECT k.* FROM kelas k WHERE k.wali_kelas = :guru_id');
-        $this->db->bind(':guru_id', $guru_id);
+    /**
+     * Get all mata pelajaran in a kelas with guru info
+     */
+    public function getMataPelajaranInKelas($kelas_id) {
+        $this->db->query('SELECT mp.*, u.nama as guru_pengampu_nama, kmp.id as kelas_mapel_id
+                         FROM mata_pelajaran mp
+                         INNER JOIN kelas_mata_pelajaran kmp ON mp.id = kmp.mata_pelajaran_id
+                         LEFT JOIN users u ON mp.guru_pengampu = u.id
+                         WHERE kmp.kelas_id = :kelas_id
+                         ORDER BY mp.nama_mata_pelajaran');
+        $this->db->bind(':kelas_id', $kelas_id);
         return $this->db->resultSet();
     }
     
+    /**
+     * Get available mata pelajaran (not in specific kelas)
+     */
+    public function getAvailableMataPelajaran($kelas_id = null) {
+        if ($kelas_id) {
+            $this->db->query('SELECT mp.*, u.nama as guru_pengampu_nama 
+                             FROM mata_pelajaran mp
+                             LEFT JOIN users u ON mp.guru_pengampu = u.id
+                             WHERE mp.id NOT IN (SELECT mata_pelajaran_id FROM kelas_mata_pelajaran WHERE kelas_id = :kelas_id)
+                             ORDER BY mp.nama_mata_pelajaran');
+            $this->db->bind(':kelas_id', $kelas_id);
+        } else {
+            $this->db->query('SELECT mp.*, u.nama as guru_pengampu_nama 
+                             FROM mata_pelajaran mp
+                             LEFT JOIN users u ON mp.guru_pengampu = u.id
+                             ORDER BY mp.nama_mata_pelajaran');
+        }
+        return $this->db->resultSet();
+    }
+    
+    /**
+     * Add mata pelajaran to kelas
+     */
+    public function addMataPelajaranToKelas($mata_pelajaran_id, $kelas_id) {
+        $this->db->query('INSERT INTO kelas_mata_pelajaran (kelas_id, mata_pelajaran_id) 
+                         VALUES (:kelas_id, :mata_pelajaran_id)');
+        $this->db->bind(':kelas_id', $kelas_id);
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
+        return $this->db->execute();
+    }
+    
+    /**
+     * Remove mata pelajaran from kelas
+     */
+    public function removeMataPelajaranFromKelas($mata_pelajaran_id, $kelas_id) {
+        $this->db->query('DELETE FROM kelas_mata_pelajaran 
+                         WHERE mata_pelajaran_id = :mata_pelajaran_id AND kelas_id = :kelas_id');
+        $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
+        $this->db->bind(':kelas_id', $kelas_id);
+        return $this->db->execute();
+    }
+    
+    /**
+     * Get all siswa in mata pelajaran within a kelas (DISTINCT siswa)
+     * Menampilkan semua siswa unik yang terdaftar di mata pelajaran dalam kelas ini
+     */
     public function getSiswaInKelas($kelas_id) {
-        // Ambil daftar siswa untuk kelas tertentu
-        $this->db->query('SELECT u.* FROM users u 
-                         INNER JOIN siswa_kelas sk ON u.id = sk.siswa_id 
-                         WHERE sk.kelas_id = :kelas_id AND u.role = "siswa"');
+        $this->db->query('SELECT DISTINCT u.* FROM users u 
+                         INNER JOIN siswa_mata_pelajaran smp ON u.id = smp.siswa_id 
+                         INNER JOIN kelas_mata_pelajaran kmp ON smp.mata_pelajaran_id = kmp.mata_pelajaran_id
+                         WHERE kmp.kelas_id = :kelas_id AND u.role = "siswa"
+                         ORDER BY u.nama ASC');
         $this->db->bind(':kelas_id', $kelas_id);
         return $this->db->resultSet();
     }
 
     /**
-     * Get total number of siswa in a kelas
+     * Get total number of siswa in a kelas (DISTINCT count)
      * Returns integer count
      */
     public function getTotalSiswaByKelas($kelas_id) {
-        // Hitung total siswa di suatu kelas
-        $this->db->query('SELECT COUNT(*) as total FROM siswa_kelas WHERE kelas_id = :kelas_id');
+        $this->db->query('SELECT COUNT(DISTINCT smp.siswa_id) as total 
+                         FROM kelas_mata_pelajaran kmp
+                         INNER JOIN siswa_mata_pelajaran smp ON kmp.mata_pelajaran_id = smp.mata_pelajaran_id
+                         WHERE kmp.kelas_id = :kelas_id');
         $this->db->bind(':kelas_id', $kelas_id);
         $row = $this->db->single();
         return $row ? (int)$row->total : 0;
-    }
-    
-    public function addSiswaToKelas($siswa_id, $kelas_id) {
-        // Tambahkan siswa ke kelas (relasi many-to-many sederhana)
-        $this->db->query('INSERT INTO siswa_kelas (siswa_id, kelas_id) VALUES (:siswa_id, :kelas_id)');
-        $this->db->bind(':siswa_id', $siswa_id);
-        $this->db->bind(':kelas_id', $kelas_id);
-        return $this->db->execute();
-    }
-    
-    public function removeSiswaFromKelas($siswa_id, $kelas_id) {
-        // Hapus relasi siswa-kelas
-        $this->db->query('DELETE FROM siswa_kelas WHERE siswa_id = :siswa_id AND kelas_id = :kelas_id');
-        $this->db->bind(':siswa_id', $siswa_id);
-        $this->db->bind(':kelas_id', $kelas_id);
-        return $this->db->execute();
-    }
-
-    public function getAvailableSiswa($kelas_id = null) {
-        // Ambil semua siswa, kecuali yang sudah ada di kelas tertentu
-        if ($kelas_id) {
-            $this->db->query('SELECT * FROM users u 
-                             WHERE u.role = "siswa" 
-                             AND u.id NOT IN (SELECT siswa_id FROM siswa_kelas WHERE kelas_id = :kelas_id)
-                             ORDER BY u.nama');
-            $this->db->bind(':kelas_id', $kelas_id);
-        } else {
-            $this->db->query('SELECT * FROM users u WHERE u.role = "siswa" ORDER BY u.nama');
-        }
-        return $this->db->resultSet();
-    }
-    
-    public function getKelasBySiswa($siswa_id) {
-        // Ambil semua kelas yang diikuti oleh siswa tertentu
-        $this->db->query('SELECT k.*, u.nama as wali_kelas_nama 
-                         FROM kelas k
-                         INNER JOIN siswa_kelas sk ON k.id = sk.kelas_id
-                         LEFT JOIN users u ON k.wali_kelas = u.id
-                         WHERE sk.siswa_id = :siswa_id
-                         ORDER BY k.nama_kelas');
-        $this->db->bind(':siswa_id', $siswa_id);
-        return $this->db->resultSet();
     }
 }
 ?>

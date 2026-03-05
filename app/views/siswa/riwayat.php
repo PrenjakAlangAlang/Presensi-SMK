@@ -12,7 +12,7 @@ $tahun = $_GET['tahun'] ?? date('Y');
 
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-800">Riwayat Presensi</h2>
-    <p class="text-gray-600">Lihat history kehadiran Anda di sekolah dan kelas</p>
+    <p class="text-gray-600">Lihat history kehadiran Anda di sekolah dan mata pelajaran</p>
 </div>
 
 <!-- Filter Periode -->
@@ -118,7 +118,7 @@ $tahun = $_GET['tahun'] ?? date('Y');
     </div>
 </div>
 
-<!-- Statistik Ringkas Kelas -->
+<!-- Statistik Ringkas Mata Pelajaran -->
 <div id="statistik-kelas" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 hidden">
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
         <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -184,11 +184,11 @@ $tahun = $_GET['tahun'] ?? date('Y');
         </div>
     </div>
 
-    <!-- Grafik Kehadiran Kelas -->
+    <!-- Grafik Kehadiran Mata Pelajaran -->
     <div id="grafik-kelas" class="contents hidden">
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <h3 class="text-lg font-semibold text-gray-800 mb-6">
-                Grafik Kehadiran Kelas
+                Grafik Kehadiran Mata Pelajaran
                 <?php 
                 if ($periode === 'harian') {
                     echo date('d M Y', strtotime($tanggal));
@@ -205,9 +205,9 @@ $tahun = $_GET['tahun'] ?? date('Y');
             </div>
         </div>
 
-        <!-- Presentase Kehadiran Kelas -->
+        <!-- Presentase Kehadiran Mata Pelajaran -->
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-800 mb-6">Presentase Kehadiran Kelas</h3>
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">Presentase Kehadiran Mata Pelajaran</h3>
             <div class="h-64">
                 <canvas id="percentageChartKelas"></canvas>
             </div>
@@ -227,7 +227,7 @@ $tahun = $_GET['tahun'] ?? date('Y');
             <button onclick="switchTab('kelas')" 
                     id="tab-kelas" 
                     class="flex-1 py-4 px-6 text-center border-b-2 font-medium text-sm transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                <i class="fas fa-chalkboard mr-2"></i>Presensi Kelas
+                <i class="fas fa-book mr-2"></i>Presensi Mata Pelajaran
             </button>
         </nav>
     </div>
@@ -335,7 +335,7 @@ $tahun = $_GET['tahun'] ?? date('Y');
         </div>
     </div>
 
-    <!-- Content untuk Presensi Kelas -->
+    <!-- Content untuk Presensi Mata Pelajaran -->
     <div id="content-kelas" class="p-6 hidden">
         <div class="overflow-x-auto">
             <table class="w-full">
@@ -343,7 +343,7 @@ $tahun = $_GET['tahun'] ?? date('Y');
                     <tr class="bg-gray-50 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">No</th>
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Tanggal</th>
-                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Kelas</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Mata Pelajaran</th>
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Waktu</th>
                         <!--
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Status</th>
@@ -363,7 +363,7 @@ $tahun = $_GET['tahun'] ?? date('Y');
                                 <?php echo date('d M Y', strtotime($presensi->waktu)); ?>
                             </td>
                             <td class="px-6 py-4 text-sm font-medium text-gray-800">
-                                <?php echo htmlspecialchars($presensi->nama_kelas ?? 'Kelas'); ?>
+                                <?php echo htmlspecialchars($presensi->nama_mata_pelajaran ?? 'Mata Pelajaran'); ?>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-700">
                                 <?php echo date('H:i', strtotime($presensi->waktu)); ?>
