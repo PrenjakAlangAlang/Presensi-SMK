@@ -5,7 +5,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <div class="flex justify-between items-center mb-6">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800">ManajemenMata Pelajaran</h2>
+        <h2 class="text-2xl font-bold text-gray-800">Manajemen Mata Pelajaran</h2>
         <p class="text-gray-600">Kelola data mata pelajaran dan guru pengampu</p>
     </div>
     <button onclick="openAddMapelModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">

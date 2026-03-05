@@ -60,6 +60,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <tr class="bg-gray-50 border-b border-gray-200">
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Nama Kelas</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tahun Ajaran</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Wali Kelas</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Jumlah Siswa</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Jumlah Mapel</th>
                     <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
@@ -82,6 +83,16 @@ require_once __DIR__ . '/../layouts/header.php';
                         <?php echo htmlspecialchars($k->tahun_ajaran); ?>
                     </td>
                     <td class="px-6 py-4 text-gray-600">
+                        <?php if($k->wali_kelas_id && $k->wali_kelas_nama): ?>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                <i class="fas fa-user-tie mr-1"></i>
+                                <?php echo htmlspecialchars($k->wali_kelas_nama); ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="text-gray-400 italic">Belum ditentukan</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="px-6 py-4 text-gray-600">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
                             <i class="fas fa-user-graduate mr-1"></i>
                             <?php echo $k->jumlah_siswa; ?> siswa
@@ -102,6 +113,7 @@ require_once __DIR__ . '/../layouts/header.php';
                                 data-id="<?php echo $k->id; ?>"
                                 data-nama_kelas="<?php echo htmlspecialchars($k->nama_kelas); ?>"
                                 data-tahun_ajaran="<?php echo htmlspecialchars($k->tahun_ajaran); ?>"
+                                data-wali_kelas_id="<?php echo $k->wali_kelas_id ?? ''; ?>"
                                 class="text-blue-600 hover:text-blue-700 mr-2" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -114,7 +126,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <?php endforeach; ?>
                 <?php if(empty($kelas)): ?>
                 <tr>
-                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>Belum ada kelas. Klik "Tambah Kelas" untuk membuat kelas baru.</p>
                     </td>
@@ -144,6 +156,16 @@ require_once __DIR__ . '/../layouts/header.php';
                     <input type="text" name="tahun_ajaran" required 
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                            placeholder="Contoh: 2025/2026">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Wali Kelas</label>
+                    <select name="wali_kelas_id" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">-- Pilih Wali Kelas --</option>
+                        <?php foreach($guru as $g): ?>
+                            <option value="<?php echo $g->id; ?>"><?php echo htmlspecialchars($g->nama); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
             <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
@@ -178,6 +200,16 @@ require_once __DIR__ . '/../layouts/header.php';
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Ajaran *</label>
                     <input type="text" name="tahun_ajaran" id="edit_kelas_tahun" required 
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Wali Kelas</label>
+                    <select name="wali_kelas_id" id="edit_kelas_wali" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">-- Pilih Wali Kelas --</option>
+                        <?php foreach($guru as $g): ?>
+                            <option value="<?php echo $g->id; ?>"><?php echo htmlspecialchars($g->nama); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
             <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
@@ -252,10 +284,12 @@ function openEditKelasModal(button) {
     var id = button.getAttribute('data-id');
     var nama = button.getAttribute('data-nama_kelas');
     var tahun = button.getAttribute('data-tahun_ajaran');
+    var waliKelasId = button.getAttribute('data-wali_kelas_id');
 
     document.getElementById('edit_kelas_id').value = id;
     document.getElementById('edit_kelas_nama').value = nama;
     document.getElementById('edit_kelas_tahun').value = tahun;
+    document.getElementById('edit_kelas_wali').value = waliKelasId || '';
 
     document.getElementById('editKelasModal').classList.remove('hidden');
 }

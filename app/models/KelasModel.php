@@ -14,26 +14,28 @@ class KelasModel {
     public function getAllKelas() {
         // Ambil semua kelas dengan jumlah siswa dan mata pelajaran
         // Siswa dihitung dari mata pelajaran yang ada di kelas (siswa_mata_pelajaran)
-        $this->db->query('SELECT k.*, 
+        $this->db->query('SELECT k.*, u.nama as wali_kelas_nama, 
                          (SELECT COUNT(DISTINCT smp.siswa_id) 
                           FROM kelas_mata_pelajaran kmp
                           INNER JOIN siswa_mata_pelajaran smp ON kmp.mata_pelajaran_id = smp.mata_pelajaran_id
                           WHERE kmp.kelas_id = k.id) as jumlah_siswa,
                          (SELECT COUNT(*) FROM kelas_mata_pelajaran WHERE kelas_id = k.id) as jumlah_mapel
                          FROM kelas k 
+                         LEFT JOIN users u ON k.wali_kelas_id = u.id
                          ORDER BY k.tahun_ajaran DESC, k.nama_kelas ASC');
         return $this->db->resultSet();
     }
     
     public function getKelasById($id) {
         // Ambil detail satu kelas berdasarkan id dengan jumlah siswa dan mata pelajaran
-        $this->db->query('SELECT k.*,
+        $this->db->query('SELECT k.*, u.nama as wali_kelas_nama,
                          (SELECT COUNT(DISTINCT smp.siswa_id) 
                           FROM kelas_mata_pelajaran kmp
                           INNER JOIN siswa_mata_pelajaran smp ON kmp.mata_pelajaran_id = smp.mata_pelajaran_id
                           WHERE kmp.kelas_id = k.id) as jumlah_siswa,
                          (SELECT COUNT(*) FROM kelas_mata_pelajaran WHERE kelas_id = k.id) as jumlah_mapel
                          FROM kelas k 
+                         LEFT JOIN users u ON k.wali_kelas_id = u.id
                          WHERE k.id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
@@ -41,10 +43,11 @@ class KelasModel {
     
     public function createKelas($data) {
         // Buat kelas baru
-        $this->db->query('INSERT INTO kelas (nama_kelas, tahun_ajaran) 
-                         VALUES (:nama_kelas, :tahun_ajaran)');
+        $this->db->query('INSERT INTO kelas (nama_kelas, tahun_ajaran, wali_kelas_id) 
+                         VALUES (:nama_kelas, :tahun_ajaran, :wali_kelas_id)');
         $this->db->bind(':nama_kelas', $data['nama_kelas']);
         $this->db->bind(':tahun_ajaran', $data['tahun_ajaran']);
+        $this->db->bind(':wali_kelas_id', $data['wali_kelas_id'] ?? null);
         
         if ($this->db->execute()) {
             return $this->db->lastInsertId();
@@ -55,11 +58,12 @@ class KelasModel {
     public function updateKelas($data) {
         // Perbarui data kelas
         $this->db->query('UPDATE kelas 
-                         SET nama_kelas = :nama_kelas, tahun_ajaran = :tahun_ajaran 
+                         SET nama_kelas = :nama_kelas, tahun_ajaran = :tahun_ajaran, wali_kelas_id = :wali_kelas_id 
                          WHERE id = :id');
         $this->db->bind(':id', $data['id']);
         $this->db->bind(':nama_kelas', $data['nama_kelas']);
         $this->db->bind(':tahun_ajaran', $data['tahun_ajaran']);
+        $this->db->bind(':wali_kelas_id', $data['wali_kelas_id'] ?? null);
         
         return $this->db->execute();
     }

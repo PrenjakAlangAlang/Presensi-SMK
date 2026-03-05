@@ -120,8 +120,10 @@ require_once __DIR__ . '/../layouts/header.php';
                         <?php foreach($kelas as $k): ?>
                             <option value="<?php echo $k->id; ?>" 
                                     data-nama="<?php echo htmlspecialchars($k->nama_mata_pelajaran); ?>"
+                                    data-kelas="<?php echo htmlspecialchars($k->nama_kelas ?? 'Tidak ada kelas'); ?>"
                                     data-tahun="<?php echo htmlspecialchars($k->tahun_ajaran ?? '-'); ?>"
-                                    data-wali="<?php echo htmlspecialchars($k->guru_pengampu_nama ?? 'Belum ditentukan'); ?>"
+                                    data-guru="<?php echo htmlspecialchars($k->guru_pengampu_nama ?? 'Belum ditentukan'); ?>"
+                                    data-wali="<?php echo htmlspecialchars($k->wali_kelas_nama ?? 'Belum ditentukan'); ?>"
                                     data-jadwal="<?php echo htmlspecialchars($k->jadwal ?? 'Belum diatur'); ?>">
                                 <?php echo htmlspecialchars($k->nama_mata_pelajaran); ?>
                             </option>
@@ -138,12 +140,17 @@ require_once __DIR__ . '/../layouts/header.php';
                             </div>
                             <div class="flex-1">
                                 <h3 id="kelasDetailNama" class="text-lg font-bold text-gray-800 mb-1">-</h3>
+                                <p id="kelasDetailKelas" class="text-sm text-gray-600 mb-1">-</p>
                                 <p id="kelasDetailTahun" class="text-sm text-gray-600 mb-3">-</p>
                                 
                                 <div class="grid grid-cols-1 gap-2 text-sm">
                                     <div class="flex items-center text-gray-700">
                                         <i class="fas fa-chalkboard-teacher w-5 text-green-600"></i>
-                                        <span class="ml-2"><strong>Guru Pengampu:</strong> <span id="kelasDetailWali">-</span></span>
+                                        <span class="ml-2"><strong>Guru Pengampu:</strong> <span id="kelasDetailGuru">-</span></span>
+                                    </div>
+                                    <div class="flex items-center text-gray-700">
+                                        <i class="fas fa-user-tie w-5 text-green-600"></i>
+                                        <span class="ml-2"><strong>Wali Kelas:</strong> <span id="kelasDetailWali">-</span></span>
                                     </div>
                                     <div class="flex items-center text-gray-700">
                                         <i class="fas fa-clock w-5 text-green-600"></i>
@@ -890,12 +897,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Tampilkan detail kelas yang dipilih
         const selectedOption = this.options[this.selectedIndex];
         const kelasNama = selectedOption.getAttribute('data-nama');
+        const namaKelas = selectedOption.getAttribute('data-kelas');
         const kelasTahun = selectedOption.getAttribute('data-tahun');
+        const kelasGuru = selectedOption.getAttribute('data-guru');
         const kelasWali = selectedOption.getAttribute('data-wali');
         const kelasJadwal = selectedOption.getAttribute('data-jadwal');
 
         document.getElementById('kelasDetailNama').textContent = kelasNama;
+        document.getElementById('kelasDetailKelas').textContent = 'Kelas: ' + namaKelas;
         document.getElementById('kelasDetailTahun').textContent = 'Tahun Ajaran: ' + kelasTahun;
+        document.getElementById('kelasDetailGuru').textContent = kelasGuru;
         document.getElementById('kelasDetailWali').textContent = kelasWali;
         document.getElementById('kelasDetailJadwal').textContent = kelasJadwal;
         kelasDetailCard.classList.remove('hidden');

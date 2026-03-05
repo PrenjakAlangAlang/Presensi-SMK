@@ -69,8 +69,13 @@ class MataPelajaranModel {
     public function getMataPelajaranByGuru($guru_id) {
         // Ambil semua mata pelajaran yang guru_pengampu-nya adalah guru tertentu
         // dengan informasi kelas yang terkait
-        $this->db->query('SELECT DISTINCT mp.*, kmp.kelas_id, kmp.id as kelas_mapel_id,
-                         k.nama_kelas, k.tahun_ajaran
+        // Setiap kombinasi mata_pelajaran-kelas akan menjadi row terpisah
+        $this->db->query('SELECT mp.*, 
+                         kmp.kelas_id, 
+                         kmp.id as kelas_mapel_id,
+                         k.nama_kelas, 
+                         k.tahun_ajaran,
+                         mp.id as mata_pelajaran_id
                          FROM mata_pelajaran mp
                          LEFT JOIN kelas_mata_pelajaran kmp ON mp.id = kmp.mata_pelajaran_id
                          LEFT JOIN kelas k ON kmp.kelas_id = k.id
@@ -133,16 +138,41 @@ class MataPelajaranModel {
     
     public function getMataPelajaranBySiswa($siswa_id) {
         // Ambil semua mata pelajaran yang diikuti oleh siswa tertentu
-        // Siswa mengikuti mata pelajaran melalui kelas mereka
-        $this->db->query('SELECT mp.*, u.nama as guru_pengampu_nama, k.nama_kelas, k.tahun_ajaran, kmp.id as kelas_mapel_id
+        // Siswa terhubung langsung ke mata pelajaran melalui siswa_mata_pelajaran
+        $this->db->query('SELECT mp.*, 
+                         u.nama as guru_pengampu_nama, 
+                         k.nama_kelas, 
+                         k.tahun_ajaran, 
+                         wali.nama as wali_kelas_nama,
+                         kmp.id as kelas_mapel_id,
+                         mp.id as mata_pelajaran_id
                          FROM mata_pelajaran mp
-                         INNER JOIN kelas_mata_pelajaran kmp ON mp.id = kmp.mata_pelajaran_id
-                         INNER JOIN kelas k ON kmp.kelas_id = k.id
-                         INNER JOIN siswa_kelas sk ON k.id = sk.kelas_id
+                         INNER JOIN siswa_mata_pelajaran smp ON mp.id = smp.mata_pelajaran_id
+                         LEFT JOIN kelas_mata_pelajaran kmp ON mp.id = kmp.mata_pelajaran_id
+                         LEFT JOIN kelas k ON kmp.kelas_id = k.id
                          LEFT JOIN users u ON mp.guru_pengampu = u.id
-                         WHERE sk.siswa_id = :siswa_id
-                         ORDER BY mp.nama_mata_pelajaran');
+                         LEFT JOIN users wali ON k.wali_kelas_id = wali.id
+                         WHERE smp.siswa_id = :siswa_id
+                         ORDER BY k.nama_kelas, mp.nama_mata_pelajaran');
         $this->db->bind(':siswa_id', $siswa_id);
+        return $this->db->resultSet();
+    }
+    
+    public function getAllMataPelajaranWithKelas() {
+        // Ambil semua mata pelajaran beserta informasi kelas untuk filter laporan
+        // Setiap kombinasi mata_pelajaran-kelas akan menjadi row terpisah
+        $this->db->query('SELECT mp.*, 
+                         u.nama as guru_pengampu_nama, 
+                         k.nama_kelas, 
+                         k.tahun_ajaran,
+                         kmp.kelas_id,
+                         kmp.id as kelas_mapel_id,
+                         mp.id as mata_pelajaran_id
+                         FROM mata_pelajaran mp
+                         LEFT JOIN users u ON mp.guru_pengampu = u.id
+                         LEFT JOIN kelas_mata_pelajaran kmp ON mp.id = kmp.mata_pelajaran_id
+                         LEFT JOIN kelas k ON kmp.kelas_id = k.id
+                         ORDER BY k.nama_kelas, mp.nama_mata_pelajaran');
         return $this->db->resultSet();
     }
 }

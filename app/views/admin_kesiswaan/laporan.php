@@ -114,7 +114,13 @@ require_once __DIR__ . '/../layouts/header.php';
                     <option value="">Pilih Mata Pelajaran</option>
                     <?php foreach($kelas_list as $kls): ?>
                         <option value="<?php echo $kls->id; ?>" <?php echo (isset($_GET['kelas_id']) && $_GET['kelas_id'] == $kls->id) ? 'selected' : ''; ?>>
-                            <?php echo $kls->nama_mata_pelajaran; ?>
+                            <?php 
+                            if (isset($kls->nama_kelas) && !empty($kls->nama_kelas)) {
+                                echo htmlspecialchars($kls->nama_kelas) . ' - ' . htmlspecialchars($kls->nama_mata_pelajaran);
+                            } else {
+                                echo htmlspecialchars($kls->nama_mata_pelajaran) . ' (Belum ditugaskan ke kelas)';
+                            }
+                            ?>
                         </option>
                     <?php endforeach; ?>
                 </select>

@@ -190,6 +190,7 @@ class AdminController {
         $kelas = $this->kelasModel->getAllKelas();
         $totalSiswa = count($this->userModel->getUsersByRole('siswa'));
         $totalGuru = count($this->userModel->getUsersByRole('guru'));
+        $guru = $this->userModel->getUsersByRole('guru');
         $kelasModel = $this->kelasModel;
     require_once __DIR__ . '/../views/admin/kelas.php';
     }
@@ -208,7 +209,8 @@ class AdminController {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = [
                 'nama_kelas' => $_POST['nama_kelas'],
-                'tahun_ajaran' => $_POST['tahun_ajaran']
+                'tahun_ajaran' => $_POST['tahun_ajaran'],
+                'wali_kelas_id' => !empty($_POST['wali_kelas_id']) ? $_POST['wali_kelas_id'] : null
             ];
 
             if($this->kelasModel->createKelas($data)) {
@@ -227,7 +229,8 @@ class AdminController {
             $data = [
                 'id' => $_POST['id'],
                 'nama_kelas' => $_POST['nama_kelas'],
-                'tahun_ajaran' => $_POST['tahun_ajaran']
+                'tahun_ajaran' => $_POST['tahun_ajaran'],
+                'wali_kelas_id' => !empty($_POST['wali_kelas_id']) ? $_POST['wali_kelas_id'] : null
             ];
 
             if($this->kelasModel->updateKelas($data)) {
@@ -409,8 +412,8 @@ class AdminController {
         // Ambil tipe laporan (sekolah atau kelas)
         $tipe_laporan = $_GET['tipe'] ?? 'sekolah';
         
-        // Ambil list mata pelajaran untuk dropdown
-        $kelas_list = $this->mataPelajaranModel->getAllMataPelajaran();
+        // Ambil list mata pelajaran dengan informasi kelas untuk dropdown
+        $kelas_list = $this->mataPelajaranModel->getAllMataPelajaranWithKelas();
         
         // Ambil parameter filter periode
         $periode = $_GET['periode'] ?? 'bulanan';
@@ -448,8 +451,8 @@ class AdminController {
                 $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
                             FROM presensi_kelas pk
                             JOIN users u ON pk.user_id = u.id
-                            JOIN mata_pelajaran k ON pk.kelas_id = k.id
-                            WHERE pk.kelas_id = :kelas_id 
+                            JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id
+                            WHERE pk.mata_pelajaran_id = :kelas_id 
                             AND DATE(pk.waktu) BETWEEN :start_date AND :end_date
                             ORDER BY pk.waktu DESC');
                 $db->bind(':kelas_id', $kelas_id);
@@ -667,8 +670,8 @@ class AdminController {
             $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
                         FROM presensi_kelas pk
                         JOIN users u ON pk.user_id = u.id
-                        JOIN mata_pelajaran k ON pk.kelas_id = k.id
-                        WHERE pk.kelas_id = :kelas_id 
+                        JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id
+                        WHERE pk.mata_pelajaran_id = :kelas_id 
                         AND DATE(pk.waktu) BETWEEN :start_date AND :end_date' . 
                         ($filter_status ? ' AND pk.jenis = :status' : '') . '
                         ORDER BY pk.waktu DESC');
@@ -680,8 +683,27 @@ class AdminController {
             }
             $presensi = $db->resultSet();
             
-            $kelas_info = $this->mataPelajaranModel->getMataPelajaranById($kelas_id);
-            $report_title = 'Laporan Presensi Mata Pelajaran ' . ($kelas_info ? $kelas_info->nama_mata_pelajaran : $kelas_id);
+            // Get mata pelajaran info with kelas
+            $db_info = new Database();
+            $db_info->query('SELECT mp.*, k.nama_kelas, k.tahun_ajaran
+                            FROM mata_pelajaran mp
+                            LEFT JOIN kelas_mata_pelajaran kmp ON mp.id = kmp.mata_pelajaran_id
+                            LEFT JOIN kelas k ON kmp.kelas_id = k.id
+                            WHERE mp.id = :kelas_id
+                            LIMIT 1');
+            $db_info->bind(':kelas_id', $kelas_id);
+            $kelas_info = $db_info->single();
+            
+            $report_title = 'Laporan Presensi Mata Pelajaran ';
+            if ($kelas_info) {
+                if (!empty($kelas_info->nama_kelas)) {
+                    $report_title .= $kelas_info->nama_kelas . ' - ' . $kelas_info->nama_mata_pelajaran;
+                } else {
+                    $report_title .= $kelas_info->nama_mata_pelajaran;
+                }
+            } else {
+                $report_title .= $kelas_id;
+            }
             
             // Calculate statistics from actual data
             $statistik = new stdClass();
@@ -876,8 +898,8 @@ class AdminController {
             $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
                         FROM presensi_kelas pk
                         JOIN users u ON pk.user_id = u.id
-                        JOIN mata_pelajaran k ON pk.kelas_id = k.id
-                        WHERE pk.kelas_id = :kelas_id 
+                        JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id
+                        WHERE pk.mata_pelajaran_id = :kelas_id 
                         AND DATE(pk.waktu) BETWEEN :start_date AND :end_date' . 
                         ($filter_status ? ' AND pk.jenis = :status' : '') . '
                         ORDER BY pk.waktu DESC');
@@ -889,8 +911,27 @@ class AdminController {
             }
             $presensi = $db->resultSet();
             
-            $kelas_info = $this->mataPelajaranModel->getMataPelajaranById($kelas_id);
-            $report_title = 'Laporan Presensi Mata Pelajaran ' . ($kelas_info ? $kelas_info->nama_mata_pelajaran : $kelas_id);
+            // Get mata pelajaran info with kelas
+            $db_info = new Database();
+            $db_info->query('SELECT mp.*, k.nama_kelas, k.tahun_ajaran
+                            FROM mata_pelajaran mp
+                            LEFT JOIN kelas_mata_pelajaran kmp ON mp.id = kmp.mata_pelajaran_id
+                            LEFT JOIN kelas k ON kmp.kelas_id = k.id
+                            WHERE mp.id = :kelas_id
+                            LIMIT 1');
+            $db_info->bind(':kelas_id', $kelas_id);
+            $kelas_info = $db_info->single();
+            
+            $report_title = 'Laporan Presensi Mata Pelajaran ';
+            if ($kelas_info) {
+                if (!empty($kelas_info->nama_kelas)) {
+                    $report_title .= $kelas_info->nama_kelas . ' - ' . $kelas_info->nama_mata_pelajaran;
+                } else {
+                    $report_title .= $kelas_info->nama_mata_pelajaran;
+                }
+            } else {
+                $report_title .= $kelas_id;
+            }
             
             // Calculate statistics from actual data
             $statistik = new stdClass();

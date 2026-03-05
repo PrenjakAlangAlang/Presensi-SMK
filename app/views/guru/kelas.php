@@ -8,6 +8,25 @@ require_once __DIR__ . '/../layouts/header.php';
     <p class="text-gray-600">Kelola presensi dan monitoring siswa per kelas</p>
 </div>
 
+<?php if (!empty($kelasSaya)): ?>
+    <?php 
+    $belumDitugaskan = array_filter($kelasSaya, function($m) { 
+        return empty($m->nama_kelas); 
+    });
+    if (!empty($belumDitugaskan)): 
+    ?>
+    <div class="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div class="flex items-center space-x-2 text-amber-800">
+            <i class="fas fa-info-circle"></i>
+            <p class="text-sm">
+                <strong>Perhatian:</strong> Beberapa mata pelajaran belum ditugaskan ke kelas. 
+                Silakan hubungi admin untuk menambahkan mata pelajaran ke kelas yang sesuai.
+            </p>
+        </div>
+    </div>
+    <?php endif; ?>
+<?php endif; ?>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
     <?php foreach($kelasSaya as $mapel): ?>
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -17,9 +36,12 @@ require_once __DIR__ . '/../layouts/header.php';
                     <i class="fas fa-chalkboard text-blue-600 text-xl"></i>
                 </div>
                 <div>
+                    <?php if(isset($mapel->nama_kelas) && !empty($mapel->nama_kelas)): ?>
                     <h3 class="font-semibold text-gray-800 text-lg"><?php echo htmlspecialchars($mapel->nama_mata_pelajaran); ?></h3>
-                    <?php if(isset($mapel->nama_kelas)): ?>
                     <p class="text-gray-600 text-sm"><?php echo htmlspecialchars($mapel->nama_kelas); ?> - <?php echo htmlspecialchars($mapel->tahun_ajaran); ?></p>
+                    <?php else: ?>
+                    <h3 class="font-semibold text-gray-800 text-lg"><?php echo htmlspecialchars($mapel->nama_mata_pelajaran); ?></h3>
+                    <p class="text-amber-600 text-sm italic">Belum ditugaskan ke kelas</p>
                     <?php endif; ?>
                     <?php if(!empty($mapel->jadwal)): ?>
                     <p class="text-gray-500 text-xs mt-1">
