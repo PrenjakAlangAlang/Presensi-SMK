@@ -1430,7 +1430,7 @@ class AdminController {
         $safeName = uniqid('buku-induk-') . '.pdf';
         $target = $uploadDir . '/' . $safeName;
         if(move_uploaded_file($file['tmp_name'], $target)) {
-            return ['success' => true, 'path' => '/uploads/buku_induk/' . $safeName];
+            return ['success' => true, 'path' => BASE_URL . '/public/uploads/buku_induk/' . $safeName];
         }
         return ['success' => false, 'message' => 'Gagal mengunggah dokumen.'];
     }

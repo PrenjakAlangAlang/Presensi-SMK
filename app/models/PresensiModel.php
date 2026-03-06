@@ -893,6 +893,14 @@ class PresensiModel {
         $bukuIndukModel = new BukuIndukModel();
         
         $count = 0;
+        $notificationStats = [
+            'email_sent' => 0,
+            'email_failed' => 0,
+            'whatsapp_sent' => 0,
+            'whatsapp_failed' => 0,
+            'no_contact' => 0
+        ];
+        
         foreach ($absentStudents as $student) {
             $data = [
                 'presensi_sekolah_sesi_id' => $sesi_id,
@@ -912,37 +920,77 @@ class PresensiModel {
                 $waktu = $sesiInfo->waktu_tutup ?? date('Y-m-d H:i:s');
                 $parentContact = $bukuIndukModel->getParentContact($student->id);
                 
+                // Log untuk debugging
+                error_log("===== ALPHA NOTIFICATION - SEKOLAH =====");
+                error_log("Student: " . $student->nama . " (ID: " . $student->id . ")");
+                error_log("Parent Contact: " . json_encode($parentContact));
+                
+                if (!$parentContact || (empty($parentContact['email']) && empty($parentContact['phone']))) {
+                    $notificationStats['no_contact']++;
+                    error_log("WARNING: No parent contact info for student " . $student->nama);
+                    continue;
+                }
+                
                 // Kirim email notifikasi ke orang tua
-                try {
-                    if ($parentContact && !empty($parentContact['email'])) {
-                        $emailService->sendAlphaNotificationSekolah(
+                if (!empty($parentContact['email'])) {
+                    try {
+                        $emailResult = $emailService->sendAlphaNotificationSekolah(
                             $parentContact['email'],
                             $student->nama,
                             $tanggal,
                             $waktu
                         );
+                        if ($emailResult) {
+                            $notificationStats['email_sent']++;
+                            error_log("SUCCESS: Email sent to " . $parentContact['email']);
+                        } else {
+                            $notificationStats['email_failed']++;
+                            error_log("FAILED: Email not sent to " . $parentContact['email']);
+                        }
+                    } catch (Exception $e) {
+                        $notificationStats['email_failed']++;
+                        error_log('EXCEPTION: Failed to send alpha notification email: ' . $e->getMessage());
                     }
-                } catch (Exception $e) {
-                    // Log error tapi jangan hentikan proses
-                    error_log('Failed to send alpha notification email: ' . $e->getMessage());
+                } else {
+                    error_log("SKIPPED: No email address for student " . $student->nama);
                 }
                 
                 // Kirim WhatsApp notifikasi ke orang tua
-                try {
-                    if ($parentContact && !empty($parentContact['phone'])) {
-                        $whatsappService->sendAlphaNotificationSekolah(
+                if (!empty($parentContact['phone'])) {
+                    try {
+                        $whatsappResult = $whatsappService->sendAlphaNotificationSekolah(
                             $parentContact['phone'],
                             $student->nama,
                             $tanggal,
                             $waktu
                         );
+                        if ($whatsappResult) {
+                            $notificationStats['whatsapp_sent']++;
+                            error_log("SUCCESS: WhatsApp sent to " . $parentContact['phone']);
+                        } else {
+                            $notificationStats['whatsapp_failed']++;
+                            error_log("FAILED: WhatsApp not sent to " . $parentContact['phone']);
+                        }
+                    } catch (Exception $e) {
+                        $notificationStats['whatsapp_failed']++;
+                        error_log('EXCEPTION: Failed to send alpha notification WhatsApp: ' . $e->getMessage());
                     }
-                } catch (Exception $e) {
-                    // Log error tapi jangan hentikan proses
-                    error_log('Failed to send alpha notification WhatsApp: ' . $e->getMessage());
+                } else {
+                    error_log("SKIPPED: No phone number for student " . $student->nama);
                 }
+                
+                error_log("=========================================");
             }
         }
+        
+        // Log final statistics
+        error_log("ALPHA NOTIFICATION STATS - SEKOLAH:");
+        error_log("  Students marked alpha: $count");
+        error_log("  Emails sent: " . $notificationStats['email_sent']);
+        error_log("  Emails failed: " . $notificationStats['email_failed']);
+        error_log("  WhatsApp sent: " . $notificationStats['whatsapp_sent']);
+        error_log("  WhatsApp failed: " . $notificationStats['whatsapp_failed']);
+        error_log("  No contact info: " . $notificationStats['no_contact']);
         
         return $count;
     }
@@ -959,7 +1007,20 @@ class PresensiModel {
         $this->db->bind(':sesi_id', $sesi_id);
         $sesiInfo = $this->db->single();
         
+        // Log session info
+        error_log("===== SESSION INFO - KELAS =====");
+        error_log("Sesi ID: " . $sesi_id);
+        error_log("Mata Pelajaran ID: " . $mata_pelajaran_id);
+        if ($sesiInfo) {
+            error_log("Nama Mata Pelajaran: " . ($sesiInfo->nama_mata_pelajaran ?? 'N/A'));
+            error_log("Waktu Tutup: " . ($sesiInfo->waktu_tutup ?? 'N/A'));
+        } else {
+            error_log("WARNING: Session info not found!");
+        }
+        error_log("================================");
+        
         // Get all students in this class who haven't checked in for this session
+        // Use mata_pelajaran_id from PHP variable to avoid double binding issue
         $this->db->query('
             SELECT smp.siswa_id, u.nama
             FROM siswa_mata_pelajaran smp
@@ -968,13 +1029,26 @@ class PresensiModel {
             AND smp.siswa_id NOT IN (
                 SELECT user_id 
                 FROM presensi_kelas 
-                WHERE mata_pelajaran_id = :mata_pelajaran_id 
+                WHERE mata_pelajaran_id = :mata_pelajaran_id2
                 AND presensi_sesi_id = :sesi_id
             )
         ');
         $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
+        $this->db->bind(':mata_pelajaran_id2', $mata_pelajaran_id);
         $this->db->bind(':sesi_id', $sesi_id);
         $absentStudents = $this->db->resultSet();
+        
+        // Log query results for debugging
+        error_log("===== CHECKING ABSENT STUDENTS - KELAS =====");
+        error_log("Mata Pelajaran ID: " . $mata_pelajaran_id);
+        error_log("Sesi ID: " . $sesi_id);
+        error_log("Absent Students Found: " . count($absentStudents));
+        if (count($absentStudents) > 0) {
+            error_log("Students: " . json_encode(array_map(function($s) {
+                return ['siswa_id' => $s->siswa_id, 'nama' => $s->nama];
+            }, $absentStudents)));
+        }
+        error_log("============================================");
         
         // Initialize email service, WhatsApp service, and buku induk model
         $emailService = new EmailService();
@@ -982,6 +1056,14 @@ class PresensiModel {
         $bukuIndukModel = new BukuIndukModel();
         
         $count = 0;
+        $notificationStats = [
+            'email_sent' => 0,
+            'email_failed' => 0,
+            'whatsapp_sent' => 0,
+            'whatsapp_failed' => 0,
+            'no_contact' => 0
+        ];
+        
         foreach ($absentStudents as $student) {
             $data = [
                 'presensi_sesi_id' => $sesi_id,
@@ -1003,39 +1085,83 @@ class PresensiModel {
                 $namaKelas = $sesiInfo->nama_mata_pelajaran ?? 'Mata Pelajaran';
                 $parentContact = $bukuIndukModel->getParentContact($student->siswa_id);
                 
+                // Log untuk debugging
+                error_log("===== ALPHA NOTIFICATION - KELAS =====");
+                error_log("Student: " . $student->nama . " (ID: " . $student->siswa_id . ")");
+                error_log("Mata Pelajaran: " . $namaKelas);
+                error_log("Parent Contact: " . json_encode($parentContact));
+                
+                if (!$parentContact || (empty($parentContact['email']) && empty($parentContact['phone']))) {
+                    $notificationStats['no_contact']++;
+                    error_log("WARNING: No parent contact info for student " . $student->nama);
+                    continue;
+                }
+                
                 // Kirim email notifikasi ke orang tua
-                try {
-                    if ($parentContact && !empty($parentContact['email'])) {
-                        $emailService->sendAlphaNotificationKelas(
+                if (!empty($parentContact['email'])) {
+                    try {
+                        $emailResult = $emailService->sendAlphaNotificationKelas(
                             $parentContact['email'],
                             $student->nama,
                             $namaKelas,
                             $tanggal,
                             $waktu
                         );
+                        if ($emailResult) {
+                            $notificationStats['email_sent']++;
+                            error_log("SUCCESS: Email sent to " . $parentContact['email']);
+                        } else {
+                            $notificationStats['email_failed']++;
+                            error_log("FAILED: Email not sent to " . $parentContact['email']);
+                        }
+                    } catch (Exception $e) {
+                        $notificationStats['email_failed']++;
+                        error_log('EXCEPTION: Failed to send alpha notification email: ' . $e->getMessage());
                     }
-                } catch (Exception $e) {
-                    // Log error tapi jangan hentikan proses
-                    error_log('Failed to send alpha notification email: ' . $e->getMessage());
+                } else {
+                    error_log("SKIPPED: No email address for student " . $student->nama);
                 }
                 
                 // Kirim WhatsApp notifikasi ke orang tua
-                try {
-                    if ($parentContact && !empty($parentContact['phone'])) {
-                        $whatsappService->sendAlphaNotificationKelas(
+                if (!empty($parentContact['phone'])) {
+                    try {
+                        $whatsappResult = $whatsappService->sendAlphaNotificationKelas(
                             $parentContact['phone'],
                             $student->nama,
                             $namaKelas,
                             $tanggal,
                             $waktu
                         );
+                        if ($whatsappResult) {
+                            $notificationStats['whatsapp_sent']++;
+                            error_log("SUCCESS: WhatsApp sent to " . $parentContact['phone']);
+                        } else {
+                            $notificationStats['whatsapp_failed']++;
+                            error_log("FAILED: WhatsApp not sent to " . $parentContact['phone']);
+                        }
+                    } catch (Exception $e) {
+                        $notificationStats['whatsapp_failed']++;
+                        error_log('EXCEPTION: Failed to send alpha notification WhatsApp: ' . $e->getMessage());
                     }
-                } catch (Exception $e) {
-                    // Log error tapi jangan hentikan proses
-                    error_log('Failed to send alpha notification WhatsApp: ' . $e->getMessage());
+                } else {
+                    error_log("SKIPPED: No phone number for student " . $student->nama);
                 }
+                
+                error_log("=======================================");
+            } else {
+                // Failed to record presensi
+                error_log("ERROR: Failed to record presensi for student " . $student->nama . " (ID: " . $student->siswa_id . ")");
             }
         }
+        
+        // Log final statistics
+        error_log("ALPHA NOTIFICATION STATS - KELAS:");
+        error_log("  Students marked alpha: $count");
+        error_log("  Emails sent: " . $notificationStats['email_sent']);
+        error_log("  Emails failed: " . $notificationStats['email_failed']);
+        error_log("  WhatsApp sent: " . $notificationStats['whatsapp_sent']);
+        error_log("  WhatsApp failed: " . $notificationStats['whatsapp_failed']);
+        error_log("  No contact info: " . $notificationStats['no_contact']);
         
         return $count;
     }

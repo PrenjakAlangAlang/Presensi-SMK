@@ -2,6 +2,11 @@
 // config/config.php
 session_start();
 
+// Enable error logging for debugging
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../php_errors.log');
+error_reporting(E_ALL);
+
 // Load environment variables from .env file
 require_once __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
