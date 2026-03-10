@@ -123,7 +123,7 @@ class GuruController {
             }
 
             // get laporan kemajuan and pick those that match the session timeframe (if any)
-            $allLaporan = $this->laporanModel->getLaporanByKelas($kelas->id);
+            $allLaporan = $this->laporanModel->getLaporanByMataPelajaran($kelas->id);
             $laporanPerSesi = [];
             if ($selectedSesi) {
                 $start = $selectedSesi->waktu_buka;
@@ -210,7 +210,7 @@ class GuruController {
     private function simpanLaporanKemajuan($mata_pelajaran_id, $guru_id, $catatan) {
         // Build data for model
         $data = [
-            'kelas_id' => $mata_pelajaran_id, // Note: LaporanModel still uses kelas_id as field name
+            'mata_pelajaran_id' => $mata_pelajaran_id,
             'guru_id' => $guru_id,
             'catatan' => $catatan
         ];
@@ -293,7 +293,7 @@ class GuruController {
         // Get laporan kemajuan
         $laporan_kemajuan = [];
         if ($sesi_id) {
-            $allLaporan = $this->laporanModel->getLaporanByKelas($mata_pelajaran_id);
+            $allLaporan = $this->laporanModel->getLaporanByMataPelajaran($mata_pelajaran_id);
             $session = $this->presensiSesiModel->getSessionById($sesi_id);
             if ($session) {
                 $start = $session->waktu_buka;
@@ -464,7 +464,7 @@ class GuruController {
         // Get laporan kemajuan
         $laporan_kemajuan = [];
         if ($sesi_id) {
-            $allLaporan = $this->laporanModel->getLaporanByKelas($mata_pelajaran_id);
+            $allLaporan = $this->laporanModel->getLaporanByMataPelajaran($mata_pelajaran_id);
             $session = $this->presensiSesiModel->getSessionById($sesi_id);
             if ($session) {
                 $start = $session->waktu_buka;

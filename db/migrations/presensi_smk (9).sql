@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 05, 2026 at 02:48 PM
+-- Generation Time: Mar 10, 2026 at 03:46 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -49,10 +49,10 @@ CREATE TABLE `buku_induk` (
 --
 
 INSERT INTO `buku_induk` (`id`, `user_id`, `nama`, `nis`, `nisn`, `tempat_lahir`, `tanggal_lahir`, `alamat`, `nama_ayah`, `nama_ibu`, `nama_wali`, `no_telp_ortu`, `email_ortu`, `dokumen_pdf`) VALUES
-(1, 5, 'Fakhri Tajuddin Hidayat', '7627', '11134567', 'Sleman', '2025-12-01', 'Ngampel', '', '', '', '', '', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-694239e508e54.pdf'),
-(2, 8, 'Zola', '7627', '11134567', 'Yogyakarta', '2025-12-01', 'fgsdfs', 'dsfsdf', 'sdfdsfsd', 'vzxv', '', '', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-697edf25009be.pdf'),
+(1, 5, 'Fakhri Tajuddin Hidayat', '7627', '11134567', 'Sleman', '2025-12-01', 'Ngampel', '', '', '', '', '', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-69aa7566ed81a.pdf'),
+(2, 8, 'Zola', '7627', '11134567', 'Yogyakarta', '2025-12-01', 'fgsdfs', 'dsfsdf', 'sdfdsfsd', 'vzxv', '6289644755532', '', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-69aa757c98e78.pdf'),
 (3, 7, 'Habib Maulana', 'dsada', 'sdaddd', 'sdadas', '2026-02-01', 'dasdas', 'dsa', 'dasd', 'asdas', '', '', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-697ede11e77e7.pdf'),
-(4, 3, 'Luthfi Nurafiq Asshiddiqi', '7627', '12345566', 'Sleman', '2026-02-04', 'Pakem', 'Atun Budi', 'Adik Kristien', '', '', 'luthfinurafiq76@gmail.com', '/uploads/buku_induk/buku-induk-698dff45b9fd6.pdf');
+(4, 3, 'Luthfi Nurafiq Asshiddiqi', '7627', '12345566', 'Sleman', '2026-02-04', 'Pakem', 'Atun Budi', 'Adik Kristien', '', '', '', '/uploads/buku_induk/buku-induk-698dff45b9fd6.pdf');
 
 -- --------------------------------------------------------
 
@@ -74,8 +74,9 @@ CREATE TABLE `buku_induk_dokumen` (
 
 INSERT INTO `buku_induk_dokumen` (`id`, `buku_induk_id`, `nama_file`, `dokumen_pdf`, `keterangan`) VALUES
 (4, 2, 'Jadwal Seminar Tugas Akhir Bulan Februari 2026 Prodi SI.pdf', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-698de74ad6972.pdf', 'seminar'),
-(5, 4, 'Ahmad+Ari+Gunawan+S.pdf', '/uploads/buku_induk/buku-induk-698dff45bac5e.pdf', 'tetggdfs'),
-(6, 4, 'Socialmediaandgeography.pdf', '/uploads/buku_induk/buku-induk-698dff45bb2c5.pdf', '');
+(7, 4, 'adi_literasi,+22.+PENGEMBANGAN+MODEL+PEMBELAJARAN.pdf', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-69aa74e407b0f.pdf', ''),
+(8, 4, 'KRP_2026-01-29T02_15_40.722Z.pdf', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-69aa750c422d4.pdf', ''),
+(9, 3, 'Jadwal Seminar TA bulan FEBRUARI 2026 (IF dan SI) untuk dosen.pdf', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-69aa75be21b07.pdf', '');
 
 -- --------------------------------------------------------
 
@@ -128,7 +129,7 @@ INSERT INTO `kelas_mata_pelajaran` (`id`, `kelas_id`, `mata_pelajaran_id`) VALUE
 
 CREATE TABLE `laporan_kemajuan` (
   `id` int NOT NULL,
-  `kelas_id` int NOT NULL,
+  `mata_pelajaran_id` int NOT NULL,
   `guru_id` int NOT NULL,
   `tanggal` date NOT NULL,
   `catatan` text,
@@ -139,7 +140,7 @@ CREATE TABLE `laporan_kemajuan` (
 -- Dumping data for table `laporan_kemajuan`
 --
 
-INSERT INTO `laporan_kemajuan` (`id`, `kelas_id`, `guru_id`, `tanggal`, `catatan`, `created_at`) VALUES
+INSERT INTO `laporan_kemajuan` (`id`, `mata_pelajaran_id`, `guru_id`, `tanggal`, `catatan`, `created_at`) VALUES
 (1, 1, 2, '2025-11-02', 'jh', '2025-11-02 15:25:14'),
 (2, 1, 2, '2025-11-03', 'sEMUA hADIR', '2025-11-03 06:58:27'),
 (3, 3, 2, '2025-12-22', 'mmno', '2025-12-22 02:27:07'),
@@ -160,7 +161,9 @@ INSERT INTO `laporan_kemajuan` (`id`, `kelas_id`, `guru_id`, `tanggal`, `catatan
 (18, 1, 2, '2026-02-10', 'fsdf', '2026-02-10 06:52:48'),
 (19, 1, 2, '2026-03-02', 'hjvjvh', '2026-03-02 06:37:18'),
 (20, 1, 2, '2026-03-02', 'hjvjvh', '2026-03-02 06:37:18'),
-(21, 3, 2, '2026-03-04', 'jhgfjhg', '2026-03-04 14:08:07');
+(21, 3, 2, '2026-03-04', 'jhgfjhg', '2026-03-04 14:08:07'),
+(22, 1, 2, '2026-03-06', 'nm', '2026-03-06 06:24:41'),
+(23, 1, 2, '2026-03-06', 'kn', '2026-03-06 06:53:30');
 
 -- --------------------------------------------------------
 
@@ -308,7 +311,13 @@ INSERT INTO `presensi_kelas` (`id`, `user_id`, `mata_pelajaran_id`, `latitude`, 
 (36, 8, 1, 0, 0, 0, 'valid', '2026-03-02 13:37:18', 19, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
 (37, 5, 1, 0, 0, 0, 'valid', '2026-03-02 13:37:18', 19, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
 (38, 7, 3, 0, 0, 0, 'valid', '2026-03-04 21:08:07', 20, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(39, 8, 3, 0, 0, 0, 'valid', '2026-03-04 21:08:07', 20, 'alpha', 'Tidak hadir saat sesi ditutup', NULL);
+(39, 8, 3, 0, 0, 0, 'valid', '2026-03-04 21:08:07', 20, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(40, 3, 1, 0, 0, 0, 'valid', '2026-03-06 13:24:20', 21, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(41, 8, 1, 0, 0, 0, 'valid', '2026-03-06 13:24:41', 21, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(42, 5, 1, 0, 0, 0, 'valid', '2026-03-06 13:24:41', 21, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(43, 3, 1, 0, 0, 0, 'valid', '2026-03-06 13:53:29', 22, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(44, 8, 1, 0, 0, 0, 'valid', '2026-03-06 13:53:29', 22, 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(45, 5, 1, 0, 0, 0, 'valid', '2026-03-06 13:53:30', 22, 'alpha', 'Tidak hadir saat sesi ditutup', NULL);
 
 -- --------------------------------------------------------
 
@@ -738,7 +747,9 @@ INSERT INTO `presensi_sekolah_sesi` (`id`, `waktu_buka`, `waktu_tutup`, `status`
 (112, '2026-03-02 14:09:00', '2026-03-02 14:14:00', 'closed', 1),
 (113, '2026-03-03 07:00:00', '2026-03-03 23:59:59', 'closed', NULL),
 (114, '2026-03-04 07:00:00', '2026-03-04 23:59:59', 'closed', NULL),
-(115, '2026-03-05 07:00:00', '2026-03-05 23:59:59', 'open', NULL);
+(115, '2026-03-05 07:00:00', '2026-03-05 23:59:59', 'open', NULL),
+(116, '2026-03-06 07:00:00', '2026-03-06 23:59:59', 'open', NULL),
+(117, '2026-03-10 07:00:00', '2026-03-10 23:59:59', 'open', NULL);
 
 -- --------------------------------------------------------
 
@@ -778,7 +789,9 @@ INSERT INTO `presensi_sesi` (`id`, `mata_pelajaran_id`, `guru_id`, `waktu_buka`,
 (17, 1, 2, '2026-02-01 11:58:04', '2026-02-04 13:55:24', 'closed'),
 (18, 1, 2, '2026-02-04 14:01:34', '2026-02-10 13:52:48', 'closed'),
 (19, 1, 2, '2026-02-10 21:32:55', '2026-03-02 13:37:18', 'closed'),
-(20, 3, 2, '2026-03-04 21:08:02', '2026-03-04 21:08:07', 'closed');
+(20, 3, 2, '2026-03-04 21:08:02', '2026-03-04 21:08:07', 'closed'),
+(21, 1, 2, '2026-03-06 13:24:15', '2026-03-06 13:24:41', 'closed'),
+(22, 1, 2, '2026-03-06 13:53:07', '2026-03-06 13:53:30', 'closed');
 
 -- --------------------------------------------------------
 
@@ -874,7 +887,7 @@ ALTER TABLE `kelas_mata_pelajaran`
 --
 ALTER TABLE `laporan_kemajuan`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `kelas_id` (`kelas_id`),
+  ADD KEY `kelas_id` (`mata_pelajaran_id`),
   ADD KEY `guru_id` (`guru_id`);
 
 --
@@ -951,7 +964,7 @@ ALTER TABLE `buku_induk`
 -- AUTO_INCREMENT for table `buku_induk_dokumen`
 --
 ALTER TABLE `buku_induk_dokumen`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `kelas`
@@ -969,7 +982,7 @@ ALTER TABLE `kelas_mata_pelajaran`
 -- AUTO_INCREMENT for table `laporan_kemajuan`
 --
 ALTER TABLE `laporan_kemajuan`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `lokasi_sekolah`
@@ -987,7 +1000,7 @@ ALTER TABLE `mata_pelajaran`
 -- AUTO_INCREMENT for table `presensi_kelas`
 --
 ALTER TABLE `presensi_kelas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `presensi_sekolah`
@@ -999,13 +1012,13 @@ ALTER TABLE `presensi_sekolah`
 -- AUTO_INCREMENT for table `presensi_sekolah_sesi`
 --
 ALTER TABLE `presensi_sekolah_sesi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=118;
 
 --
 -- AUTO_INCREMENT for table `presensi_sesi`
 --
 ALTER TABLE `presensi_sesi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `siswa_mata_pelajaran`
@@ -1052,7 +1065,7 @@ ALTER TABLE `kelas_mata_pelajaran`
 -- Constraints for table `laporan_kemajuan`
 --
 ALTER TABLE `laporan_kemajuan`
-  ADD CONSTRAINT `laporan_kemajuan_ibfk_1` FOREIGN KEY (`kelas_id`) REFERENCES `mata_pelajaran` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `laporan_kemajuan_ibfk_1` FOREIGN KEY (`mata_pelajaran_id`) REFERENCES `mata_pelajaran` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `laporan_kemajuan_ibfk_2` FOREIGN KEY (`guru_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
