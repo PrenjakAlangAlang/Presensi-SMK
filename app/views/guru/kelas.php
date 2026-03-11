@@ -132,7 +132,7 @@ let currentMapelId = null;
 
 function bukaPresensi(mapelId) {
     if (confirm('Buka presensi untuk mata pelajaran ini?')) {
-        fetch('index.php?action=buka_presensi_kelas', {
+        fetch('index.php?action=buka_presensi_mapel', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -176,7 +176,7 @@ document.getElementById('tutupPresensiForm').addEventListener('submit', function
     
     const formData = new FormData(this);
     
-    fetch('index.php?action=tutup_presensi_kelas', {
+    fetch('index.php?action=tutup_presensi_mapel', {
         method: 'POST',
         body: formData
     })

@@ -449,7 +449,7 @@ class AdminController {
                 // Get all presensi kelas for the period
                 $db = new Database();
                 $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
-                            FROM presensi_kelas pk
+                            FROM presensi_mapel pk
                             JOIN users u ON pk.user_id = u.id
                             JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id
                             WHERE pk.mata_pelajaran_id = :kelas_id 
@@ -668,7 +668,7 @@ class AdminController {
         if ($tipe === 'kelas' && $kelas_id) {
             $db = new Database();
             $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
-                        FROM presensi_kelas pk
+                        FROM presensi_mapel pk
                         JOIN users u ON pk.user_id = u.id
                         JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id
                         WHERE pk.mata_pelajaran_id = :kelas_id 
@@ -896,7 +896,7 @@ class AdminController {
         if ($tipe === 'kelas' && $kelas_id) {
             $db = new Database();
             $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
-                        FROM presensi_kelas pk
+                        FROM presensi_mapel pk
                         JOIN users u ON pk.user_id = u.id
                         JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id
                         WHERE pk.mata_pelajaran_id = :kelas_id 
@@ -1247,7 +1247,7 @@ class AdminController {
             
             // Update presensi kelas yang sudah ada berdasarkan ID
             $db = new Database();
-            $db->query('UPDATE presensi_kelas SET 
+            $db->query('UPDATE presensi_mapel SET 
                         jenis = :jenis,
                         alasan = :alasan,
                         foto_bukti = :foto_bukti

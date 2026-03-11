@@ -686,7 +686,7 @@ function submitPresensiKelas() {
     if (alasan.trim()) formData.append('alasan', alasan);
     if (buktiFile) formData.append('bukti', buktiFile);
 
-    fetch('index.php?action=submit_presensi_kelas', {
+    fetch('index.php?action=submit_presensi_mapel', {
         method: 'POST',
         body: formData
     })

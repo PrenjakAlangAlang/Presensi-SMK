@@ -404,7 +404,7 @@ switch($action) {
         $siswa->submitPresensiSekolah();
         break;
         
-    case 'submit_presensi_kelas':
+    case 'submit_presensi_mapel':
         require_once __DIR__ . '/app/controllers/SiswaController.php';
         $siswa = new SiswaController();
         $siswa->submitPresensiKelas();
@@ -429,19 +429,19 @@ switch($action) {
         $guru->laporan();
         break;
         
-    case 'buka_presensi_kelas':
+    case 'buka_presensi_mapel':
         require_once __DIR__ . '/app/controllers/GuruController.php';
         $guru = new GuruController();
         $guru->bukaPresensiKelas();
         break;
         
-    case 'tutup_presensi_kelas':
+    case 'tutup_presensi_mapel':
         require_once __DIR__ . '/app/controllers/GuruController.php';
         $guru = new GuruController();
         $guru->tutupPresensiKelas();
         break;
         
-    case 'get_presensi_kelas':
+    case 'get_presensi_mapel':
         require_once __DIR__ . '/app/controllers/GuruController.php';
         $guru = new GuruController();
         $guru->getPresensiKelas($_GET['kelas_id']);
@@ -477,7 +477,7 @@ switch($action) {
         $admin->ubahStatusPresensiSekolah();
         break;
         
-    case 'admin_ubah_status_presensi_kelas':
+    case 'admin_ubah_status_presensi_mapel':
         require_once __DIR__ . '/app/controllers/AdminController.php';
         $admin = new AdminController();
         $admin->ubahStatusPresensiKelas();
@@ -489,7 +489,7 @@ switch($action) {
         $ak->ubahStatusPresensiSekolah();
         break;
         
-    case 'admin_kesiswaan_ubah_status_presensi_kelas':
+    case 'admin_kesiswaan_ubah_status_presensi_mapel':
         require_once __DIR__ . '/app/controllers/AdminKesiswaanController.php';
         $ak = new AdminKesiswaanController();
         $ak->ubahStatusPresensiKelas();

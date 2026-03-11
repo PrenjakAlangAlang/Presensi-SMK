@@ -880,7 +880,7 @@ function submitEditPresensiKelas(event) {
                 }
             });
             
-            fetch('index.php?action=admin_kesiswaan_ubah_status_presensi_kelas', {
+            fetch('index.php?action=admin_kesiswaan_ubah_status_presensi_mapel', {
                 method: 'POST',
                 body: formData
             })

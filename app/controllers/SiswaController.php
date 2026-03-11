@@ -468,7 +468,7 @@ class SiswaController {
                     SUM(CASE WHEN jenis = "izin" THEN 1 ELSE 0 END) as izin,
                     SUM(CASE WHEN jenis = "sakit" THEN 1 ELSE 0 END) as sakit,
                     SUM(CASE WHEN jenis = "alpha" THEN 1 ELSE 0 END) as alpha
-                    FROM presensi_kelas 
+                    FROM presensi_mapel 
                     WHERE user_id = :user_id AND DATE(waktu) BETWEEN :start_date AND :end_date');
         $db->bind(':user_id', $user_id);
         $db->bind(':start_date', $startDate);
@@ -575,7 +575,7 @@ class SiswaController {
             }
             
             $db->query('SELECT HOUR(waktu) as jam, COUNT(*) as jumlah 
-                       FROM presensi_kelas 
+                       FROM presensi_mapel 
                        WHERE user_id = :user_id AND DATE(waktu) = :tanggal 
                        GROUP BY HOUR(waktu)');
             $db->bind(':user_id', $user_id);
@@ -601,7 +601,7 @@ class SiswaController {
                 $labels[] = $dayName[date('w', strtotime($date))];
                 
                 $db->query('SELECT COUNT(*) as jumlah 
-                           FROM presensi_kelas 
+                           FROM presensi_mapel 
                            WHERE user_id = :user_id AND DATE(waktu) = :tanggal AND (status = "valid" OR jenis IN ("izin", "sakit"))');
                 $db->bind(':user_id', $user_id);
                 $db->bind(':tanggal', $date);
@@ -624,7 +624,7 @@ class SiswaController {
             }
             
             $db->query('SELECT DAY(waktu) as hari, COUNT(*) as jumlah 
-                       FROM presensi_kelas 
+                       FROM presensi_mapel 
                        WHERE user_id = :user_id AND MONTH(waktu) = :bulan AND YEAR(waktu) = :tahun AND (status = "valid" OR jenis IN ("izin", "sakit"))
                        GROUP BY DAY(waktu)');
             $db->bind(':user_id', $user_id);
