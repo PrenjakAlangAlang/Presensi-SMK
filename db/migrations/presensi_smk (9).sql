@@ -264,7 +264,7 @@ CREATE TABLE `presensi_mapel` (
   `jarak` double NOT NULL,
   `status` enum('valid','invalid') DEFAULT 'invalid',
   `waktu` datetime DEFAULT CURRENT_TIMESTAMP,
-  `presensi_sesi_id` int DEFAULT NULL,
+  `presensi_mapel_sesi_id` int DEFAULT NULL,
   `jenis` enum('hadir','izin','sakit','alpha') DEFAULT 'hadir',
   `alasan` text,
   `foto_bukti` varchar(255) DEFAULT NULL
@@ -274,7 +274,7 @@ CREATE TABLE `presensi_mapel` (
 -- Dumping data for table `presensi_mapel`
 --
 
-INSERT INTO `presensi_mapel` (`id`, `user_id`, `mata_pelajaran_id`, `latitude`, `longitude`, `jarak`, `status`, `waktu`, `presensi_sesi_id`, `jenis`, `alasan`, `foto_bukti`) VALUES
+INSERT INTO `presensi_mapel` (`id`, `user_id`, `mata_pelajaran_id`, `latitude`, `longitude`, `jarak`, `status`, `waktu`, `presensi_mapel_sesi_id`, `jenis`, `alasan`, `foto_bukti`) VALUES
 (1, 3, 1, -7.649809168880289, 110.41317558958572, 27.219115022648, 'valid', '2025-11-02 22:41:04', 4, 'hadir', NULL, NULL),
 (4, 3, 1, 0, 0, 0, 'valid', '2025-12-23 22:35:23', 7, 'izin', 'non', 'http://localhost/Presensi-SMK/public/uploads/izin/bukti-694ab6bb9a3ef.jpeg'),
 (5, 5, 1, 0, 0, 0, 'valid', '2025-12-23 22:40:00', 7, 'izin', '3e23ewd', 'http://localhost/Presensi-SMK/public/uploads/izin/bukti-694ab7d06cecb.jpeg'),
@@ -754,10 +754,10 @@ INSERT INTO `presensi_sekolah_sesi` (`id`, `waktu_buka`, `waktu_tutup`, `status`
 -- --------------------------------------------------------
 
 --
--- Table structure for table `presensi_sesi`
+-- Table structure for table `presensi_mapel_sesi`
 --
 
-CREATE TABLE `presensi_sesi` (
+CREATE TABLE `presensi_mapel_sesi` (
   `id` int NOT NULL,
   `mata_pelajaran_id` int NOT NULL,
   `guru_id` int NOT NULL,
@@ -767,10 +767,10 @@ CREATE TABLE `presensi_sesi` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `presensi_sesi`
+-- Dumping data for table `presensi_mapel_sesi`
 --
 
-INSERT INTO `presensi_sesi` (`id`, `mata_pelajaran_id`, `guru_id`, `waktu_buka`, `waktu_tutup`, `status`) VALUES
+INSERT INTO `presensi_mapel_sesi` (`id`, `mata_pelajaran_id`, `guru_id`, `waktu_buka`, `waktu_tutup`, `status`) VALUES
 (1, 1, 2, '2025-11-02 22:21:03', '2025-11-02 22:21:38', 'closed'),
 (3, 1, 2, '2025-11-02 22:25:07', '2025-11-02 22:25:14', 'closed'),
 (4, 1, 2, '2025-11-02 22:33:10', '2025-11-03 13:58:27', 'closed'),
@@ -911,7 +911,7 @@ ALTER TABLE `presensi_mapel`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_presensi_mapel_user` (`user_id`),
   ADD KEY `fk_presensi_mapel_mapel` (`mata_pelajaran_id`),
-  ADD KEY `presensi_sesi_id` (`presensi_sesi_id`);
+  ADD KEY `presensi_mapel_sesi_id` (`presensi_mapel_sesi_id`);
 
 --
 -- Indexes for table `presensi_sekolah`
@@ -928,9 +928,9 @@ ALTER TABLE `presensi_sekolah_sesi`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `presensi_sesi`
+-- Indexes for table `presensi_mapel_sesi`
 --
-ALTER TABLE `presensi_sesi`
+ALTER TABLE `presensi_mapel_sesi`
   ADD PRIMARY KEY (`id`),
   ADD KEY `kelas_id` (`mata_pelajaran_id`),
   ADD KEY `guru_id` (`guru_id`);
@@ -1015,9 +1015,9 @@ ALTER TABLE `presensi_sekolah_sesi`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=118;
 
 --
--- AUTO_INCREMENT for table `presensi_sesi`
+-- AUTO_INCREMENT for table `presensi_mapel_sesi`
 --
-ALTER TABLE `presensi_sesi`
+ALTER TABLE `presensi_mapel_sesi`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
@@ -1088,7 +1088,7 @@ ALTER TABLE `presensi_mapel`
   ADD CONSTRAINT `fk_presensi_mapel_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `presensi_mapel_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `presensi_mapel_ibfk_2` FOREIGN KEY (`mata_pelajaran_id`) REFERENCES `mata_pelajaran` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `presensi_mapel_ibfk_3` FOREIGN KEY (`presensi_sesi_id`) REFERENCES `presensi_sesi` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `presensi_mapel_ibfk_3` FOREIGN KEY (`presensi_mapel_sesi_id`) REFERENCES `presensi_mapel_sesi` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `presensi_sekolah`
@@ -1099,11 +1099,11 @@ ALTER TABLE `presensi_sekolah`
   ADD CONSTRAINT `presensi_sekolah_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `presensi_sesi`
+-- Constraints for table `presensi_mapel_sesi`
 --
-ALTER TABLE `presensi_sesi`
-  ADD CONSTRAINT `presensi_sesi_ibfk_1` FOREIGN KEY (`mata_pelajaran_id`) REFERENCES `mata_pelajaran` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `presensi_sesi_ibfk_2` FOREIGN KEY (`guru_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `presensi_mapel_sesi`
+  ADD CONSTRAINT `presensi_mapel_sesi_ibfk_1` FOREIGN KEY (`mata_pelajaran_id`) REFERENCES `mata_pelajaran` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `presensi_mapel_sesi_ibfk_2` FOREIGN KEY (`guru_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `siswa_mata_pelajaran`
