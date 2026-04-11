@@ -1001,9 +1001,9 @@ class PresensiModel {
      */
     public function markAbsentStudentsAsAlphaKelas($mata_pelajaran_id, $sesi_id) {
         // Get session and class info for notification
-        $this->db->query('SELECT ps.*, k.nama_mata_pelajaran FROM presensi_sesi ps 
-                         LEFT JOIN mata_pelajaran k ON ps.mata_pelajaran_id = k.id 
-                         WHERE ps.id = :sesi_id');
+        $this->db->query('SELECT ps.*, k.nama_mata_pelajaran FROM presensi_mapel_sesi ps 
+                 LEFT JOIN mata_pelajaran k ON ps.mata_pelajaran_id = k.id 
+                 WHERE ps.id = :sesi_id');
         $this->db->bind(':sesi_id', $sesi_id);
         $sesiInfo = $this->db->single();
         
