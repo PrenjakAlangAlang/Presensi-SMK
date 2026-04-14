@@ -126,7 +126,7 @@ class SiswaController {
             if (!$activeSession) {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Tidak ada sesi presensi sekolah aktif saat ini.']);
-                return;
+                exit;
             }
 
             // Cek apakah sudah ada presensi untuk sesi ini
@@ -136,7 +136,7 @@ class SiswaController {
             if ($existingPresensi && $existingPresensi->jenis !== 'alpha') {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi sekolah ini.']);
-                return;
+                exit;
             }
 
             // Jika izin atau sakit, nonaktifkan validasi GPS (set koordinat ke 0)
@@ -159,7 +159,7 @@ class SiswaController {
                         'success' => false, 
                         'message' => 'Presensi ditolak! Anda berada di luar radius sekolah. Jarak Anda: ' . round($distance, 2) . ' meter. Radius maksimal: ' . $radiusMax . ' meter.'
                     ]);
-                    return;
+                    exit;
                 }
             }
             
@@ -172,7 +172,7 @@ class SiswaController {
                 } else {
                     header('Content-Type: application/json');
                     echo json_encode(['success' => false, 'message' => $upload['message']]);
-                    return;
+                    exit;
                 }
             }
 
@@ -206,6 +206,7 @@ class SiswaController {
                     echo json_encode(['success' => false, 'message' => 'Gagal menyimpan presensi']);
                 }
             }
+            exit;
         }
     }
     
@@ -223,14 +224,14 @@ class SiswaController {
             if (!$activeSession) {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Tidak ada sesi presensi aktif untuk kelas ini.']);
-                return;
+                exit;
             }
 
             // Prevent duplicate presensi for the same session
             if ($this->presensiModel->hasPresensiInSession($user_id, $activeSession->id)) {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi ini.']);
-                return;
+                exit;
             }
 
             // Jika izin atau sakit, nonaktifkan validasi GPS (set koordinat ke 0)
@@ -253,7 +254,7 @@ class SiswaController {
                         'success' => false, 
                         'message' => 'Presensi ditolak! Anda berada di luar radius sekolah. Jarak Anda: ' . round($distance, 2) . ' meter. Radius maksimal: ' . $radiusMax . ' meter.'
                     ]);
-                    return;
+                    exit;
                 }
             }
             
@@ -266,7 +267,7 @@ class SiswaController {
                 } else {
                     header('Content-Type: application/json');
                     echo json_encode(['success' => false, 'message' => $upload['message']]);
-                    return;
+                    exit;
                 }
             }
 
@@ -288,6 +289,7 @@ class SiswaController {
             } else {
                 echo json_encode(['success' => false, 'message' => 'Gagal mencatat presensi kelas']);
             }
+            exit;
         }
     }
 

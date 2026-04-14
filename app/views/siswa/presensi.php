@@ -86,7 +86,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <button id="presensiSekolahBtn" 
                         onclick="submitPresensiSekolah()" 
                         disabled
-                        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg">
+                        class="w-full bg-gray-400 cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg">
                     <i class="fas fa-fingerprint"></i>
                     <span>Presensi Sekolah</span>
                 </button>
@@ -131,7 +131,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     </select>
                 </div>
 
-                <!-- Info Mata Pelajaran Detail (ditampilkan setelah mata pelajaran dipilih) -->
+                <!-- Info Mata Pelajaran Detail -->
                 <div id="kelasDetailCard" class="hidden">
                     <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 border border-green-200">
                         <div class="flex items-start space-x-4">
@@ -235,102 +235,162 @@ require_once __DIR__ . '/../layouts/header.php';
 </div>
 
 <script>
-// Mapping kelas_id => whether session active (from server)
+// ============================================================
+// STATE GLOBAL
+// ============================================================
 const kelasSesi = <?php
     $map = [];
     foreach($kelas as $kk) { $map[$kk->id] = $kk->sesi_aktif ? true : false; }
     echo json_encode($map);
 ?>;
 
-// === GEOTAGGING: Inisialisasi Variabel Lokasi GPS ===
-// userLocation: menyimpan koordinat GPS pengguna (latitude, longitude, accuracy)
-let userLocation = null;
-// schoolLocation: menyimpan koordinat GPS sekolah dari database
-let schoolLocation = { lat: <?php echo $lokasiSekolah->latitude ?? DEFAULT_LATITUDE; ?>, lng: <?php echo $lokasiSekolah->longitude ?? DEFAULT_LONGITUDE; ?> };
-// radiusPresensi: jarak maksimum yang diperbolehkan untuk presensi (dalam meter)
-let radiusPresensi = <?php echo $lokasiSekolah->radius_presensi ?? MAX_RADIUS; ?>;
-let map, userMarker, schoolMarker, accuracyCircle;
-let sessionActive = false;
-let sessionAlreadyPresenced = false;
-let kelasAlreadyPresenced = {};
+let userLocation        = null;   // koordinat GPS pengguna
+let locationReady       = false;  // flag: GPS sudah didapat
+let sessionReady        = false;  // flag: polling sesi sekolah sudah selesai pertama kali
 
-// Initialize map
+let schoolLocation      = {
+    lat: <?php echo $lokasiSekolah->latitude  ?? DEFAULT_LATITUDE; ?>,
+    lng: <?php echo $lokasiSekolah->longitude ?? DEFAULT_LONGITUDE; ?>
+};
+let radiusPresensi      = <?php echo $lokasiSekolah->radius_presensi ?? MAX_RADIUS; ?>;
+
+let map, userMarker, schoolMarker, accuracyCircle;
+
+// State sesi sekolah (diisi oleh polling)
+let sessionActive           = false;
+let sessionAlreadyPresenced = false;
+
+// State presensi kelas (lokal, reset tiap halaman)
+let kelasAlreadyPresenced = {};
+let isSubmittingSekolah = false;
+let isSubmittingKelas = false;
+
+// ============================================================
+// INISIALISASI PETA
+// ============================================================
 function initMap() {
     map = L.map('map').setView([schoolLocation.lat, schoolLocation.lng], 17);
-    
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
-    
-    // Create red icon for school marker
+
     const redIcon = L.icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
+        iconSize: [25, 41], iconAnchor: [12, 41],
+        popupAnchor: [1, -34], shadowSize: [41, 41]
     });
-    
-    // Add school marker with red icon
-    schoolMarker = L.marker([schoolLocation.lat, schoolLocation.lng], {icon: redIcon})
+
+    schoolMarker = L.marker([schoolLocation.lat, schoolLocation.lng], { icon: redIcon })
         .addTo(map)
-        .bindPopup(`
-            <div class="text-center">
-                <strong>SMK Negeri 7 Yogyakarta</strong><br>
-                <small>Lokasi Presensi</small>
-            </div>
-        `)
+        .bindPopup('<div class="text-center"><strong>SMK Negeri 7 Yogyakarta</strong><br><small>Lokasi Presensi</small></div>')
         .openPopup();
-    
-    // Add circle for radius
+
     L.circle([schoolLocation.lat, schoolLocation.lng], {
-        color: 'blue',
-        fillColor: '#3454be',
-        fillOpacity: 0.1,
-        radius: radiusPresensi,
-        weight: 2
+        color: 'blue', fillColor: '#3454be',
+        fillOpacity: 0.1, radius: radiusPresensi, weight: 2
     }).addTo(map).bindPopup('Radius Presensi: ' + radiusPresensi + ' meter');
 }
 
-// === GEOTAGGING: Mendapatkan Lokasi GPS Pengguna ===
-function getUserLocation() {
-    // Cek apakah browser mendukung Geolocation API
-    if (navigator.geolocation) {
-        // Meminta akses lokasi GPS dari browser
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                // GEOTAGGING: Menyimpan koordinat GPS pengguna
-                userLocation = {
-                    lat: position.coords.latitude,    // Latitude (garis lintang)
-                    lng: position.coords.longitude,   // Longitude (garis bujur)
-                    accuracy: position.coords.accuracy // Akurasi GPS dalam meter
-                };
-                
-                // Validasi jarak menggunakan algoritma Haversine
-                updateLocationStatus();
-                // Tampilkan marker lokasi pengguna di peta
-                updateMap();
-            },
-            function(error) {
-                document.getElementById('locationStatus').innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-                        <div>
-                            <p class="font-medium text-red-800">Gagal mendapatkan lokasi</p>
-                            <p class="text-red-700 text-sm">Error: ${error.message}</p>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('loadingSpinner').classList.add('hidden');
-            },
-            {
-                enableHighAccuracy: true,  // GEOTAGGING: Gunakan GPS akurasi tinggi
-                timeout: 15000,            // Batas waktu 15 detik untuk mendapatkan lokasi
-                maximumAge: 0              // Tidak menggunakan cache lokasi lama
-            }
-        );
+// ============================================================
+// ALGORITMA HAVERSINE
+// ============================================================
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R    = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a    =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c    = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+// ============================================================
+// EVALUASI TOMBOL — dipanggil setiap kali state berubah
+// ============================================================
+function evaluateUI() {
+    // Hanya evaluasi setelah KEDUANYA siap (GPS + polling sesi)
+    if (!locationReady || !sessionReady) return;
+
+    const jenis    = document.getElementById('jenisPresensiSekolah').value;
+    const btn      = document.getElementById('presensiSekolahBtn');
+    const distance = calculateDistance(
+        userLocation.lat, userLocation.lng,
+        schoolLocation.lat, schoolLocation.lng
+    );
+    const inRadius = distance <= radiusPresensi;
+
+    // --- Update UI lokasi ---
+    const statusEl   = document.getElementById('locationStatus');
+    const validEl    = document.getElementById('locationValid');
+    const distanceEl = document.getElementById('distanceInfo');
+
+    distanceEl.textContent = distance.toFixed(2) + ' meter';
+    document.getElementById('loadingSpinner').classList.add('hidden');
+
+    if (inRadius) {
+        statusEl.className = 'mb-6 p-4 rounded-lg bg-green-100 border border-green-300';
+        statusEl.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                <div>
+                    <p class="font-medium text-green-800">Lokasi valid untuk presensi</p>
+                    <p class="text-green-700 text-sm">Anda berada dalam radius sekolah</p>
+                </div>
+            </div>`;
+        validEl.textContent  = 'Valid';
+        validEl.className    = 'font-medium text-green-600';
     } else {
+        statusEl.className = 'mb-6 p-4 rounded-lg bg-red-100 border border-red-300';
+        statusEl.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                <div>
+                    <p class="font-medium text-red-800">Lokasi tidak valid</p>
+                    <p class="text-red-700 text-sm">Anda berada di luar radius sekolah (${distance.toFixed(2)}m)</p>
+                </div>
+            </div>`;
+        validEl.textContent  = 'Tidak Valid';
+        validEl.className    = 'font-medium text-red-600';
+    }
+
+    // --- Evaluasi tombol presensi SEKOLAH ---
+    if (sessionAlreadyPresenced) {
+        // Sudah presensi hari ini
+        setButtonState(btn, false, 'gray');
+    } else if (!sessionActive) {
+        // Sesi belum dibuka admin
+        setButtonState(btn, false, 'gray');
+    } else if (jenis === 'izin' || jenis === 'sakit') {
+        // Izin/sakit tidak butuh validasi GPS
+        setButtonState(btn, true, 'blue');
+    } else {
+        // Hadir: butuh lokasi valid
+        setButtonState(btn, inRadius, inRadius ? 'blue' : 'gray');
+    }
+
+    // --- Evaluasi tombol presensi KELAS ---
+    updatePresensiKelasButton();
+}
+
+function setButtonState(btn, enabled, color) {
+    if (enabled) {
+        btn.disabled  = false;
+        btn.className = `w-full bg-${color}-600 hover:bg-${color}-700 text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg`;
+    } else {
+        btn.disabled  = true;
+        btn.className = 'w-full bg-gray-400 cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg';
+    }
+}
+
+// ============================================================
+// GPS: DAPATKAN LOKASI PENGGUNA
+// ============================================================
+function getUserLocation() {
+    if (!navigator.geolocation) {
         document.getElementById('locationStatus').innerHTML = `
             <div class="flex items-center space-x-3">
                 <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
@@ -338,81 +398,75 @@ function getUserLocation() {
                     <p class="font-medium text-red-800">Browser tidak mendukung geolocation</p>
                     <p class="text-red-700 text-sm">Gunakan browser modern seperti Chrome atau Firefox</p>
                 </div>
-            </div>
-        `;
+            </div>`;
         document.getElementById('loadingSpinner').classList.add('hidden');
+        return;
     }
-}
 
-// === HAVERSINE: Validasi Jarak Lokasi Pengguna ===
-function updateLocationStatus() {
-    // ALGORITMA HAVERSINE: Hitung jarak antara lokasi pengguna dan sekolah
-    // Input: koordinat GPS pengguna dan sekolah (latitude, longitude)
-    // Output: jarak dalam meter
-    const distance = calculateDistance(
-        userLocation.lat,      // Latitude pengguna
-        userLocation.lng,      // Longitude pengguna
-        schoolLocation.lat,    // Latitude sekolah
-        schoolLocation.lng     // Longitude sekolah
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            userLocation = {
+                lat:      position.coords.latitude,
+                lng:      position.coords.longitude,
+                accuracy: position.coords.accuracy
+            };
+            locationReady = true;   // ✅ GPS siap
+
+            updateMap();
+            evaluateUI();           // evaluasi setelah GPS selesai
+        },
+        function(error) {
+            document.getElementById('locationStatus').innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    <div>
+                        <p class="font-medium text-red-800">Gagal mendapatkan lokasi</p>
+                        <p class="text-red-700 text-sm">Error: ${error.message}</p>
+                    </div>
+                </div>`;
+            document.getElementById('loadingSpinner').classList.add('hidden');
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
-    
-    // Validasi: apakah jarak pengguna dalam radius yang diizinkan?
-    const isValid = distance <= radiusPresensi;
-    const statusElement = document.getElementById('locationStatus');
-    const validElement = document.getElementById('locationValid');
-    const distanceElement = document.getElementById('distanceInfo');
-    const presensiSekolahBtn = document.getElementById('presensiSekolahBtn');
-    const presensiKelasBtn = document.getElementById('presensiKelasBtn');
-    
-    distanceElement.textContent = distance.toFixed(2) + ' meter';
-    document.getElementById('loadingSpinner').classList.add('hidden');
-    
-    if (isValid) {
-        statusElement.className = 'mb-6 p-4 rounded-lg bg-green-100 border border-green-300';
-        statusElement.innerHTML = `
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                <div>
-                    <p class="font-medium text-green-800">Lokasi valid untuk presensi</p>
-                    <p class="text-green-700 text-sm">Anda berada dalam radius sekolah</p>
-                </div>
-            </div>
-        `;
-        validElement.textContent = 'Valid';
-        validElement.className = 'font-medium text-green-600';
-        // enable presensi sekolah only if there is an active session and user hasn't presenced yet
-        if (sessionActive && !sessionAlreadyPresenced) {
-            presensiSekolahBtn.disabled = false;
-        } else {
-            presensiSekolahBtn.disabled = true;
-        }
-        presensiKelasBtn.disabled = false;
-    } else {
-        statusElement.className = 'mb-6 p-4 rounded-lg bg-red-100 border border-red-300';
-        statusElement.innerHTML = `
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-times-circle text-red-600 text-xl"></i>
-                <div>
-                    <p class="font-medium text-red-800">Lokasi tidak valid</p>
-                    <p class="text-red-700 text-sm">Anda berada di luar radius sekolah (${distance.toFixed(2)}m)</p>
-                </div>
-            </div>
-        `;
-        validElement.textContent = 'Tidak Valid';
-        validElement.className = 'font-medium text-red-600';
-        presensiSekolahBtn.disabled = true;
-        presensiKelasBtn.disabled = true;
-    }
 }
 
-// Update map with user location
+// ============================================================
+// POLLING SESI SEKOLAH
+// ============================================================
+function fetchSchoolSessionStatus() {
+    fetch('index.php?action=get_presensi_sekolah_status')
+        .then(r => r.json())
+        .then(json => {
+            sessionActive           = !!json.active;
+            sessionAlreadyPresenced = !!json.already_presenced;
+            sessionReady            = true;   // ✅ polling pertama selesai
+
+            // Update label status sesi
+            const statusEl = document.getElementById('sessionSekolahStatus');
+            if (sessionActive) {
+                if (sessionAlreadyPresenced) {
+                    statusEl.textContent = 'Aktif - Sudah Presensi';
+                    statusEl.className   = 'font-medium text-gray-600';
+                } else {
+                    statusEl.textContent = 'Aktif - Belum Presensi';
+                    statusEl.className   = 'font-medium text-green-600';
+                }
+            } else {
+                statusEl.textContent = 'Tidak Aktif';
+                statusEl.className   = 'font-medium text-red-600';
+            }
+
+            evaluateUI();   // evaluasi setelah polling selesai
+        })
+        .catch(err => console.error('Failed to fetch session status:', err));
+}
+
+// ============================================================
+// UPDATE PETA
+// ============================================================
 function updateMap() {
-    if (userMarker) {
-        map.removeLayer(userMarker);
-    }
-    if (accuracyCircle) {
-        map.removeLayer(accuracyCircle);
-    }
+    if (userMarker)     map.removeLayer(userMarker);
+    if (accuracyCircle) map.removeLayer(accuracyCircle);
 
     userMarker = L.marker([userLocation.lat, userLocation.lng])
         .addTo(map)
@@ -420,538 +474,395 @@ function updateMap() {
             <div class="text-center">
                 <strong>Posisi Anda</strong><br>
                 <small>Akurasi: ±${userLocation.accuracy.toFixed(1)}m</small>
-            </div>
-        `)
+            </div>`)
         .openPopup();
 
-    // Add accuracy circle (disabled)
-    // accuracyCircle = L.circle([userLocation.lat, userLocation.lng], {
-    //     radius: userLocation.accuracy,
-    //     color: 'blue',
-    //     fillColor: '#3b82f6',
-    //     fillOpacity: 0.1,
-    //     weight: 1
-    // }).addTo(map);
-
-    // Adjust map view to show both markers
     const group = new L.featureGroup([schoolMarker, userMarker]);
     map.fitBounds(group.getBounds().pad(0.1));
 }
 
-// === ALGORITMA HAVERSINE: Menghitung Jarak Antar Dua Titik Koordinat GPS ===
-// Formula Haversine digunakan untuk menghitung jarak terpendek antara dua titik
-// di permukaan bumi berdasarkan koordinat latitude dan longitude
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    // HAVERSINE: Konstanta radius bumi dalam meter
-    const R = 6371000; // Earth radius in meters (6,371 km)
-    
-    // HAVERSINE: Konversi selisih latitude dari derajat ke radian
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    // HAVERSINE: Konversi selisih longitude dari derajat ke radian
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    
-    // HAVERSINE: Hitung nilai 'a' menggunakan formula Haversine
-    // a = sin²(Δlat/2) + cos(lat1) * cos(lat2) * sin²(Δlon/2)
-    const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-    
-    // HAVERSINE: Hitung nilai 'c' (central angle)
-    // c = 2 * atan2(√a, √(1-a))
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    
-    // HAVERSINE: Hitung jarak akhir dalam meter
-    // distance = R * c
-    const distance = R * c;
-    
-    return distance; // Mengembalikan jarak dalam meter
+// ============================================================
+// TOMBOL PRESENSI KELAS
+// ============================================================
+function updatePresensiKelasButton() {
+    const btn          = document.getElementById('presensiKelasBtn');
+    const selectedKelas = document.getElementById('kelasSelect').value;
+    const jenisPresensi = document.getElementById('jenisPresensiKelas').value;
+
+    // Default: nonaktif
+    setButtonState(btn, false, 'gray');
+
+    if (!selectedKelas)                      return; // belum pilih kelas
+    if (kelasAlreadyPresenced[selectedKelas]) return; // sudah presensi
+    if (!kelasSesi[selectedKelas])           return; // tidak ada sesi aktif
+
+    if (jenisPresensi === 'izin' || jenisPresensi === 'sakit') {
+        // Izin/sakit tidak butuh GPS
+        setButtonState(btn, true, 'blue');
+    } else {
+        // Hadir: butuh lokasi valid
+        if (locationReady) {
+            const distance = calculateDistance(
+                userLocation.lat, userLocation.lng,
+                schoolLocation.lat, schoolLocation.lng
+            );
+            setButtonState(btn, distance <= radiusPresensi, 'blue');
+        }
+        // Jika GPS belum ready, tombol tetap gray
+    }
 }
 
-// Submit presensi sekolah
+// ============================================================
+// SUBMIT PRESENSI SEKOLAH
+// ============================================================
 function submitPresensiSekolah() {
-    const btn = document.getElementById('presensiSekolahBtn');
-    const originalText = btn.innerHTML;
-    const jenis = document.getElementById('jenisPresensiSekolah').value;
+    if (isSubmittingSekolah) return;
+
+    const btn    = document.getElementById('presensiSekolahBtn');
+    const jenis  = document.getElementById('jenisPresensiSekolah').value;
     const alasan = document.getElementById('alasanSekolah').value;
-    const buktiFile = document.getElementById('buktiSekolah').files[0];
-    
-    // Validasi alasan jika jenis izin atau sakit
+    const bukti  = document.getElementById('buktiSekolah').files[0];
+
     if ((jenis === 'izin' || jenis === 'sakit') && !alasan.trim()) {
         showNotification('error', 'Alasan wajib diisi untuk jenis ' + jenis);
         return;
     }
-    
-    // Untuk izin/sakit, tidak perlu validasi lokasi GPS
-    if (jenis === 'izin' || jenis === 'sakit') {
-        // Langsung submit tanpa cek lokasi
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
-        
-        const fd = new FormData();
-        fd.append('latitude', 0);
-        fd.append('longitude', 0);
-        fd.append('jenis', jenis);
-        if (alasan.trim()) fd.append('alasan', alasan);
-        if (buktiFile) fd.append('bukti', buktiFile);
 
-        fetch('index.php?action=submit_presensi_sekolah', {
-            method: 'POST',
-            body: fd
+    if (jenis === 'hadir' && !locationReady) {
+        showNotification('error', 'Lokasi belum tersedia. Pastikan GPS aktif.');
+        return;
+    }
+
+    btn.disabled  = true;
+    btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
+    isSubmittingSekolah = true;
+
+    const fd = new FormData();
+    fd.append('latitude',  jenis === 'hadir' ? userLocation.lat : 0);
+    fd.append('longitude', jenis === 'hadir' ? userLocation.lng : 0);
+    fd.append('jenis', jenis);
+    if (alasan.trim()) fd.append('alasan', alasan);
+    if (bukti)         fd.append('bukti',  bukti);
+
+    let presensiSekolahBerhasil = false;
+
+    fetch('index.php?action=submit_presensi_sekolah', { method: 'POST', body: fd })
+        .then(async res => {
+            const responseText = await res.text();
+
+            let json;
+            try {
+                json = JSON.parse(responseText);
+            } catch (parseError) {
+                throw new Error('Respons server tidak valid: ' + responseText.slice(0, 200));
+            }
+
+            if (!res.ok) {
+                throw new Error(json.message || 'HTTP ' + res.status);
+            }
+
+            return json;
         })
-        .then(res => res.json())
         .then(json => {
             if (json.success) {
-                const jenisText = jenis === 'izin' ? 'Izin' : 'Sakit';
-                showNotification('success', 'Presensi sekolah berhasil dicatat! Status: ' + jenisText);
-                addToPresensiHistory('Sekolah', jenisText, new Date().toLocaleTimeString());
+                const label = jenis === 'hadir' ? 'Hadir' : jenis === 'izin' ? 'Izin' : 'Sakit';
+                showNotification('success', 'Presensi sekolah berhasil dicatat! Status: ' + label);
+                addToPresensiHistory('Sekolah', label, new Date().toLocaleTimeString());
+
+                presensiSekolahBerhasil = true;
                 sessionAlreadyPresenced = true;
-                document.getElementById('presensiSekolahBtn').disabled = true;
-                
+
                 // Reset form
                 document.getElementById('jenisPresensiSekolah').value = 'hadir';
-                document.getElementById('alasanSekolah').value = '';
-                document.getElementById('buktiSekolah').value = '';
+                document.getElementById('alasanSekolah').value        = '';
+                document.getElementById('buktiSekolah').value         = '';
                 document.getElementById('formAlasanSekolah').classList.add('hidden');
+
+                try {
+                    // Update status label
+                    const statusEl       = document.getElementById('sessionSekolahStatus');
+                    statusEl.textContent = 'Aktif - Sudah Presensi';
+                    statusEl.className   = 'font-medium text-gray-600';
+                } catch (uiError) {
+                    console.error('UI update error after presensi sekolah sukses:', uiError);
+                }
+
+                evaluateUI();
             } else {
                 showNotification('error', json.message || 'Gagal mencatat presensi');
             }
         })
         .catch(err => {
             console.error(err);
-            showNotification('error', 'Terjadi kesalahan saat mengirim presensi');
+            if (!presensiSekolahBerhasil) {
+                showNotification('error', err.message || 'Terjadi kesalahan saat mengirim presensi');
+            }
         })
         .finally(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
+            isSubmittingSekolah = false;
+            evaluateUI();
         });
-        return;
-    }
-    
-    // Untuk hadir, perlu validasi lokasi GPS
-    if (!userLocation) {
-        showNotification('error', 'Lokasi belum tersedia. Pastikan GPS aktif.');
-        return;
-    }
-    
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
-    
-    // GEOTAGGING: Kirim koordinat GPS ke server untuk presensi
-    const fd = new FormData();
-    fd.append('latitude', userLocation.lat);   // GEOTAGGING: Latitude pengguna
-    fd.append('longitude', userLocation.lng);  // GEOTAGGING: Longitude pengguna
-    fd.append('jenis', jenis);
-    if (alasan.trim()) fd.append('alasan', alasan);
-    if (buktiFile) fd.append('bukti', buktiFile);
-
-    fetch('index.php?action=submit_presensi_sekolah', {
-        method: 'POST',
-        body: fd
-    })
-    .then(res => res.json())
-    .then(json => {
-        if (json.success) {
-            const jenisText = jenis === 'hadir' ? 'Hadir' : jenis === 'izin' ? 'Izin' : 'Sakit';
-            showNotification('success', 'Presensi sekolah berhasil dicatat! Status: ' + jenisText);
-            addToPresensiHistory('Sekolah', jenisText, new Date().toLocaleTimeString());
-            // mark that current user has presenced for this session to prevent duplicate
-            sessionAlreadyPresenced = true;
-            document.getElementById('presensiSekolahBtn').disabled = true;
-            
-            // Reset form
-            document.getElementById('jenisPresensiSekolah').value = 'hadir';
-            document.getElementById('alasanSekolah').value = '';
-            document.getElementById('buktiSekolah').value = '';
-            document.getElementById('formAlasanSekolah').classList.add('hidden');
-            // Reset teks tombol kembali ke default
-            btn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
-            // Reset teks tombol kembali ke default
-            btn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
-        } else {
-            showNotification('error', json.message || 'Gagal mencatat presensi');
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        showNotification('error', 'Terjadi kesalahan saat mengirim presensi');
-    })
-    .finally(() => {
-        btn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
-        btn.disabled = false;
-    });
 }
 
-// Update presensi kelas button appearance
-function updatePresensiKelasButton() {
-    const btn = document.getElementById('presensiKelasBtn');
-    const kelasSelect = document.getElementById('kelasSelect');
-    const selectedKelas = kelasSelect.value;
-    const jenisPresensi = document.getElementById('jenisPresensiKelas').value;
-    
-    // Reset to gray by default
-    btn.className = 'w-full bg-gray-400 cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg';
-    btn.disabled = true;
-    
-    // Check conditions
-    if (!selectedKelas) {
-        // No class selected - stay gray
-        return;
-    }
-    
-    if (kelasAlreadyPresenced[selectedKelas]) {
-        // Already presenced - stay gray
-        return;
-    }
-    
-    const sesiAktif = kelasSesi[selectedKelas] || false;
-    if (!sesiAktif) {
-        // No active session - stay gray
-        return;
-    }
-    
-    // Session active and haven't presenced yet
-    if (jenisPresensi === 'izin' || jenisPresensi === 'sakit') {
-        // For izin/sakit, enable without location check
-        btn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg';
-        btn.disabled = false;
-    } else {
-        // For hadir, check location
-        if (userLocation) {
-            // HAVERSINE: Hitung jarak untuk validasi presensi kelas
-            const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
-            // Validasi: aktifkan tombol jika dalam radius
-            if (distance <= radiusPresensi) {
-                btn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg';
-                btn.disabled = false;
-            }
-        }
-    }
-}
-
-// Submit presensi kelas
+// ============================================================
+// SUBMIT PRESENSI KELAS
+// ============================================================
 function submitPresensiKelas() {
-    const kelasSelect = document.getElementById('kelasSelect');
+    if (isSubmittingKelas) return;
+
+    const kelasSelect   = document.getElementById('kelasSelect');
     const selectedKelas = kelasSelect.value;
 
     if (!selectedKelas) {
         showNotification('error', 'Pilih kelas terlebih dahulu!');
         return;
     }
-
-    // Check if there's an active session for the selected class
     if (!kelasSesi[selectedKelas]) {
         showNotification('error', 'Belum ada sesi presensi aktif untuk kelas ini.');
         return;
     }
 
-    const btn = document.getElementById('presensiKelasBtn');
-    const originalText = btn.innerHTML;
+    const btn       = document.getElementById('presensiKelasBtn');
     const kelasName = kelasSelect.options[kelasSelect.selectedIndex].text;
-    const jenis = document.getElementById('jenisPresensiKelas').value;
-    const alasan = document.getElementById('alasanKelas').value;
-    const buktiFile = document.getElementById('buktiKelas').files[0];
-    
-    // Validasi alasan jika jenis izin atau sakit
+    const jenis     = document.getElementById('jenisPresensiKelas').value;
+    const alasan    = document.getElementById('alasanKelas').value;
+    const bukti     = document.getElementById('buktiKelas').files[0];
+
     if ((jenis === 'izin' || jenis === 'sakit') && !alasan.trim()) {
         showNotification('error', 'Alasan wajib diisi untuk jenis ' + jenis);
         return;
     }
 
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
-
-    // Build form data and POST to server
-    const formData = new FormData();
-    formData.append('kelas_id', selectedKelas);
-    
-    // Untuk izin/sakit, tidak perlu lokasi GPS
-    if (jenis === 'izin' || jenis === 'sakit') {
-        formData.append('latitude', 0);
-        formData.append('longitude', 0);
-    } else {
-        // Untuk hadir, cek lokasi dulu
-        if (!userLocation) {
-            showNotification('error', 'Lokasi belum tersedia. Pastikan GPS aktif.');
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            return;
-        }
-        // GEOTAGGING: Kirim koordinat GPS pengguna untuk presensi kelas
-        formData.append('latitude', userLocation.lat);   // GEOTAGGING: Latitude
-        formData.append('longitude', userLocation.lng);  // GEOTAGGING: Longitude
+    if (jenis === 'hadir' && !locationReady) {
+        showNotification('error', 'Lokasi belum tersedia. Pastikan GPS aktif.');
+        return;
     }
-    
-    formData.append('jenis', jenis);
-    if (alasan.trim()) formData.append('alasan', alasan);
-    if (buktiFile) formData.append('bukti', buktiFile);
 
-    fetch('index.php?action=submit_presensi_mapel', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            const jenisText = jenis === 'hadir' ? 'Hadir' : jenis === 'izin' ? 'Izin' : 'Sakit';
-            showNotification('success', `Presensi kelas ${kelasName} berhasil! Status: ${jenisText}`);
-            addToPresensiHistory(kelasName, jenisText, new Date().toLocaleTimeString());
-            
-            // Mark as presenced
-            kelasAlreadyPresenced[selectedKelas] = true;
-            
-            // Reset form
-            document.getElementById('jenisPresensiKelas').value = 'hadir';
-            document.getElementById('alasanKelas').value = '';
-            document.getElementById('buktiKelas').value = '';
-            document.getElementById('formAlasanKelas').classList.add('hidden');
-            
-            // Update button to gray (already presenced)
-            btn.className = 'w-full bg-gray-400 cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-3 text-lg';
-            btn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
-            btn.disabled = true;
-            
-            document.getElementById('statusKelas').textContent = 'Sudah Presensi';
-            document.getElementById('statusKelas').className = 'text-gray-600 font-semibold';
-        } else {
-            showNotification('error', data.message || 'Gagal mencatat presensi kelas');
-            btn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
+    btn.disabled  = true;
+    btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span>Memproses...</span>';
+    isSubmittingKelas = true;
+
+    const fd = new FormData();
+    fd.append('kelas_id',  selectedKelas);
+    fd.append('latitude',  jenis === 'hadir' ? userLocation.lat : 0);
+    fd.append('longitude', jenis === 'hadir' ? userLocation.lng : 0);
+    fd.append('jenis', jenis);
+    if (alasan.trim()) fd.append('alasan', alasan);
+    if (bukti)         fd.append('bukti',  bukti);
+
+    let presensiKelasBerhasil = false;
+
+    fetch('index.php?action=submit_presensi_mapel', { method: 'POST', body: fd })
+        .then(async res => {
+            const responseText = await res.text();
+
+            let json;
+            try {
+                json = JSON.parse(responseText);
+            } catch (parseError) {
+                throw new Error('Respons server tidak valid: ' + responseText.slice(0, 200));
+            }
+
+            if (!res.ok) {
+                throw new Error(json.message || 'HTTP ' + res.status);
+            }
+
+            return json;
+        })
+        .then(data => {
+            if (data.success) {
+                const label = jenis === 'hadir' ? 'Hadir' : jenis === 'izin' ? 'Izin' : 'Sakit';
+                showNotification('success', `Presensi kelas ${kelasName} berhasil! Status: ${label}`);
+                addToPresensiHistory(kelasName, label, new Date().toLocaleTimeString());
+
+                presensiKelasBerhasil = true;
+                kelasAlreadyPresenced[selectedKelas] = true;
+
+                // Reset form
+                document.getElementById('jenisPresensiKelas').value = 'hadir';
+                document.getElementById('alasanKelas').value        = '';
+                document.getElementById('buktiKelas').value         = '';
+                document.getElementById('formAlasanKelas').classList.add('hidden');
+
+                try {
+                    document.getElementById('statusKelas').textContent = 'Sudah Presensi';
+                    document.getElementById('statusKelas').className   = 'text-gray-600 font-semibold';
+                } catch (uiError) {
+                    console.error('UI update error after presensi kelas sukses:', uiError);
+                }
+
+                updatePresensiKelasButton();
+            } else {
+                showNotification('error', data.message || 'Gagal mencatat presensi kelas');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (!presensiKelasBerhasil) {
+                showNotification('error', err.message || 'Terjadi kesalahan saat mengirim presensi');
+            }
+        })
+        .finally(() => {
+            btn.innerHTML = '<i class="fas fa-book"></i><span>Presensi Mata Pelajaran</span>';
+            isSubmittingKelas = false;
             updatePresensiKelasButton();
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        showNotification('error', 'Terjadi kesalahan saat mengirim presensi');
-        btn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
-        updatePresensiKelasButton();
-    });
+        });
 }
 
-// Show notification
+// ============================================================
+// HELPER: STATUS KELAS
+// ============================================================
+function updateStatusKelas() {
+    const selectedKelas = document.getElementById('kelasSelect').value;
+    const jenisPresensi = document.getElementById('jenisPresensiKelas').value;
+    const statusEl      = document.getElementById('statusKelas');
+
+    if (!selectedKelas) {
+        statusEl.textContent = 'Belum dipilih';
+        statusEl.className   = 'text-yellow-600 font-semibold';
+        return;
+    }
+    if (kelasAlreadyPresenced[selectedKelas]) {
+        statusEl.textContent = 'Sudah Presensi';
+        statusEl.className   = 'text-gray-600 font-semibold';
+        return;
+    }
+    if (!kelasSesi[selectedKelas]) {
+        statusEl.textContent = 'Tidak ada sesi aktif';
+        statusEl.className   = 'text-red-600 font-semibold';
+        return;
+    }
+    if (jenisPresensi === 'izin' || jenisPresensi === 'sakit') {
+        statusEl.textContent = 'Sesi Aktif';
+        statusEl.className   = 'text-green-600 font-semibold';
+        return;
+    }
+    if (!locationReady) {
+        statusEl.textContent = 'Menunggu lokasi GPS...';
+        statusEl.className   = 'text-yellow-600 font-semibold';
+        return;
+    }
+    const distance = calculateDistance(
+        userLocation.lat, userLocation.lng,
+        schoolLocation.lat, schoolLocation.lng
+    );
+    if (distance <= radiusPresensi) {
+        statusEl.textContent = 'Sesi Aktif - Lokasi Valid';
+        statusEl.className   = 'text-green-600 font-semibold';
+    } else {
+        statusEl.textContent = 'Sesi Aktif - Lokasi Terlalu Jauh';
+        statusEl.className   = 'text-red-600 font-semibold';
+    }
+}
+
+// ============================================================
+// NOTIFIKASI
+// ============================================================
 function showNotification(type, message) {
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transform transition-transform duration-300 ${
+    const n = document.createElement('div');
+    n.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transform transition-transform duration-300 ${
         type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
     }`;
-    notification.innerHTML = `
+    n.innerHTML = `
         <div class="flex items-center space-x-2">
             <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
             <span>${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
+        </div>`;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 3000);
 }
 
-// Add to presensi history (simulated)
 function addToPresensiHistory(jenis, status, waktu) {
-    // This would typically update a history list
     console.log(`Presensi ${jenis}: ${status} pada ${waktu}`);
 }
 
-// Update current time
 function updateTime() {
     document.getElementById('currentTime').textContent = new Date().toLocaleTimeString();
 }
 
-// === INISIALISASI SISTEM PRESENSI GEOTAGGING ===
+// ============================================================
+// INISIALISASI
+// ============================================================
 document.addEventListener('DOMContentLoaded', function() {
-    initMap();              // Inisialisasi peta Leaflet
-    getUserLocation();      // GEOTAGGING: Minta akses lokasi GPS pengguna
-    setInterval(updateTime, 1000);  // Update waktu setiap detik
-    
-    // Event listener untuk jenis presensi sekolah
-    document.getElementById('jenisPresensiSekolah').addEventListener('change', function() {
-        const formAlasan = document.getElementById('formAlasanSekolah');
-        const presensiSekolahBtn = document.getElementById('presensiSekolahBtn');
-        const infoGPSSekolah = document.getElementById('infoGPSSekolah');
-        
-        if (this.value === 'izin' || this.value === 'sakit') {
-            formAlasan.classList.remove('hidden');
-            // Ubah teks tombol menjadi "Submit"
-            presensiSekolahBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Submit</span>';
-            // Ubah info GPS
-            infoGPSSekolah.textContent = 'Untuk izin/sakit, tidak perlu validasi GPS';
-            // Untuk izin/sakit, tidak perlu validasi lokasi - enable button jika ada sesi aktif
-            if (sessionActive && !sessionAlreadyPresenced) {
-                presensiSekolahBtn.disabled = false;
-            }
-        } else {
-            formAlasan.classList.add('hidden');
-            // Kembalikan teks tombol ke "Presensi Sekolah"
-            presensiSekolahBtn.innerHTML = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
-            // Kembalikan info GPS
-            infoGPSSekolah.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius ' + radiusPresensi + 'm dari sekolah';
-            // Untuk hadir, perlu validasi lokasi - enable button hanya jika lokasi valid
-            if (sessionActive && !sessionAlreadyPresenced && userLocation) {
-                // HAVERSINE: Validasi jarak untuk tombol presensi sekolah
-                const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
-                presensiSekolahBtn.disabled = distance > radiusPresensi;
-            } else {
-                presensiSekolahBtn.disabled = true;
-            }
-        }
-    });
-    
-    // Event listener untuk jenis presensi kelas
-    document.getElementById('jenisPresensiKelas').addEventListener('change', function() {
-        const formAlasan = document.getElementById('formAlasanKelas');
-        const presensiKelasBtn = document.getElementById('presensiKelasBtn');
-        const kelasSelect = document.getElementById('kelasSelect');
-        const selectedKelas = kelasSelect.value;
-        const infoGPSKelas = document.getElementById('infoGPSKelas');
-        
-        if (this.value === 'izin' || this.value === 'sakit') {
-            formAlasan.classList.remove('hidden');
-            // Ubah teks tombol menjadi "Submit"
-            presensiKelasBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Submit</span>';
-            // Ubah info GPS
-            infoGPSKelas.textContent = 'Untuk izin/sakit, tidak perlu validasi GPS';
-        } else {
-            formAlasan.classList.add('hidden');
-            // Kembalikan teks tombol ke "Presensi Kelas"
-            presensiKelasBtn.innerHTML = '<i class="fas fa-chalkboard-teacher"></i><span>Presensi Kelas</span>';
-            // Kembalikan info GPS
-            infoGPSKelas.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius ' + radiusPresensi + 'm dari sekolah';
-        }
-        
-        // Update button appearance based on all conditions
-        updatePresensiKelasButton();
-        
-        // Update status text
-        if (selectedKelas) {
-            if (kelasAlreadyPresenced[selectedKelas]) {
-                document.getElementById('statusKelas').textContent = 'Sudah Presensi';
-                document.getElementById('statusKelas').className = 'text-gray-600 font-semibold';
-            } else if (kelasSesi[selectedKelas]) {
-                if (this.value === 'izin' || this.value === 'sakit') {
-                    document.getElementById('statusKelas').textContent = 'Sesi Aktif';
-                    document.getElementById('statusKelas').className = 'text-green-600 font-semibold';
-                } else if (userLocation) {
-                    // HAVERSINE: Validasi jarak untuk update status kelas
-                    const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
-                    document.getElementById('statusKelas').textContent = distance <= radiusPresensi ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
-                    document.getElementById('statusKelas').className = distance <= radiusPresensi ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
-                } else {
-                    document.getElementById('statusKelas').textContent = 'Menunggu lokasi GPS...';
-                    document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
-                }
-            } else {
-                document.getElementById('statusKelas').textContent = 'Tidak ada sesi aktif';
-                document.getElementById('statusKelas').className = 'text-red-600 font-semibold';
-            }
-        }
-    });
-    // Poll server for active school presensi session (auto open/close + admin override)
-    function fetchSchoolSessionStatus() {
-        fetch('index.php?action=get_presensi_sekolah_status')
-            .then(r => r.json())
-            .then(json => {
-                // update global session flags and re-evaluate UI
-                sessionActive = !!json.active;
-                sessionAlreadyPresenced = !!json.already_presenced;
-                
-                // Update status sesi UI
-                const statusElement = document.getElementById('sessionSekolahStatus');
-                if (json.active) {
-                    if (json.already_presenced) {
-                        statusElement.textContent = 'Aktif - Sudah Presensi';
-                        statusElement.className = 'font-medium text-gray-600';
-                    } else {
-                        statusElement.textContent = 'Aktif - Belum Presensi';
-                        statusElement.className = 'font-medium text-green-600';
-                    }
-                } else {
-                    statusElement.textContent = 'Tidak Aktif';
-                    statusElement.className = 'font-medium text-red-600';
-                }
-                
-                // Re-run local validation to enable/disable buttons correctly
-                if (userLocation) updateLocationStatus();
-            })
-            .catch(err => console.error('Failed to fetch session status', err));
-    }
-
-    // initial fetch and poll every 15s
-    fetchSchoolSessionStatus();
+    initMap();
+    getUserLocation();          // async — set locationReady = true saat selesai
+    fetchSchoolSessionStatus(); // async — set sessionReady  = true saat selesai
     setInterval(fetchSchoolSessionStatus, 15000);
-    
-    // Kelas select change handler
+    setInterval(updateTime, 1000);
+
+    // Jenis presensi SEKOLAH berubah
+    document.getElementById('jenisPresensiSekolah').addEventListener('change', function() {
+        const formAlasan       = document.getElementById('formAlasanSekolah');
+        const btn              = document.getElementById('presensiSekolahBtn');
+        const infoGPS          = document.getElementById('infoGPSSekolah');
+        const isIzinSakit      = this.value === 'izin' || this.value === 'sakit';
+
+        formAlasan.classList.toggle('hidden', !isIzinSakit);
+
+        if (isIzinSakit) {
+            btn.innerHTML    = '<i class="fas fa-paper-plane"></i><span>Submit</span>';
+            infoGPS.textContent = 'Untuk izin/sakit, tidak perlu validasi GPS';
+        } else {
+            btn.innerHTML    = '<i class="fas fa-fingerprint"></i><span>Presensi Sekolah</span>';
+            infoGPS.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius ' + radiusPresensi + 'm dari sekolah';
+        }
+
+        evaluateUI();
+    });
+
+    // Jenis presensi KELAS berubah
+    document.getElementById('jenisPresensiKelas').addEventListener('change', function() {
+        const formAlasan  = document.getElementById('formAlasanKelas');
+        const btn         = document.getElementById('presensiKelasBtn');
+        const infoGPS     = document.getElementById('infoGPSKelas');
+        const isIzinSakit = this.value === 'izin' || this.value === 'sakit';
+
+        formAlasan.classList.toggle('hidden', !isIzinSakit);
+
+        if (isIzinSakit) {
+            btn.innerHTML       = '<i class="fas fa-paper-plane"></i><span>Submit</span>';
+            infoGPS.textContent = 'Untuk izin/sakit, tidak perlu validasi GPS';
+        } else {
+            btn.innerHTML       = '<i class="fas fa-book"></i><span>Presensi Mata Pelajaran</span>';
+            infoGPS.textContent = 'Untuk presensi Hadir, Anda harus berada dalam radius ' + radiusPresensi + 'm dari sekolah';
+        }
+
+        updateStatusKelas();
+        updatePresensiKelasButton();
+    });
+
+    // Pilih kelas berubah
     document.getElementById('kelasSelect').addEventListener('change', function() {
-        const selected = this.value;
-        const jenisPresensi = document.getElementById('jenisPresensiKelas').value;
+        const selected      = this.value;
         const kelasDetailCard = document.getElementById('kelasDetailCard');
 
         if (!selected) {
             kelasDetailCard.classList.add('hidden');
-            document.getElementById('statusKelas').textContent = 'Belum dipilih';
-            document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
+            updateStatusKelas();
             updatePresensiKelasButton();
             return;
         }
 
-        // Tampilkan detail kelas yang dipilih
-        const selectedOption = this.options[this.selectedIndex];
-        const kelasNama = selectedOption.getAttribute('data-nama');
-        const namaKelas = selectedOption.getAttribute('data-kelas');
-        const kelasTahun = selectedOption.getAttribute('data-tahun');
-        const kelasGuru = selectedOption.getAttribute('data-guru');
-        const kelasWali = selectedOption.getAttribute('data-wali');
-        const kelasJadwal = selectedOption.getAttribute('data-jadwal');
-
-        document.getElementById('kelasDetailNama').textContent = kelasNama;
-        document.getElementById('kelasDetailKelas').textContent = 'Kelas: ' + namaKelas;
-        document.getElementById('kelasDetailTahun').textContent = 'Tahun Ajaran: ' + kelasTahun;
-        document.getElementById('kelasDetailGuru').textContent = kelasGuru;
-        document.getElementById('kelasDetailWali').textContent = kelasWali;
-        document.getElementById('kelasDetailJadwal').textContent = kelasJadwal;
+        const opt = this.options[this.selectedIndex];
+        document.getElementById('kelasDetailNama').textContent   = opt.getAttribute('data-nama');
+        document.getElementById('kelasDetailKelas').textContent  = 'Kelas: '        + opt.getAttribute('data-kelas');
+        document.getElementById('kelasDetailTahun').textContent  = 'Tahun Ajaran: ' + opt.getAttribute('data-tahun');
+        document.getElementById('kelasDetailGuru').textContent   = opt.getAttribute('data-guru');
+        document.getElementById('kelasDetailWali').textContent   = opt.getAttribute('data-wali');
+        document.getElementById('kelasDetailJadwal').textContent = opt.getAttribute('data-jadwal');
         kelasDetailCard.classList.remove('hidden');
 
-        // Check if already presenced
-        if (kelasAlreadyPresenced[selected]) {
-            document.getElementById('statusKelas').textContent = 'Sudah Presensi';
-            document.getElementById('statusKelas').className = 'text-gray-600 font-semibold';
-            updatePresensiKelasButton();
-            return;
-        }
-
-        // Check session status
-        const sesiAktif = kelasSesi[selected] || false;
-        if (!sesiAktif) {
-            document.getElementById('statusKelas').textContent = 'Tidak ada sesi aktif';
-            document.getElementById('statusKelas').className = 'text-red-600 font-semibold';
-            updatePresensiKelasButton();
-            return;
-        }
-
-        // Update status based on location and jenis presensi
-        if (jenisPresensi === 'izin' || jenisPresensi === 'sakit') {
-            document.getElementById('statusKelas').textContent = 'Sesi Aktif';
-            document.getElementById('statusKelas').className = 'text-green-600 font-semibold';
-        } else {
-            if (!userLocation) {
-                document.getElementById('statusKelas').textContent = 'Menunggu lokasi GPS...';
-                document.getElementById('statusKelas').className = 'text-yellow-600 font-semibold';
-            } else {
-                // HAVERSINE: Hitung dan validasi jarak saat memilih kelas
-                const distance = calculateDistance(userLocation.lat, userLocation.lng, schoolLocation.lat, schoolLocation.lng);
-                document.getElementById('statusKelas').textContent = distance <= radiusPresensi ? 'Sesi Aktif - Lokasi Valid' : 'Sesi Aktif - Lokasi Terlalu Jauh';
-                document.getElementById('statusKelas').className = distance <= radiusPresensi ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
-            }
-        }
-        
+        updateStatusKelas();
         updatePresensiKelasButton();
     });
 });
 
-// Handle page visibility change
+// Refresh lokasi saat halaman kembali aktif
 document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
-        getUserLocation(); // Refresh location when page becomes visible
+        locationReady = false;  // reset agar evaluateUI menunggu GPS baru
+        getUserLocation();
     }
 });
 </script>
