@@ -1,6 +1,5 @@
 <?php
 // app/controllers/SiswaController.php
-// Controller untuk peran siswa: melihat dashboard, presensi, riwayat, dan mengajukan izin
 require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../models/MataPelajaranModel.php';
@@ -24,6 +23,49 @@ class SiswaController {
         $this->presensiSekolahSesiModel = new PresensiSekolahSesiModel();
         $this->bukuIndukModel = new BukuIndukModel();
     }
+
+    // ============================================================
+    // DETEKSI MOCK/FAKE LOCATION — validasi utama di backend
+    // Tidak bisa di-bypass oleh siswa karena dieksekusi di server
+    // ============================================================
+    private function validateLocationAuthenticity($accuracy, $samplesJson) {
+        // Layer 1: Akurasi terlalu sempurna (< 5 meter sangat tidak wajar untuk GPS HP)
+        // GPS HP asli di luar ruangan biasanya 5-30m, di dalam gedung 20-100m
+        if ($accuracy !== null && (float)$accuracy < 5) {
+            return [
+                'valid'   => false,
+                'message' => 'Presensi ditolak! Terdeteksi penggunaan lokasi palsu (akurasi GPS terlalu sempurna: ' . round($accuracy, 1) . 'm).'
+            ];
+        }
+
+        // Layer 2: Cek apakah koordinat benar-benar diam (statis sempurna = fake GPS)
+        // GPS asli selalu punya noise alami minimal ~0.000001 derajat (~0.1 meter)
+        $samples = json_decode($samplesJson, true);
+
+        if (is_array($samples) && count($samples) >= 2) {
+            $allIdentical = true;
+
+            for ($i = 1; $i < count($samples); $i++) {
+                $diffLat = abs((float)$samples[$i]['lat'] - (float)$samples[0]['lat']);
+                $diffLng = abs((float)$samples[$i]['lng'] - (float)$samples[0]['lng']);
+
+                // Jika ada pergeseran > 0.000001 derajat, koordinat bergerak secara alami
+                if ($diffLat > 0.000001 || $diffLng > 0.000001) {
+                    $allIdentical = false;
+                    break;
+                }
+            }
+
+            if ($allIdentical) {
+                return [
+                    'valid'   => false,
+                    'message' => 'Presensi ditolak! Terdeteksi penggunaan lokasi palsu (koordinat GPS tidak bergerak sama sekali).'
+                ];
+            }
+        }
+
+        return ['valid' => true];
+    }
     
     public function dashboard() {
         $user_id = $_SESSION['user_id'];
@@ -32,14 +74,13 @@ class SiswaController {
         $presensiHariIni = $this->presensiModel->getPresensiHariIni($user_id);
         $kelas = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
         
-    require_once __DIR__ . '/../views/siswa/dashboard.php';
+        require_once __DIR__ . '/../views/siswa/dashboard.php';
     }
     
     public function presensi() {
         $user_id = $_SESSION['user_id'];
         $lokasiSekolah = $this->locationModel->getLokasiSekolah();
         $kelas = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
-        // Attach active session info to each kelas so frontend can enable presensi per kelas
         foreach ($kelas as $k) {
             $k->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($k->id);
         }
@@ -50,33 +91,30 @@ class SiswaController {
     public function riwayat() {
         $user_id = $_SESSION['user_id'];
         
-        // Get filter parameters
-        $periode = $_GET['periode'] ?? 'bulanan'; // harian, mingguan, bulanan
+        $periode = $_GET['periode'] ?? 'bulanan';
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
-        $minggu = $_GET['minggu'] ?? date('W');
-        $bulan = $_GET['bulan'] ?? date('m');
-        $tahun = $_GET['tahun'] ?? date('Y');
+        $minggu  = $_GET['minggu']  ?? date('W');
+        $bulan   = $_GET['bulan']   ?? date('m');
+        $tahun   = $_GET['tahun']   ?? date('Y');
         
-        // Get statistik based on period
         if ($periode === 'harian') {
-            $statistik = $this->presensiModel->getStatistikPresensiSekolah($tanggal, null, null, $user_id);
+            $statistik      = $this->presensiModel->getStatistikPresensiSekolah($tanggal, null, null, $user_id);
             $statistikKelas = $this->presensiModel->getStatistikPresensiKelas($tanggal, null, null, $user_id);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUserPeriode($user_id, $tanggal, null);
-            $presensiKelas = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $tanggal, null);
+            $presensiKelas   = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $tanggal, null);
         } elseif ($periode === 'mingguan') {
             $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
-            $statistik = $this->getStatistikMingguan($user_id, $startDate, $endDate);
+            $endDate   = date('Y-m-d', strtotime($startDate . ' +6 days'));
+            $statistik      = $this->getStatistikMingguan($user_id, $startDate, $endDate);
             $statistikKelas = $this->getStatistikMingguanKelas($user_id, $startDate, $endDate);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUserPeriode($user_id, $startDate, $endDate);
-            $presensiKelas = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $startDate, $endDate);
+            $presensiKelas   = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $startDate, $endDate);
         } else {
-            $statistik = $this->presensiModel->getStatistikPresensiSekolah(null, $bulan, $tahun, $user_id);
+            $statistik      = $this->presensiModel->getStatistikPresensiSekolah(null, $bulan, $tahun, $user_id);
             $statistikKelas = $this->presensiModel->getStatistikPresensiKelas(null, $bulan, $tahun, $user_id);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUser($user_id, 100);
-            $presensiKelas = $this->presensiModel->getPresensiKelasByUser($user_id, 100);
+            $presensiKelas   = $this->presensiModel->getPresensiKelasByUser($user_id, 100);
             
-            // Filter by month and year
             $presensiSekolah = array_filter($presensiSekolah, function($p) use ($bulan, $tahun) {
                 return date('m', strtotime($p->waktu)) == $bulan && date('Y', strtotime($p->waktu)) == $tahun;
             });
@@ -85,8 +123,7 @@ class SiswaController {
             });
         }
         
-        // Get chart data based on period
-        $chartData = $this->getChartData($user_id, $periode, $tanggal, $minggu, $bulan, $tahun);
+        $chartData      = $this->getChartData($user_id, $periode, $tanggal, $minggu, $bulan, $tahun);
         $chartDataKelas = $this->getChartDataKelas($user_id, $periode, $tanggal, $minggu, $bulan, $tahun);
         
         require_once __DIR__ . '/../views/siswa/riwayat.php';
@@ -95,15 +132,11 @@ class SiswaController {
     public function izin() {
         $user_id = $_SESSION['user_id'];
         $riwayatIzin = $this->presensiModel->getIzinBySiswa($user_id);
+        $kelasSiswa  = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
         
-        // Get mata pelajaran yang diikuti siswa
-        $kelasSiswa = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
-        
-        // Check sesi presensi sekolah aktif
         $this->presensiSekolahSesiModel->closeExpiredSessions();
         $sesiSekolahAktif = $this->presensiSekolahSesiModel->getActiveSession();
         
-        // Check sesi presensi kelas aktif untuk setiap mata pelajaran
         foreach ($kelasSiswa as $kelas) {
             $kelas->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($kelas->id);
         }
@@ -112,14 +145,16 @@ class SiswaController {
     }
     
     public function submitPresensiSekolah() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $user_id = $_SESSION['user_id'];
-            $latitude = $_POST['latitude'] ?? 0;
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $user_id   = $_SESSION['user_id'];
+            $latitude  = $_POST['latitude']  ?? 0;
             $longitude = $_POST['longitude'] ?? 0;
-            $jenis = $_POST['jenis'] ?? 'hadir'; // hadir, izin, sakit
-            $alasan = $_POST['alasan'] ?? null;
-            
-            // Pastikan sesi sekolah yang sudah kadaluarsa ditutup
+            $jenis     = $_POST['jenis']     ?? 'hadir';
+            $alasan    = $_POST['alasan']    ?? null;
+            // ✅ Data tambahan untuk deteksi fake GPS
+            $accuracy  = isset($_POST['accuracy']) ? (float)$_POST['accuracy'] : null;
+            $samples   = $_POST['samples'] ?? '[]';
+
             $this->presensiSekolahSesiModel->closeExpiredSessions();
             $activeSession = $this->presensiSekolahSesiModel->getActiveSession();
 
@@ -129,45 +164,49 @@ class SiswaController {
                 exit;
             }
 
-            // Cek apakah sudah ada presensi untuk sesi ini
             $existingPresensi = $this->presensiModel->getPresensiInSchoolSession($user_id, $activeSession->id);
             
-            // Jika sudah ada presensi dan bukan alpha, tolak duplikat
             if ($existingPresensi && $existingPresensi->jenis !== 'alpha') {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi sekolah ini.']);
                 exit;
             }
 
-            // Jika izin atau sakit, nonaktifkan validasi GPS (set koordinat ke 0)
             if ($jenis === 'izin' || $jenis === 'sakit') {
-                $latitude = 0;
+                // Izin/sakit tidak butuh validasi GPS maupun deteksi fake
+                $latitude  = 0;
                 $longitude = 0;
-                $distance = 0;
-                $isValid = true; // Otomatis valid untuk izin/sakit
+                $distance  = 0;
+                $isValid   = true;
             } else {
-                // Untuk hadir, validasi lokasi GPS dengan algoritma Haversine
+                // ✅ DETEKSI FAKE GPS — validasi di backend (tidak bisa di-bypass)
+                $mockCheck = $this->validateLocationAuthenticity($accuracy, $samples);
+                if (!$mockCheck['valid']) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => $mockCheck['message']]);
+                    exit;
+                }
+
+                // Validasi radius Haversine
                 $distance = $this->locationModel->getDistance($latitude, $longitude);
-                $isValid = $this->locationModel->validateLocation($latitude, $longitude);
+                $isValid  = $this->locationModel->validateLocation($latitude, $longitude);
                 
-                // TOLAK presensi jika lokasi di luar radius
                 if (!$isValid) {
                     $lokasiSekolah = $this->locationModel->getLokasiSekolah();
-                    $radiusMax = $lokasiSekolah ? $lokasiSekolah->radius_presensi : 100;
+                    $radiusMax     = $lokasiSekolah ? $lokasiSekolah->radius_presensi : 100;
                     header('Content-Type: application/json');
                     echo json_encode([
-                        'success' => false, 
+                        'success' => false,
                         'message' => 'Presensi ditolak! Anda berada di luar radius sekolah. Jarak Anda: ' . round($distance, 2) . ' meter. Radius maksimal: ' . $radiusMax . ' meter.'
                     ]);
                     exit;
                 }
             }
             
-            // Handle upload bukti jika ada (untuk izin/sakit)
             $foto_bukti = null;
-            if(isset($_FILES['bukti']) && $_FILES['bukti']['error'] === UPLOAD_ERR_OK) {
+            if (isset($_FILES['bukti']) && $_FILES['bukti']['error'] === UPLOAD_ERR_OK) {
                 $upload = $this->handleBuktiUpload($_FILES['bukti']);
-                if($upload['success']) {
+                if ($upload['success']) {
                     $foto_bukti = $upload['path'];
                 } else {
                     header('Content-Type: application/json');
@@ -178,29 +217,26 @@ class SiswaController {
 
             $data = [
                 'presensi_sekolah_sesi_id' => $activeSession->id,
-                'user_id' => $user_id,
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'jarak' => $distance,
-                'status' => $isValid ? 'valid' : 'invalid',
-                'jenis' => $jenis,
-                'alasan' => $alasan,
+                'user_id'    => $user_id,
+                'latitude'   => $latitude,
+                'longitude'  => $longitude,
+                'jarak'      => $distance,
+                'status'     => $isValid ? 'valid' : 'invalid',
+                'jenis'      => $jenis,
+                'alasan'     => $alasan,
                 'foto_bukti' => $foto_bukti
             ];
 
-            // Simpan presensi dan kembalikan hasil serta apakah lokasi valid
             header('Content-Type: application/json');
             
-            // Jika sudah ada record alpha, update record tersebut
             if ($existingPresensi && $existingPresensi->jenis === 'alpha') {
-                if($this->presensiModel->updatePresensiSekolahById($existingPresensi->id, $data)) {
+                if ($this->presensiModel->updatePresensiSekolahById($existingPresensi->id, $data)) {
                     echo json_encode(['success' => true, 'valid' => $isValid, 'jenis' => $jenis, 'updated' => true]);
                 } else {
                     echo json_encode(['success' => false, 'message' => 'Gagal memperbarui presensi']);
                 }
             } else {
-                // Buat record presensi baru
-                if($this->presensiModel->recordPresensiSekolah($data)) {
+                if ($this->presensiModel->recordPresensiSekolah($data)) {
                     echo json_encode(['success' => true, 'valid' => $isValid, 'jenis' => $jenis]);
                 } else {
                     echo json_encode(['success' => false, 'message' => 'Gagal menyimpan presensi']);
@@ -211,15 +247,17 @@ class SiswaController {
     }
     
     public function submitPresensiKelas() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $user_id = $_SESSION['user_id'];
-            $mata_pelajaran_id = $_POST['kelas_id']; // frontend sends kelas_id but it's actually mata_pelajaran_id
-            $latitude = $_POST['latitude'] ?? 0;
-            $longitude = $_POST['longitude'] ?? 0;
-            $jenis = $_POST['jenis'] ?? 'hadir'; // hadir, izin, sakit
-            $alasan = $_POST['alasan'] ?? null;
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $user_id          = $_SESSION['user_id'];
+            $mata_pelajaran_id = $_POST['kelas_id'];
+            $latitude          = $_POST['latitude']  ?? 0;
+            $longitude         = $_POST['longitude'] ?? 0;
+            $jenis             = $_POST['jenis']     ?? 'hadir';
+            $alasan            = $_POST['alasan']    ?? null;
+            // ✅ Data tambahan untuk deteksi fake GPS
+            $accuracy          = isset($_POST['accuracy']) ? (float)$_POST['accuracy'] : null;
+            $samples           = $_POST['samples'] ?? '[]';
             
-            // Attach active presensi session id for the mata pelajaran
             $activeSession = $this->presensiSesiModel->getActiveSessionByKelas($mata_pelajaran_id);
             if (!$activeSession) {
                 header('Content-Type: application/json');
@@ -227,42 +265,47 @@ class SiswaController {
                 exit;
             }
 
-            // Prevent duplicate presensi for the same session
             if ($this->presensiModel->hasPresensiInSession($user_id, $activeSession->id)) {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi ini.']);
                 exit;
             }
 
-            // Jika izin atau sakit, nonaktifkan validasi GPS (set koordinat ke 0)
             if ($jenis === 'izin' || $jenis === 'sakit') {
-                $latitude = 0;
+                // Izin/sakit tidak butuh validasi GPS maupun deteksi fake
+                $latitude  = 0;
                 $longitude = 0;
-                $distance = 0;
-                $isValid = true; // Otomatis valid untuk izin/sakit
+                $distance  = 0;
+                $isValid   = true;
             } else {
-                // Untuk hadir, validasi lokasi GPS dengan algoritma Haversine
+                // ✅ DETEKSI FAKE GPS — validasi di backend (tidak bisa di-bypass)
+                $mockCheck = $this->validateLocationAuthenticity($accuracy, $samples);
+                if (!$mockCheck['valid']) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => $mockCheck['message']]);
+                    exit;
+                }
+
+                // Validasi radius Haversine
                 $distance = $this->locationModel->getDistance($latitude, $longitude);
-                $isValid = $this->locationModel->validateLocation($latitude, $longitude);
+                $isValid  = $this->locationModel->validateLocation($latitude, $longitude);
                 
-                // TOLAK presensi jika lokasi di luar radius
                 if (!$isValid) {
                     $lokasiSekolah = $this->locationModel->getLokasiSekolah();
-                    $radiusMax = $lokasiSekolah ? $lokasiSekolah->radius_presensi : 100;
+                    $radiusMax     = $lokasiSekolah ? $lokasiSekolah->radius_presensi : 100;
                     header('Content-Type: application/json');
                     echo json_encode([
-                        'success' => false, 
+                        'success' => false,
                         'message' => 'Presensi ditolak! Anda berada di luar radius sekolah. Jarak Anda: ' . round($distance, 2) . ' meter. Radius maksimal: ' . $radiusMax . ' meter.'
                     ]);
                     exit;
                 }
             }
             
-            // Handle upload bukti jika ada (untuk izin/sakit)
             $foto_bukti = null;
-            if(isset($_FILES['bukti']) && $_FILES['bukti']['error'] === UPLOAD_ERR_OK) {
+            if (isset($_FILES['bukti']) && $_FILES['bukti']['error'] === UPLOAD_ERR_OK) {
                 $upload = $this->handleBuktiUpload($_FILES['bukti']);
-                if($upload['success']) {
+                if ($upload['success']) {
                     $foto_bukti = $upload['path'];
                 } else {
                     header('Content-Type: application/json');
@@ -272,19 +315,20 @@ class SiswaController {
             }
 
             $data = [
-                'presensi_sesi_id' => $activeSession->id,
-                'user_id' => $user_id,
+                'presensi_sesi_id'  => $activeSession->id,
+                'user_id'           => $user_id,
                 'mata_pelajaran_id' => $mata_pelajaran_id,
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'jarak' => $distance,
-                'status' => $isValid ? 'valid' : 'invalid',
-                'jenis' => $jenis,
-                'alasan' => $alasan,
-                'foto_bukti' => $foto_bukti
+                'latitude'          => $latitude,
+                'longitude'         => $longitude,
+                'jarak'             => $distance,
+                'status'            => $isValid ? 'valid' : 'invalid',
+                'jenis'             => $jenis,
+                'alasan'            => $alasan,
+                'foto_bukti'        => $foto_bukti
             ];
 
-            if($this->presensiModel->recordPresensiKelas($data)) {
+            header('Content-Type: application/json');
+            if ($this->presensiModel->recordPresensiKelas($data)) {
                 echo json_encode(['success' => true, 'valid' => $isValid, 'jenis' => $jenis]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Gagal mencatat presensi kelas']);
@@ -295,7 +339,7 @@ class SiswaController {
 
     public function bukuInduk() {
         $user_id = $_SESSION['user_id'];
-        $record = $this->bukuIndukModel->getByUserId($user_id);
+        $record  = $this->bukuIndukModel->getByUserId($user_id);
         $dokumen = [];
         if ($record) {
             $dokumen = $this->bukuIndukModel->getDokumen($record->id);
@@ -304,28 +348,28 @@ class SiswaController {
     }
 
     public function saveBukuInduk() {
-        if($_SERVER['REQUEST_METHOD'] !== 'POST') return;
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
 
         $user_id = $_SESSION['user_id'];
         $data = [
-            'user_id' => $user_id,
-            'nama' => trim($_POST['nama']),
-            'nis' => trim($_POST['nis']),
-            'nisn' => trim($_POST['nisn']),
-            'tempat_lahir' => trim($_POST['tempat_lahir']),
+            'user_id'       => $user_id,
+            'nama'          => trim($_POST['nama']),
+            'nis'           => trim($_POST['nis']),
+            'nisn'          => trim($_POST['nisn']),
+            'tempat_lahir'  => trim($_POST['tempat_lahir']),
             'tanggal_lahir' => $_POST['tanggal_lahir'],
-            'alamat' => trim($_POST['alamat']),
-            'nama_ayah' => isset($_POST['nama_ayah']) ? trim($_POST['nama_ayah']) : null,
-            'nama_ibu' => isset($_POST['nama_ibu']) ? trim($_POST['nama_ibu']) : null,
-            'nama_wali' => isset($_POST['nama_wali']) ? trim($_POST['nama_wali']) : null,
-            'no_telp_ortu' => isset($_POST['no_telp_ortu']) ? trim($_POST['no_telp_ortu']) : null,
-            'email_ortu' => isset($_POST['email_ortu']) ? trim($_POST['email_ortu']) : null,
-            'dokumen_pdf' => null
+            'alamat'        => trim($_POST['alamat']),
+            'nama_ayah'     => isset($_POST['nama_ayah'])    ? trim($_POST['nama_ayah'])    : null,
+            'nama_ibu'      => isset($_POST['nama_ibu'])     ? trim($_POST['nama_ibu'])     : null,
+            'nama_wali'     => isset($_POST['nama_wali'])    ? trim($_POST['nama_wali'])    : null,
+            'no_telp_ortu'  => isset($_POST['no_telp_ortu']) ? trim($_POST['no_telp_ortu']) : null,
+            'email_ortu'    => isset($_POST['email_ortu'])   ? trim($_POST['email_ortu'])   : null,
+            'dokumen_pdf'   => null
         ];
 
-        if(isset($_FILES['dokumen_pdf']) && $_FILES['dokumen_pdf']['error'] === UPLOAD_ERR_OK) {
+        if (isset($_FILES['dokumen_pdf']) && $_FILES['dokumen_pdf']['error'] === UPLOAD_ERR_OK) {
             $upload = $this->handlePdfUpload($_FILES['dokumen_pdf']);
-            if(!$upload['success']) {
+            if (!$upload['success']) {
                 $_SESSION['error'] = $upload['message'];
                 header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
                 exit();
@@ -335,31 +379,29 @@ class SiswaController {
             $data['dokumen_pdf'] = $_POST['existing_pdf'] ?? null;
         }
 
-        if($this->bukuIndukModel->upsert($data)) {
-            // Get the buku induk record to get its ID
+        if ($this->bukuIndukModel->upsert($data)) {
             $record = $this->bukuIndukModel->getByUserId($user_id);
             
-            // Handle multiple PDF uploads
-            if(isset($_FILES['dokumen_files']) && !empty($_FILES['dokumen_files']['name'][0])) {
+            if (isset($_FILES['dokumen_files']) && !empty($_FILES['dokumen_files']['name'][0])) {
                 $fileCount = count($_FILES['dokumen_files']['name']);
-                for($i = 0; $i < $fileCount; $i++) {
-                    if($_FILES['dokumen_files']['error'][$i] === UPLOAD_ERR_OK) {
+                for ($i = 0; $i < $fileCount; $i++) {
+                    if ($_FILES['dokumen_files']['error'][$i] === UPLOAD_ERR_OK) {
                         $file = [
-                            'name' => $_FILES['dokumen_files']['name'][$i],
-                            'type' => $_FILES['dokumen_files']['type'][$i],
+                            'name'     => $_FILES['dokumen_files']['name'][$i],
+                            'type'     => $_FILES['dokumen_files']['type'][$i],
                             'tmp_name' => $_FILES['dokumen_files']['tmp_name'][$i],
-                            'error' => $_FILES['dokumen_files']['error'][$i],
-                            'size' => $_FILES['dokumen_files']['size'][$i]
+                            'error'    => $_FILES['dokumen_files']['error'][$i],
+                            'size'     => $_FILES['dokumen_files']['size'][$i]
                         ];
                         
                         $upload = $this->handlePdfUpload($file);
-                        if($upload['success']) {
+                        if ($upload['success']) {
                             $keterangan = isset($_POST['keterangan'][$i]) ? trim($_POST['keterangan'][$i]) : null;
                             $this->bukuIndukModel->addDokumen([
                                 'buku_induk_id' => $record->id,
-                                'nama_file' => $file['name'],
-                                'dokumen_pdf' => $upload['path'],
-                                'keterangan' => $keterangan
+                                'nama_file'     => $file['name'],
+                                'dokumen_pdf'   => $upload['path'],
+                                'keterangan'    => $keterangan
                             ]);
                         }
                     }
@@ -376,22 +418,20 @@ class SiswaController {
     }
 
     public function deleteDokumen() {
-        if($_SERVER['REQUEST_METHOD'] !== 'POST') return;
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
         
         $id = $_POST['dokumen_id'] ?? null;
-        if(!$id) {
+        if (!$id) {
             $_SESSION['error'] = 'ID dokumen tidak valid.';
         } else {
             $dokumen = $this->bukuIndukModel->getDokumenById($id);
-            if($dokumen) {
-                // Delete file from server
+            if ($dokumen) {
                 $filePath = str_replace(BASE_URL . '/public/', __DIR__ . '/../../public/', $dokumen->dokumen_pdf);
-                if(file_exists($filePath)) {
+                if (file_exists($filePath)) {
                     unlink($filePath);
                 }
                 
-                // Delete from database
-                if($this->bukuIndukModel->deleteDokumen($id)) {
+                if ($this->bukuIndukModel->deleteDokumen($id)) {
                     $_SESSION['success'] = 'Dokumen berhasil dihapus.';
                 } else {
                     $_SESSION['error'] = 'Gagal menghapus dokumen.';
@@ -407,41 +447,34 @@ class SiswaController {
 
     private function handlePdfUpload($file) {
         $allowed = ['application/pdf'];
-        if(!in_array($file['type'], $allowed)) {
+        if (!in_array($file['type'], $allowed)) {
             return ['success' => false, 'message' => 'File harus PDF.'];
         }
         $uploadDir = __DIR__ . '/../../public/uploads/buku_induk';
-        if(!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
         $safeName = uniqid('buku-induk-') . '.pdf';
-        $target = $uploadDir . '/' . $safeName;
-        if(move_uploaded_file($file['tmp_name'], $target)) {
-            $relative = BASE_URL . '/public/uploads/buku_induk/' . $safeName;
-            return ['success' => true, 'path' => $relative];
+        $target   = $uploadDir . '/' . $safeName;
+        if (move_uploaded_file($file['tmp_name'], $target)) {
+            return ['success' => true, 'path' => BASE_URL . '/public/uploads/buku_induk/' . $safeName];
         }
         return ['success' => false, 'message' => 'Gagal upload dokumen.'];
     }
 
     private function handleBuktiUpload($file) {
         $allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-        if(!in_array($file['type'], $allowed)) {
+        if (!in_array($file['type'], $allowed)) {
             return ['success' => false, 'message' => 'File harus JPG, PNG, atau PDF.'];
         }
-        
-        // Cek ukuran file (max 2MB)
-        if($file['size'] > 2 * 1024 * 1024) {
+        if ($file['size'] > 2 * 1024 * 1024) {
             return ['success' => false, 'message' => 'Ukuran file maksimal 2MB.'];
         }
-        
         $uploadDir = __DIR__ . '/../../public/uploads/izin';
-        if(!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-        
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+        $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
         $safeName = uniqid('bukti-') . '.' . $ext;
-        $target = $uploadDir . '/' . $safeName;
-        
-        if(move_uploaded_file($file['tmp_name'], $target)) {
-            $relative = BASE_URL . '/public/uploads/izin/' . $safeName;
-            return ['success' => true, 'path' => $relative];
+        $target   = $uploadDir . '/' . $safeName;
+        if (move_uploaded_file($file['tmp_name'], $target)) {
+            return ['success' => true, 'path' => BASE_URL . '/public/uploads/izin/' . $safeName];
         }
         return ['success' => false, 'message' => 'Gagal upload bukti.'];
     }
@@ -456,9 +489,9 @@ class SiswaController {
                     SUM(CASE WHEN jenis = "alpha" THEN 1 ELSE 0 END) as alpha
                     FROM presensi_sekolah 
                     WHERE user_id = :user_id AND DATE(waktu) BETWEEN :start_date AND :end_date');
-        $db->bind(':user_id', $user_id);
-        $db->bind(':start_date', $startDate);
-        $db->bind(':end_date', $endDate);
+        $db->bind(':user_id',     $user_id);
+        $db->bind(':start_date',  $startDate);
+        $db->bind(':end_date',    $endDate);
         return $db->single();
     }
     
@@ -472,90 +505,76 @@ class SiswaController {
                     SUM(CASE WHEN jenis = "alpha" THEN 1 ELSE 0 END) as alpha
                     FROM presensi_mapel 
                     WHERE user_id = :user_id AND DATE(waktu) BETWEEN :start_date AND :end_date');
-        $db->bind(':user_id', $user_id);
+        $db->bind(':user_id',    $user_id);
         $db->bind(':start_date', $startDate);
-        $db->bind(':end_date', $endDate);
+        $db->bind(':end_date',   $endDate);
         return $db->single();
     }
     
     private function getChartData($user_id, $periode, $tanggal, $minggu, $bulan, $tahun) {
-        $db = new Database();
+        $db   = new Database();
         $data = [];
         
         if ($periode === 'harian') {
-            // Show hourly data for the day
             $labels = [];
             $values = [];
             for ($i = 0; $i < 24; $i++) {
                 $labels[] = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
                 $values[] = 0;
             }
-            
             $db->query('SELECT HOUR(waktu) as jam, COUNT(*) as jumlah 
                        FROM presensi_sekolah 
                        WHERE user_id = :user_id AND DATE(waktu) = :tanggal 
                        GROUP BY HOUR(waktu)');
-            $db->bind(':user_id', $user_id);
-            $db->bind(':tanggal', $tanggal);
+            $db->bind(':user_id',  $user_id);
+            $db->bind(':tanggal',  $tanggal);
             $results = $db->resultSet();
-            
             foreach ($results as $row) {
                 $values[$row->jam] = $row->jumlah;
             }
-            
             $data['labels'] = $labels;
             $data['values'] = $values;
             
         } elseif ($periode === 'mingguan') {
-            // Show daily data for the week
             $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $labels = [];
-            $values = [];
-            
+            $labels    = [];
+            $values    = [];
             for ($i = 0; $i < 7; $i++) {
-                $date = date('Y-m-d', strtotime($startDate . ' +' . $i . ' days'));
-                $dayName = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                $labels[] = $dayName[date('w', strtotime($date))];
-                
+                $date      = date('Y-m-d', strtotime($startDate . ' +' . $i . ' days'));
+                $dayName   = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                $labels[]  = $dayName[date('w', strtotime($date))];
                 $db->query('SELECT COUNT(*) as jumlah 
                            FROM presensi_sekolah 
                            WHERE user_id = :user_id AND DATE(waktu) = :tanggal AND (status = "valid" OR jenis IN ("izin", "sakit"))');
-                $db->bind(':user_id', $user_id);
-                $db->bind(':tanggal', $date);
-                $result = $db->single();
+                $db->bind(':user_id',  $user_id);
+                $db->bind(':tanggal',  $date);
+                $result   = $db->single();
                 $values[] = $result->jumlah ?? 0;
             }
-            
             $data['labels'] = $labels;
             $data['values'] = $values;
             
         } else {
-            // Show weekly data for the month
-            $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
             $labels = [];
             $values = [];
-            
             for ($week = 1; $week <= 5; $week++) {
                 $labels[] = 'Minggu ' . $week;
                 $values[] = 0;
             }
-            
             $db->query('SELECT DAY(waktu) as hari, COUNT(*) as jumlah 
                        FROM presensi_sekolah 
                        WHERE user_id = :user_id AND MONTH(waktu) = :bulan AND YEAR(waktu) = :tahun AND (status = "valid" OR jenis IN ("izin", "sakit"))
                        GROUP BY DAY(waktu)');
             $db->bind(':user_id', $user_id);
-            $db->bind(':bulan', $bulan);
-            $db->bind(':tahun', $tahun);
+            $db->bind(':bulan',   $bulan);
+            $db->bind(':tahun',   $tahun);
             $results = $db->resultSet();
-            
             foreach ($results as $row) {
                 $weekNum = ceil($row->hari / 7) - 1;
                 if ($weekNum >= 0 && $weekNum < 5) {
                     $values[$weekNum] += $row->jumlah;
                 }
             }
-            
             $data['labels'] = $labels;
             $data['values'] = $values;
         }
@@ -564,18 +583,16 @@ class SiswaController {
     }
     
     private function getChartDataKelas($user_id, $periode, $tanggal, $minggu, $bulan, $tahun) {
-        $db = new Database();
+        $db   = new Database();
         $data = [];
         
         if ($periode === 'harian') {
-            // Show hourly data for the day
             $labels = [];
             $values = [];
             for ($i = 0; $i < 24; $i++) {
                 $labels[] = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
                 $values[] = 0;
             }
-            
             $db->query('SELECT HOUR(waktu) as jam, COUNT(*) as jumlah 
                        FROM presensi_mapel 
                        WHERE user_id = :user_id AND DATE(waktu) = :tanggal 
@@ -583,64 +600,52 @@ class SiswaController {
             $db->bind(':user_id', $user_id);
             $db->bind(':tanggal', $tanggal);
             $results = $db->resultSet();
-            
             foreach ($results as $row) {
                 $values[$row->jam] = $row->jumlah;
             }
-            
             $data['labels'] = $labels;
             $data['values'] = $values;
             
         } elseif ($periode === 'mingguan') {
-            // Show daily data for the week
             $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $labels = [];
-            $values = [];
-            
+            $labels    = [];
+            $values    = [];
             for ($i = 0; $i < 7; $i++) {
-                $date = date('Y-m-d', strtotime($startDate . ' +' . $i . ' days'));
-                $dayName = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                $date     = date('Y-m-d', strtotime($startDate . ' +' . $i . ' days'));
+                $dayName  = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
                 $labels[] = $dayName[date('w', strtotime($date))];
-                
                 $db->query('SELECT COUNT(*) as jumlah 
                            FROM presensi_mapel 
                            WHERE user_id = :user_id AND DATE(waktu) = :tanggal AND (status = "valid" OR jenis IN ("izin", "sakit"))');
                 $db->bind(':user_id', $user_id);
                 $db->bind(':tanggal', $date);
-                $result = $db->single();
+                $result   = $db->single();
                 $values[] = $result->jumlah ?? 0;
             }
-            
             $data['labels'] = $labels;
             $data['values'] = $values;
             
         } else {
-            // Show weekly data for the month
-            $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
             $labels = [];
             $values = [];
-            
             for ($week = 1; $week <= 5; $week++) {
                 $labels[] = 'Minggu ' . $week;
                 $values[] = 0;
             }
-            
             $db->query('SELECT DAY(waktu) as hari, COUNT(*) as jumlah 
                        FROM presensi_mapel 
                        WHERE user_id = :user_id AND MONTH(waktu) = :bulan AND YEAR(waktu) = :tahun AND (status = "valid" OR jenis IN ("izin", "sakit"))
                        GROUP BY DAY(waktu)');
             $db->bind(':user_id', $user_id);
-            $db->bind(':bulan', $bulan);
-            $db->bind(':tahun', $tahun);
+            $db->bind(':bulan',   $bulan);
+            $db->bind(':tahun',   $tahun);
             $results = $db->resultSet();
-            
             foreach ($results as $row) {
                 $weekNum = ceil($row->hari / 7) - 1;
                 if ($weekNum >= 0 && $weekNum < 5) {
                     $values[$weekNum] += $row->jumlah;
                 }
             }
-            
             $data['labels'] = $labels;
             $data['values'] = $values;
         }
