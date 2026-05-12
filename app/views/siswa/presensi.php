@@ -10,7 +10,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <p class="text-gray-600">Presensi berbasis lokasi GPS dengan validasi menggunakan algoritma Haversine</p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 gap-8">
         <!-- Presensi Sekolah -->
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div class="flex items-center space-x-3 mb-6">
@@ -105,7 +105,7 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
 
         <!-- Presensi Mata Pelajaran -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hidden">
             <div class="flex items-center space-x-3 mb-6">
                 <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                     <i class="fas fa-book text-green-600 text-xl"></i>

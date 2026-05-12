@@ -36,30 +36,9 @@ class GuruController {
             $kelas->siswa = $siswa; // Attach siswa to kelas object for view
             $kelas->total_siswa = count($siswa); // Attach count to kelas object
             $totalSiswa += count($siswa);
-            
-            // Hitung kelas dengan sesi presensi aktif
-            if($this->presensiSesiModel->isSessionActive($kelas->id)) {
-                $presensiAktif++;
-            }
         }
         
-        // Ambil presensi terbaru untuk semua kelas yang diajar guru
         $aktivitasTerbaru = [];
-        foreach($kelasSaya as $kelas) {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas->id, date('Y-m-d'));
-            foreach($presensi as $p) {
-                if($p->status) { // Hanya yang sudah presensi
-                    $p->nama_mata_pelajaran = $kelas->nama_mata_pelajaran;
-                    $aktivitasTerbaru[] = $p;
-                }
-            }
-        }
-        
-        // Urutkan berdasarkan waktu terbaru dan ambil 10 teratas
-        usort($aktivitasTerbaru, function($a, $b) {
-            return strtotime($b->waktu ?? '1970-01-01') - strtotime($a->waktu ?? '1970-01-01');
-        });
-        $aktivitasTerbaru = array_slice($aktivitasTerbaru, 0, 10);
         
     require_once __DIR__ . '/../views/guru/dashboard.php';
     }
@@ -74,136 +53,27 @@ class GuruController {
             $kelas->siswa = $this->mataPelajaranModel->getSiswaInMataPelajaran($kelas->id);
             // total siswa (use dedicated method for efficiency)
             $kelas->total_siswa = $this->mataPelajaranModel->getTotalSiswaByMataPelajaran($kelas->id);
-            $kelas->presensi_hari_ini = $this->presensiModel->getLaporanPresensiKelas($kelas->id);
-            // Attach sesi aktif info from DB
-            $kelas->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($kelas->id);
         }
         
     require_once __DIR__ . '/../views/guru/kelas.php';
     }
     
     public function laporan() {
-        $guru_id = $_SESSION['user_id'];
-        $kelasSaya = $this->mataPelajaranModel->getMataPelajaranByGuru($guru_id);
-        
-        $laporan = [];
-        // allow selecting sesi via GET param
-        $requested_sesi = isset($_GET['sesi_id']) ? intval($_GET['sesi_id']) : null;
-
-    // Untuk tiap mata pelajaran, ambil data siswa, sesi, dan laporan kemajuan terkait sesi
-    foreach($kelasSaya as $kelas) {
-            // ensure siswa list and total are available for the view
-            $kelas->siswa = $this->mataPelajaranModel->getSiswaInMataPelajaran($kelas->id);
-            $kelas->total_siswa = $this->mataPelajaranModel->getTotalSiswaByMataPelajaran($kelas->id);
-            // sessions for this class
-            $sessions = $this->presensiSesiModel->getSessionsByKelas($kelas->id);
-            $selectedSesi = null;
-            if ($requested_sesi) {
-                // try to find requested sesi in this kelas
-                foreach($sessions as $s) {
-                    if ($s->id == $requested_sesi) {
-                        $selectedSesi = $s;
-                        break;
-                    }
-                }
-            }
-            // default to latest session if none requested
-            if (!$selectedSesi && count($sessions) > 0) {
-                $selectedSesi = $sessions[0];
-            }
-            
-            // fetch presensi for selected sesi if exists, else fall back to today's data
-            if ($selectedSesi) {
-                // Ambil presensi berdasarkan sesi terpilih
-                $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas->id, null, $selectedSesi->id);
-            } else {
-                // Ambil presensi hari ini jika tidak ada sesi yang dipilih
-                $presensi = $this->presensiModel->getLaporanPresensiKelas($kelas->id, date('Y-m-d'));
-            }
-
-            // get laporan kemajuan and pick those that match the session timeframe (if any)
-            $allLaporan = $this->laporanModel->getLaporanByMataPelajaran($kelas->id);
-            $laporanPerSesi = [];
-            if ($selectedSesi) {
-                $start = $selectedSesi->waktu_buka;
-                $end = $selectedSesi->waktu_tutup ?: date('Y-m-d H:i:s');
-                foreach($allLaporan as $l) {
-                    if (isset($l->created_at) && $l->created_at >= $start && $l->created_at <= $end) {
-                        $laporanPerSesi[] = $l;
-                    }
-                }
-            }
-
-            $laporan[$kelas->id] = [
-                'kelas' => $kelas,
-                'sessions' => $sessions,
-                'selected_sesi' => $selectedSesi,
-                'presensi' => $presensi,
-                'laporan_kemajuan' => $laporanPerSesi,
-            ];
-        }
-        
-    require_once __DIR__ . '/../views/guru/laporan.php';
+        $_SESSION['info'] = 'Laporan presensi mata pelajaran telah dinonaktifkan.';
+        header('Location: ' . BASE_URL . '/index.php?action=guru_kelas');
+        exit();
     }
     
     public function bukaPresensiKelas() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $mata_pelajaran_id = $_POST['kelas_id']; // frontend sends kelas_id but it's actually mata_pelajaran_id
-            $guru_id = $_SESSION['user_id'];
-            
-            // Persist session to DB
-            $created = $this->presensiSesiModel->createSession($mata_pelajaran_id, $guru_id);
-
-            if ($created) {
-                // Also set quick session in PHP session for immediate UI effect
-                $_SESSION['kelas_buka_' . $mata_pelajaran_id] = [
-                    'waktu_buka' => time(),
-                    'guru_id' => $guru_id,
-                    'status' => 'buka'
-                ];
-                echo json_encode(['success' => true, 'message' => 'Presensi kelas dibuka!']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Gagal membuka sesi presensi']);
-            }
-        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Sesi presensi mata pelajaran telah dinonaktifkan.']);
+        exit;
     }
     
     public function tutupPresensiKelas() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $kelas_id = $_POST['kelas_id'];
-            $guru_id = $_SESSION['user_id'];
-            $catatan = $_POST['catatan'] ?? '';
-            
-            // Hapus session kelas yang dibuka
-            unset($_SESSION['kelas_buka_' . $kelas_id]);
-
-            // Get active session to mark absent students as alpha
-            $activeSession = $this->presensiSesiModel->getActiveSessionByKelas($kelas_id);
-            $alphaCount = 0;
-            
-            if ($activeSession) {
-                // Mark absent students as alpha before closing (notifications sent automatically)
-                $alphaCount = $this->presensiModel->markAbsentStudentsAsAlphaKelas($kelas_id, $activeSession->id);
-            }
-
-            // Close session in DB
-            $closed = $this->presensiSesiModel->closeSession($kelas_id, $guru_id);
-
-            // Simpan laporan kemajuan
-            $saved = $this->simpanLaporanKemajuan($kelas_id, $guru_id, $catatan);
-
-            if ($closed && $saved) {
-                $message = 'Presensi kelas ditutup!';
-                if ($alphaCount > 0) {
-                    $message .= " $alphaCount siswa ditandai alpha. Notifikasi sedang dikirim.";
-                }
-                echo json_encode(['success' => true, 'message' => $message, 'alpha_count' => $alphaCount]);
-            } else if ($saved) {
-                echo json_encode(['success' => true, 'message' => 'Presensi kelas ditutup (session DB tidak berubah)', 'alpha_count' => $alphaCount]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Gagal menutup sesi atau menyimpan laporan kemajuan']);
-            }
-        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Sesi presensi mata pelajaran telah dinonaktifkan.']);
+        exit;
     }
     
     private function simpanLaporanKemajuan($mata_pelajaran_id, $guru_id, $catatan) {
@@ -225,13 +95,9 @@ class GuruController {
     }
     
     public function getPresensiKelas($mata_pelajaran_id) {
-        $sesi_id = isset($_GET['sesi_id']) ? intval($_GET['sesi_id']) : null;
-        if ($sesi_id) {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, null, $sesi_id);
-        } else {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, date('Y-m-d'));
-        }
-        echo json_encode($presensi);
+        header('Content-Type: application/json');
+        echo json_encode([]);
+        exit;
     }
     
     public function exportLaporan() {
@@ -255,6 +121,7 @@ class GuruController {
     }
     
     public function exportExcel() {
+        die('Laporan presensi mata pelajaran telah dinonaktifkan.');
         $guru_id = $_SESSION['user_id'];
         $mata_pelajaran_id = $_GET['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id
         $sesi_id = $_GET['sesi_id'] ?? null;
@@ -426,6 +293,7 @@ class GuruController {
     }
     
     public function exportPDF() {
+        die('Laporan presensi mata pelajaran telah dinonaktifkan.');
         $guru_id = $_SESSION['user_id'];
         $mata_pelajaran_id = $_GET['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id
         $sesi_id = $_GET['sesi_id'] ?? null;
@@ -651,6 +519,9 @@ class GuruController {
     }
     
     public function ubahStatusPresensi() {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Presensi mata pelajaran telah dinonaktifkan.']);
+        exit;
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $siswa_id = $_POST['siswa_id'] ?? null;
             $mata_pelajaran_id = $_POST['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id

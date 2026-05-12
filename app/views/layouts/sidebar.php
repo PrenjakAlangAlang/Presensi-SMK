@@ -150,7 +150,7 @@ function isActiveMenu($action, $current) {
                         <span class="font-medium">Mata Pelajaran Saya</span>
                     </a>
                 </li>
-                <li>
+                <li class="hidden">
                     <a href="<?php echo BASE_URL; ?>/index.php?action=guru_laporan" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('guru_laporan', $current_action); ?>">
                         <i class="fas fa-file-alt w-5 text-center"></i>

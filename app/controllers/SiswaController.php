@@ -79,10 +79,7 @@ class SiswaController {
     public function presensi() {
         $user_id = $_SESSION['user_id'];
         $lokasiSekolah = $this->locationModel->getLokasiSekolah();
-        $kelas = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
-        foreach ($kelas as $k) {
-            $k->sesi_aktif = $this->presensiSesiModel->getActiveSessionByKelas($k->id);
-        }
+        $kelas = [];
 
         require_once __DIR__ . '/../views/siswa/presensi.php';
     }
@@ -98,32 +95,25 @@ class SiswaController {
         
         if ($periode === 'harian') {
             $statistik      = $this->presensiModel->getStatistikPresensiSekolah($tanggal, null, null, $user_id);
-            $statistikKelas = $this->presensiModel->getStatistikPresensiKelas($tanggal, null, null, $user_id);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUserPeriode($user_id, $tanggal, null);
-            $presensiKelas   = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $tanggal, null);
         } elseif ($periode === 'mingguan') {
             $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
             $endDate   = date('Y-m-d', strtotime($startDate . ' +6 days'));
             $statistik      = $this->getStatistikMingguan($user_id, $startDate, $endDate);
-            $statistikKelas = $this->getStatistikMingguanKelas($user_id, $startDate, $endDate);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUserPeriode($user_id, $startDate, $endDate);
-            $presensiKelas   = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $startDate, $endDate);
         } else {
             $statistik      = $this->presensiModel->getStatistikPresensiSekolah(null, $bulan, $tahun, $user_id);
-            $statistikKelas = $this->presensiModel->getStatistikPresensiKelas(null, $bulan, $tahun, $user_id);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUser($user_id, 100);
-            $presensiKelas   = $this->presensiModel->getPresensiKelasByUser($user_id, 100);
             
             $presensiSekolah = array_filter($presensiSekolah, function($p) use ($bulan, $tahun) {
-                return date('m', strtotime($p->waktu)) == $bulan && date('Y', strtotime($p->waktu)) == $tahun;
-            });
-            $presensiKelas = array_filter($presensiKelas, function($p) use ($bulan, $tahun) {
                 return date('m', strtotime($p->waktu)) == $bulan && date('Y', strtotime($p->waktu)) == $tahun;
             });
         }
         
         $chartData      = $this->getChartData($user_id, $periode, $tanggal, $minggu, $bulan, $tahun);
-        $chartDataKelas = $this->getChartDataKelas($user_id, $periode, $tanggal, $minggu, $bulan, $tahun);
+        $statistikKelas = (object) ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpha' => 0];
+        $presensiKelas = [];
+        $chartDataKelas = ['labels' => [], 'values' => []];
         
         require_once __DIR__ . '/../views/siswa/riwayat.php';
     }
@@ -246,94 +236,9 @@ class SiswaController {
     }
     
     public function submitPresensiKelas() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $user_id          = $_SESSION['user_id'];
-            $mata_pelajaran_id = $_POST['kelas_id'];
-            $latitude          = $_POST['latitude']  ?? 0;
-            $longitude         = $_POST['longitude'] ?? 0;
-            $jenis             = $_POST['jenis']     ?? 'hadir';
-            $alasan            = $_POST['alasan']    ?? null;
-            // Data tambahan untuk deteksi fake GPS
-            $accuracy          = isset($_POST['accuracy']) ? (float)$_POST['accuracy'] : null;
-            $samples           = $_POST['samples'] ?? '[]';
-            
-            $activeSession = $this->presensiSesiModel->getActiveSessionByKelas($mata_pelajaran_id);
-            if (!$activeSession) {
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Tidak ada sesi presensi aktif untuk kelas ini.']);
-                exit;
-            }
-
-            if ($this->presensiModel->hasPresensiInSession($user_id, $activeSession->id)) {
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi ini.']);
-                exit;
-            }
-
-            if ($jenis === 'izin' || $jenis === 'sakit') {
-                // Izin/sakit tidak butuh validasi GPS maupun deteksi fake
-                $latitude  = 0;
-                $longitude = 0;
-                $distance  = 0;
-                $isValid   = true;
-            } else {
-                // DETEKSI FAKE GPS 
-                $mockCheck = $this->validateLocationAuthenticity($accuracy, $samples);
-                if (!$mockCheck['valid']) {
-                    header('Content-Type: application/json');
-                    echo json_encode(['success' => false, 'message' => $mockCheck['message']]);
-                    exit;
-                }
-
-                // Validasi radius Haversine
-                $distance = $this->locationModel->getDistance($latitude, $longitude);
-                $isValid  = $this->locationModel->validateLocation($latitude, $longitude);
-                
-                if (!$isValid) {
-                    $lokasiSekolah = $this->locationModel->getLokasiSekolah();
-                    $radiusMax     = $lokasiSekolah ? $lokasiSekolah->radius_presensi : 100;
-                    header('Content-Type: application/json');
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Presensi ditolak! Anda berada di luar radius sekolah. Jarak Anda: ' . round($distance, 2) . ' meter. Radius maksimal: ' . $radiusMax . ' meter.'
-                    ]);
-                    exit;
-                }
-            }
-            
-            $foto_bukti = null;
-            if (isset($_FILES['bukti']) && $_FILES['bukti']['error'] === UPLOAD_ERR_OK) {
-                $upload = $this->handleBuktiUpload($_FILES['bukti']);
-                if ($upload['success']) {
-                    $foto_bukti = $upload['path'];
-                } else {
-                    header('Content-Type: application/json');
-                    echo json_encode(['success' => false, 'message' => $upload['message']]);
-                    exit;
-                }
-            }
-
-            $data = [
-                'presensi_sesi_id'  => $activeSession->id,
-                'user_id'           => $user_id,
-                'mata_pelajaran_id' => $mata_pelajaran_id,
-                'latitude'          => $latitude,
-                'longitude'         => $longitude,
-                'jarak'             => $distance,
-                'status'            => $isValid ? 'valid' : 'invalid',
-                'jenis'             => $jenis,
-                'alasan'            => $alasan,
-                'foto_bukti'        => $foto_bukti
-            ];
-
-            header('Content-Type: application/json');
-            if ($this->presensiModel->recordPresensiKelas($data)) {
-                echo json_encode(['success' => true, 'valid' => $isValid, 'jenis' => $jenis]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Gagal mencatat presensi kelas']);
-            }
-            exit;
-        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Presensi mata pelajaran telah dinonaktifkan.']);
+        exit;
     }
 
     public function bukuInduk() {
@@ -495,6 +400,8 @@ class SiswaController {
     }
     
     private function getStatistikMingguanKelas($user_id, $startDate, $endDate) {
+        return (object) ['total' => 0, 'hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpha' => 0];
+
         $db = new Database();
         $db->query('SELECT 
                     COUNT(*) as total,
@@ -582,6 +489,8 @@ class SiswaController {
     }
     
     private function getChartDataKelas($user_id, $periode, $tanggal, $minggu, $bulan, $tahun) {
+        return ['labels' => [], 'values' => []];
+
         $db   = new Database();
         $data = [];
         

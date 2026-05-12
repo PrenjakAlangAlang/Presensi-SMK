@@ -5,7 +5,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-800">Mata Pelajaran yang Diampu</h2>
-    <p class="text-gray-600">Kelola presensi dan monitoring siswa per kelas</p>
+    <p class="text-gray-600">Lihat mata pelajaran yang diampu dan jumlah siswa terdaftar</p>
 </div>
 
 <?php if (!empty($kelasSaya)): ?>
@@ -61,7 +61,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     ?> siswa
                 </span>
             </div>
-            <div class="flex justify-between text-sm">
+            <div class="flex justify-between text-sm hidden">
                 <span class="text-gray-600">Presensi:</span>
                 <span class="font-medium text-blue-600" id="statusPresensi<?php echo $mapel->id; ?>">
                     <?php echo isset($mapel->sesi_aktif) && $mapel->sesi_aktif ? 'Aktif' : 'Tutup'; ?>
@@ -69,7 +69,7 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
         </div>
 
-        <div class="flex space-x-2">
+        <div class="flex space-x-2 hidden">
             <?php if (isset($mapel->sesi_aktif) && $mapel->sesi_aktif): ?>
                 <button onclick="tutupPresensi(<?php echo $mapel->id; ?>)" 
                         class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium">

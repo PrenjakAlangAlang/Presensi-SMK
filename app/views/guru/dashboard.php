@@ -5,7 +5,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-800">Dashboard Guru</h2>
-    <p class="text-gray-600">Monitor mata pelajaran dan presensi siswa</p>
+    <p class="text-gray-600">Monitor mata pelajaran dan daftar siswa</p>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -42,7 +42,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
     
 
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hidden">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-500 text-sm">Presensi Aktif</p>
@@ -92,7 +92,7 @@ require_once __DIR__ . '/../layouts/header.php';
 </div>
 
 <!-- Aktivitas Terbaru -->
-<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hidden">
     <h3 class="text-lg font-semibold text-gray-800 mb-4">Aktivitas Presensi Terbaru</h3>
     <div class="overflow-x-auto">
         <table class="w-full">

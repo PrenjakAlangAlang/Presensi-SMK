@@ -30,21 +30,7 @@ class PresensiModel {
     }
     
     public function recordPresensiKelas($data) {
-        // support presensi_sesi_id if provided (nullable)
-        $this->db->query('INSERT INTO presensi_mapel (presensi_sesi_id, user_id, mata_pelajaran_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu) 
-                         VALUES (:presensi_sesi_id, :user_id, :mata_pelajaran_id, :latitude, :longitude, :jarak, :status, :jenis, :alasan, :foto_bukti, NOW())');
-        $this->db->bind(':presensi_sesi_id', $data['presensi_sesi_id'] ?? null);
-        $this->db->bind(':user_id', $data['user_id']);
-        $this->db->bind(':mata_pelajaran_id', $data['mata_pelajaran_id']);
-        $this->db->bind(':latitude', $data['latitude']);
-        $this->db->bind(':longitude', $data['longitude']);
-        $this->db->bind(':jarak', $data['jarak']);
-        $this->db->bind(':status', $data['status']);
-        $this->db->bind(':jenis', $data['jenis'] ?? 'hadir');
-        $this->db->bind(':alasan', $data['alasan'] ?? null);
-        $this->db->bind(':foto_bukti', $data['foto_bukti'] ?? null);
-
-        return $this->db->execute();
+        return false;
     }
 
     /**
@@ -52,12 +38,7 @@ class PresensiModel {
      * Returns true if exists, false otherwise
      */
     public function hasPresensiInSession($user_id, $presensi_sesi_id) {
-        if (!$presensi_sesi_id) return false;
-        $this->db->query('SELECT id FROM presensi_mapel WHERE user_id = :user_id AND presensi_sesi_id = :sesi_id LIMIT 1');
-        $this->db->bind(':user_id', $user_id);
-        $this->db->bind(':sesi_id', $presensi_sesi_id);
-        $row = $this->db->single();
-        return $row ? true : false;
+        return false;
     }
     
     public function getPresensiSekolahByUser($user_id, $limit = null) {
@@ -88,43 +69,11 @@ class PresensiModel {
     }
     
     public function getPresensiKelasByUser($user_id, $limit = null) {
-        $sql = 'SELECT pk.*, k.nama_mata_pelajaran 
-                FROM presensi_mapel pk 
-                INNER JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id 
-                WHERE pk.user_id = :user_id 
-                ORDER BY pk.waktu DESC';
-        
-        if ($limit) {
-            $sql .= ' LIMIT ' . $limit;
-        }
-        
-        $this->db->query($sql);
-        $this->db->bind(':user_id', $user_id);
-        return $this->db->resultSet();
+        return [];
     }
     
     public function getPresensiKelasByUserPeriode($user_id, $startDate, $endDate = null) {
-        if ($endDate) {
-            $sql = 'SELECT pk.*, k.nama_mata_pelajaran 
-                    FROM presensi_mapel pk 
-                    INNER JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id 
-                    WHERE pk.user_id = :user_id AND DATE(pk.waktu) BETWEEN :start_date AND :end_date 
-                    ORDER BY pk.waktu DESC';
-            $this->db->query($sql);
-            $this->db->bind(':user_id', $user_id);
-            $this->db->bind(':start_date', $startDate);
-            $this->db->bind(':end_date', $endDate);
-        } else {
-            $sql = 'SELECT pk.*, k.nama_mata_pelajaran 
-                    FROM presensi_mapel pk 
-                    INNER JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id 
-                    WHERE pk.user_id = :user_id AND DATE(pk.waktu) = :tanggal 
-                    ORDER BY pk.waktu DESC';
-            $this->db->query($sql);
-            $this->db->bind(':user_id', $user_id);
-            $this->db->bind(':tanggal', $startDate);
-        }
-        return $this->db->resultSet();
+        return [];
     }
     
     public function getPresensiHariIni($user_id) {
@@ -135,20 +84,15 @@ class PresensiModel {
     }
     
     public function getStatistikKehadiran($user_id) {
-        // Statistik kehadiran untuk bulan ini dari presensi_sekolah + presensi_mapel
+        // Statistik kehadiran untuk bulan ini dari presensi sekolah.
         $this->db->query('SELECT 
                          COUNT(*) as total,
                          SUM(CASE WHEN status = "valid" AND jenis = "hadir" THEN 1 ELSE 0 END) as hadir,
                          SUM(CASE WHEN jenis = "izin" THEN 1 ELSE 0 END) as izin,
                          SUM(CASE WHEN jenis = "sakit" THEN 1 ELSE 0 END) as sakit,
                          SUM(CASE WHEN jenis = "alpha" THEN 1 ELSE 0 END) as alpha
-                         FROM (
-                             SELECT status, jenis, waktu FROM presensi_sekolah 
-                             WHERE user_id = :user_id AND MONTH(waktu) = MONTH(CURDATE()) AND YEAR(waktu) = YEAR(CURDATE())
-                             UNION ALL
-                             SELECT status, jenis, waktu FROM presensi_mapel 
-                             WHERE user_id = :user_id AND MONTH(waktu) = MONTH(CURDATE()) AND YEAR(waktu) = YEAR(CURDATE())
-                         ) AS combined_presensi');
+                         FROM presensi_sekolah
+                         WHERE user_id = :user_id AND MONTH(waktu) = MONTH(CURDATE()) AND YEAR(waktu) = YEAR(CURDATE())');
         $this->db->bind(':user_id', $user_id);
         return $this->db->single();
     }
@@ -156,6 +100,8 @@ class PresensiModel {
    
      
     public function getLaporanPresensiKelas($mata_pelajaran_id, $tanggal = null, $sesi_id = null) {
+        return [];
+
         // Base select — list all siswa in mata pelajaran and join any matching presensi_mapel
         if ($sesi_id) {
             $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
@@ -388,6 +334,14 @@ class PresensiModel {
     }
     
     public function getStatistikPresensiKelas($tanggal = null, $bulan = null, $tahun = null, $user_id = null) {
+        return (object) [
+            'total_siswa' => 0,
+            'hadir' => 0,
+            'izin' => 0,
+            'sakit' => 0,
+            'alpha' => 0
+        ];
+
         if ($tanggal) {
             // Statistik untuk tanggal tertentu
             if ($user_id) {
@@ -585,6 +539,8 @@ class PresensiModel {
 
    
     public function createPresensiKelasIzin($siswa_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_kelas_id = null) {
+        return true;
+
         // Get all classes the student is enrolled in
         $this->db->query('SELECT mata_pelajaran_id FROM siswa_mata_pelajaran WHERE siswa_id = :siswa_id');
         $this->db->bind(':siswa_id', $siswa_id);
@@ -620,6 +576,8 @@ class PresensiModel {
 
    
     public function createPresensiKelasSingleIzin($siswa_id, $mata_pelajaran_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_kelas_id = null) {
+        return true;
+
         // Check if presensi already exists for this class and date
         $this->db->query('SELECT id FROM presensi_mapel WHERE user_id = :user_id AND mata_pelajaran_id = :mata_pelajaran_id AND DATE(waktu) = :tanggal LIMIT 1');
         $this->db->bind(':user_id', $siswa_id);
@@ -649,6 +607,8 @@ class PresensiModel {
 
    
     public function updatePresensiKelas($siswa_id, $mata_pelajaran_id, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
+        return false;
+
         // Build WHERE clause based on whether sesi_id is provided
         if ($sesi_id) {
             // Update specific session
@@ -693,6 +653,8 @@ class PresensiModel {
 
   
     public function createOrUpdatePresensiKelas($siswa_id, $mata_pelajaran_id, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
+        return false;
+
         // Check if record exists
         if ($sesi_id) {
             $this->db->query('SELECT id FROM presensi_mapel WHERE user_id = :user_id AND mata_pelajaran_id = :mata_pelajaran_id AND presensi_sesi_id = :sesi_id LIMIT 1');
@@ -939,6 +901,8 @@ class PresensiModel {
 
     
     public function markAbsentStudentsAsAlphaKelas($mata_pelajaran_id, $sesi_id) {
+        return 0;
+
         // Get session and class info for notification
         $this->db->query('SELECT ps.*, k.nama_mata_pelajaran FROM presensi_mapel_sesi ps 
                  LEFT JOIN mata_pelajaran k ON ps.mata_pelajaran_id = k.id 

@@ -35,6 +35,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <i class="fas fa-school mr-2"></i>Presensi Sekolah
             </a>
             <a href="?action=admin_kesiswaan_laporan&tipe=kelas&bulan=<?php echo $bulan ?? date('m'); ?>&tahun=<?php echo $tahun ?? date('Y'); ?><?php echo isset($_GET['kelas_id']) ? '&kelas_id='.$_GET['kelas_id'] : ''; ?>" 
+               hidden
                class="<?php echo (isset($_GET['tipe']) && $_GET['tipe'] == 'kelas') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?> whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-book mr-2"></i>Presensi Mata Pelajaran
             </a>

@@ -399,11 +399,10 @@ class AdminController {
     
     public function laporan() {
         
-        // Ambil tipe laporan (sekolah atau kelas)
-        $tipe_laporan = $_GET['tipe'] ?? 'sekolah';
+        // Presensi mata pelajaran dinonaktifkan; laporan hanya menampilkan presensi sekolah.
+        $tipe_laporan = 'sekolah';
         
-        // Ambil list mata pelajaran dengan informasi kelas untuk dropdown
-        $kelas_list = $this->mataPelajaranModel->getAllMataPelajaranWithKelas();
+        $kelas_list = [];
         
         // Ambil parameter filter periode
         $periode = $_GET['periode'] ?? 'bulanan';
@@ -633,6 +632,9 @@ class AdminController {
     }
 
     public function exportExcel() {
+        if (($_GET['tipe'] ?? 'sekolah') === 'kelas') {
+            die('Laporan presensi mata pelajaran telah dinonaktifkan.');
+        }
         $periode = $_GET['periode'] ?? 'bulanan';
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
         $minggu = $_GET['minggu'] ?? date('W');
@@ -861,6 +863,9 @@ class AdminController {
     }
 
     public function exportPDF() {
+        if (($_GET['tipe'] ?? 'sekolah') === 'kelas') {
+            die('Laporan presensi mata pelajaran telah dinonaktifkan.');
+        }
         $periode = $_GET['periode'] ?? 'bulanan';
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
         $minggu = $_GET['minggu'] ?? date('W');
@@ -1212,6 +1217,9 @@ class AdminController {
     }
 
     public function ubahStatusPresensiKelas() {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Presensi mata pelajaran telah dinonaktifkan.']);
+        exit;
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $presensi_id = $_POST['presensi_id'] ?? null;
             $user_id = $_POST['user_id'] ?? null;
