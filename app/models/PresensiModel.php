@@ -1,10 +1,5 @@
 <?php
-// app/models/PresensiModel.php
-// Model untuk mencatat dan mengambil data presensi
-// - recordPresensiSekolah: mencatat presensi umum
-// - recordPresensiKelas: mencatat presensi per kelas (mendukung sesi)
-// - hasPresensiInSession: mencegah duplikat presensi per sesi
-// - fungsi laporan dan statistik terkait presensi
+
 require_once 'Database.php';
 require_once __DIR__ . '/BukuIndukModel.php';
 require_once __DIR__ . '/../services/EmailService.php';
@@ -158,12 +153,8 @@ class PresensiModel {
         return $this->db->single();
     }
     
-    /**
-     * Get presensi laporan for a mata pelajaran.
-     * If $sesi_id provided, returns attendance for that session (left join so students without presensi are included).
-     * Otherwise if $tanggal provided (or default today) returns presensi_mapel for that date.
-     * Returns array of objects with siswa data and presensi fields (status, waktu, jarak, latitude, longitude, presensi_sesi_id)
-     */
+   
+     
     public function getLaporanPresensiKelas($mata_pelajaran_id, $tanggal = null, $sesi_id = null) {
         // Base select — list all siswa in mata pelajaran and join any matching presensi_mapel
         if ($sesi_id) {
@@ -194,12 +185,7 @@ class PresensiModel {
         return $this->db->resultSet();
     }
     
-    /**
-     * Get laporan presensi sekolah (umum)
-     * If $sesi_id provided, returns attendance for that session (left join so students without presensi are included).
-     * Otherwise if $tanggal provided (or default today) returns presensi_sekolah for that date.
-     * Returns array of objects with siswa data and presensi fields (status, waktu, jarak, latitude, longitude, jenis, presensi_sekolah_sesi_id)
-     */
+    
     public function getLaporanPresensiSekolah($tanggal = null, $sesi_id = null, $filter_status = null, $limit = null, $offset = 0) {
         // Base select — list all siswa and join any matching presensi_sekolah
         if ($sesi_id) {
@@ -272,9 +258,7 @@ class PresensiModel {
         return $this->db->resultSet();
     }
 
-    /**
-     * Count total laporan presensi sekolah
-     */
+    
     public function countLaporanPresensiSekolah($tanggal = null, $sesi_id = null, $filter_status = null) {
         if ($sesi_id) {
             $sql = 'SELECT COUNT(u.id) as total FROM users u WHERE u.role = "siswa"';
@@ -309,11 +293,7 @@ class PresensiModel {
         return $result->total ?? 0;
     }
     
-    /**
-     * Get statistik presensi sekolah untuk periode tertentu
-     * Returns count of hadir, izin, sakit, alpha, and total siswa
-     * If $user_id is provided, returns stats for that specific user only
-     */
+    
     public function getStatistikPresensiSekolah($tanggal = null, $bulan = null, $tahun = null, $user_id = null) {
         if ($tanggal) {
             // Statistik untuk tanggal tertentu
@@ -519,10 +499,7 @@ class PresensiModel {
         return $this->db->resultSet();
     }
 
-    /**
-     * Check whether a user already has a presensi_sekolah record for a given presensi_sekolah_sesi
-     * Returns true if exists, false otherwise
-     */
+
     public function hasPresensiInSchoolSession($user_id, $presensi_sekolah_sesi_id) {
         if (!$presensi_sekolah_sesi_id) return false;
         $this->db->query('SELECT id FROM presensi_sekolah WHERE user_id = :user_id AND presensi_sekolah_sesi_id = :sesi_id LIMIT 1');
@@ -532,10 +509,7 @@ class PresensiModel {
         return $row ? true : false;
     }
 
-    /**
-     * Get presensi record in a specific school session
-     * Returns the full record if exists, null otherwise
-     */
+    
     public function getPresensiInSchoolSession($user_id, $presensi_sekolah_sesi_id) {
         if (!$presensi_sekolah_sesi_id) return null;
         $this->db->query('SELECT * FROM presensi_sekolah WHERE user_id = :user_id AND presensi_sekolah_sesi_id = :sesi_id LIMIT 1');
@@ -544,10 +518,7 @@ class PresensiModel {
         return $this->db->single();
     }
 
-    /**
-     * Update existing presensi sekolah record by ID
-     * Used when updating alpha status to hadir/izin/sakit after session extension
-     */
+    
     public function updatePresensiSekolahById($id, $data) {
         $this->db->query('UPDATE presensi_sekolah SET 
                          latitude = :latitude, 
@@ -570,19 +541,13 @@ class PresensiModel {
         return $this->db->execute();
     }
 
-    /**
-     * Get list of dates that have presensi sekolah records
-     * Returns array of unique dates in DESC order
-     */
+    
     public function getTanggalPresensiSekolah() {
         $this->db->query('SELECT DISTINCT DATE(waktu) as tanggal FROM presensi_sekolah ORDER BY tanggal DESC');
         return $this->db->resultSet();
     }
 
-    /**
-     * Check if a student has izin on a specific date
-     * Returns the izin record if exists, false otherwise
-     */
+   
     public function hasIzinOnDate($siswa_id, $tanggal) {
         $this->db->query('SELECT * FROM izin_siswa WHERE siswa_id = :siswa_id AND tanggal = :tanggal LIMIT 1');
         $this->db->bind(':siswa_id', $siswa_id);
@@ -591,10 +556,7 @@ class PresensiModel {
         return $row ? $row : false;
     }
 
-    /**
-     * Create presensi_sekolah record for izin
-     * Automatically called when izin is approved/submitted
-     */
+   
     public function createPresensiSekolahIzin($siswa_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_sekolah_id = null) {
         // Check if presensi already exists for this date
         $this->db->query('SELECT id FROM presensi_sekolah WHERE user_id = :user_id AND DATE(waktu) = :tanggal LIMIT 1');
@@ -621,10 +583,7 @@ class PresensiModel {
         return $this->db->execute();
     }
 
-    /**
-     * Create presensi_mapel records for izin for all classes the student is enrolled in
-     * If sesi_kelas_id is null, will not link to any session
-     */
+   
     public function createPresensiKelasIzin($siswa_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_kelas_id = null) {
         // Get all classes the student is enrolled in
         $this->db->query('SELECT mata_pelajaran_id FROM siswa_mata_pelajaran WHERE siswa_id = :siswa_id');
@@ -659,9 +618,7 @@ class PresensiModel {
         return true;
     }
 
-    /**
-     * Create presensi_mapel record for izin for a single specific class
-     */
+   
     public function createPresensiKelasSingleIzin($siswa_id, $mata_pelajaran_id, $tanggal, $jenis_izin, $alasan = null, $foto_bukti = null, $waktu_pengajuan = null, $sesi_kelas_id = null) {
         // Check if presensi already exists for this class and date
         $this->db->query('SELECT id FROM presensi_mapel WHERE user_id = :user_id AND mata_pelajaran_id = :mata_pelajaran_id AND DATE(waktu) = :tanggal LIMIT 1');
@@ -690,10 +647,7 @@ class PresensiModel {
         return $this->db->execute();
     }
 
-    /**
-     * Update presensi kelas status
-     * Used by teachers to modify student attendance status
-     */
+   
     public function updatePresensiKelas($siswa_id, $mata_pelajaran_id, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
         // Build WHERE clause based on whether sesi_id is provided
         if ($sesi_id) {
@@ -737,10 +691,7 @@ class PresensiModel {
         return $this->db->execute();
     }
 
-    /**
-     * Create presensi kelas record if it doesn't exist
-     * Used when teacher creates attendance record for student who hasn't checked in
-     */
+  
     public function createOrUpdatePresensiKelas($siswa_id, $mata_pelajaran_id, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
         // Check if record exists
         if ($sesi_id) {
@@ -777,10 +728,7 @@ class PresensiModel {
         }
     }
 
-    /**
-     * Update presensi sekolah status
-     * Used by admin to modify student attendance status
-     */
+   
     public function updatePresensiSekolah($siswa_id, $tanggal, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
         // Build WHERE clause based on whether sesi_id is provided
         if ($sesi_id) {
@@ -825,10 +773,7 @@ class PresensiModel {
         return $this->db->execute();
     }
 
-    /**
-     * Create or update presensi sekolah record
-     * Used when admin creates attendance record for student who hasn't checked in
-     */
+ 
     public function createOrUpdatePresensiSekolah($siswa_id, $tanggal, $jenis, $alasan = null, $foto_bukti = null, $sesi_id = null) {
         // Check if record exists
         if ($sesi_id) {
@@ -863,10 +808,7 @@ class PresensiModel {
         }
     }
 
-    /**
-     * Mark all students who haven't checked in for a school session as alpha
-     * Called when school session is closed
-     */
+ 
     public function markAbsentStudentsAsAlphaSekolah($sesi_id) {
         // Get session info for notification
         $this->db->query('SELECT * FROM presensi_sekolah_sesi WHERE id = :sesi_id');
@@ -995,10 +937,7 @@ class PresensiModel {
         return $count;
     }
 
-    /**
-     * Mark all students in a class who haven't checked in for a session as alpha
-     * Called when class session is closed
-     */
+    
     public function markAbsentStudentsAsAlphaKelas($mata_pelajaran_id, $sesi_id) {
         // Get session and class info for notification
         $this->db->query('SELECT ps.*, k.nama_mata_pelajaran FROM presensi_mapel_sesi ps 

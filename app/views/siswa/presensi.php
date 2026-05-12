@@ -239,9 +239,7 @@ require_once __DIR__ . '/../layouts/header.php';
 </div>
 
 <script>
-// ============================================================
-// STATE GLOBAL
-// ============================================================
+
 const kelasSesi = <?php
     $map = [];
     foreach($kelas as $kk) { $map[$kk->id] = $kk->sesi_aktif ? true : false; }
@@ -270,9 +268,9 @@ let kelasAlreadyPresenced = {};
 let isSubmittingSekolah = false;
 let isSubmittingKelas = false;
 
-// ============================================================
-// INISIALISASI PETA
-// ============================================================
+
+
+
 function initMap() {
     map = L.map('map').setView([schoolLocation.lat, schoolLocation.lng], 17);
 
@@ -298,9 +296,9 @@ function initMap() {
     }).addTo(map).bindPopup('Radius Presensi: ' + radiusPresensi + ' meter');
 }
 
-// ============================================================
-// ALGORITMA HAVERSINE
-// ============================================================
+
+
+
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R    = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -313,10 +311,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-// ============================================================
-// DETEKSI FAKE/MOCK LOCATION (sisi frontend — lapisan pertama)
-// Validasi utama tetap di backend
-// ============================================================
+
 function isMockLocation() {
     // Layer 1: Akurasi terlalu sempurna (< 5 meter sangat tidak wajar untuk GPS HP)
     if (userLocation.accuracy < 5) {
@@ -350,9 +345,7 @@ function isMockLocation() {
     return { mock: false };
 }
 
-// ============================================================
-// EVALUASI TOMBOL — dipanggil setiap kali state berubah
-// ============================================================
+
 function evaluateUI() {
     // Hanya evaluasi setelah KEDUANYA siap (GPS + polling sesi)
     if (!locationReady || !sessionReady) return;
@@ -365,7 +358,7 @@ function evaluateUI() {
     );
     const inRadius = distance <= radiusPresensi;
 
-    // --- Update UI lokasi ---
+    // Update UI lokasi 
     const statusEl   = document.getElementById('locationStatus');
     const validEl    = document.getElementById('locationValid');
     const distanceEl = document.getElementById('distanceInfo');
@@ -401,7 +394,7 @@ function evaluateUI() {
         validEl.className    = 'font-medium text-red-600';
     }
 
-    // --- Evaluasi tombol presensi SEKOLAH ---
+    
     if (sessionAlreadyPresenced) {
         setButtonState(btn, false, 'gray');
     } else if (!sessionActive) {
@@ -414,7 +407,7 @@ function evaluateUI() {
         setButtonState(btn, inRadius, inRadius ? 'blue' : 'gray');
     }
 
-    // --- Evaluasi tombol presensi KELAS ---
+    
     updatePresensiKelasButton();
 }
 
@@ -428,9 +421,9 @@ function setButtonState(btn, enabled, color) {
     }
 }
 
-// ============================================================
-// GPS: DAPATKAN LOKASI PENGGUNA + KUMPULKAN SAMPEL
-// ============================================================
+
+
+
 function getUserLocation() {
     if (!navigator.geolocation) {
         document.getElementById('locationStatus').innerHTML = `
@@ -493,9 +486,9 @@ function getUserLocation() {
     );
 }
 
-// ============================================================
-// POLLING SESI SEKOLAH
-// ============================================================
+
+
+
 function fetchSchoolSessionStatus() {
     fetch('index.php?action=get_presensi_sekolah_status')
         .then(r => r.json())
@@ -523,9 +516,9 @@ function fetchSchoolSessionStatus() {
         .catch(err => console.error('Failed to fetch session status:', err));
 }
 
-// ============================================================
-// UPDATE PETA
-// ============================================================
+
+
+
 function updateMap() {
     if (userMarker)     map.removeLayer(userMarker);
     if (accuracyCircle) map.removeLayer(accuracyCircle);
@@ -543,9 +536,9 @@ function updateMap() {
     map.fitBounds(group.getBounds().pad(0.1));
 }
 
-// ============================================================
-// TOMBOL PRESENSI KELAS
-// ============================================================
+
+
+
 function updatePresensiKelasButton() {
     const btn           = document.getElementById('presensiKelasBtn');
     const selectedKelas = document.getElementById('kelasSelect').value;
@@ -570,9 +563,9 @@ function updatePresensiKelasButton() {
     }
 }
 
-// ============================================================
-// SUBMIT PRESENSI SEKOLAH
-// ============================================================
+
+
+
 function submitPresensiSekolah() {
     if (isSubmittingSekolah) return;
 
@@ -591,8 +584,8 @@ function submitPresensiSekolah() {
         return;
     }
 
-    // ✅ Deteksi fake GPS di frontend (lapisan pertama)
-    // Validasi utama tetap dilakukan di backend
+    // Deteksi fake GPS di frontend (lapisan pertama)
+   
     if (jenis === 'hadir') {
         const mockCheck = isMockLocation();
         if (mockCheck.mock) {
@@ -670,9 +663,9 @@ function submitPresensiSekolah() {
         });
 }
 
-// ============================================================
-// SUBMIT PRESENSI KELAS
-// ============================================================
+
+
+
 function submitPresensiKelas() {
     if (isSubmittingKelas) return;
 
@@ -704,7 +697,7 @@ function submitPresensiKelas() {
         return;
     }
 
-    // ✅ Deteksi fake GPS di frontend (lapisan pertama)
+    // Deteksi fake GPS di frontend (lapisan pertama)
     if (jenis === 'hadir') {
         const mockCheck = isMockLocation();
         if (mockCheck.mock) {
@@ -782,9 +775,9 @@ function submitPresensiKelas() {
         });
 }
 
-// ============================================================
+
 // HELPER: STATUS KELAS
-// ============================================================
+
 function updateStatusKelas() {
     const selectedKelas = document.getElementById('kelasSelect').value;
     const jenisPresensi = document.getElementById('jenisPresensiKelas').value;
@@ -828,9 +821,9 @@ function updateStatusKelas() {
     }
 }
 
-// ============================================================
+
 // NOTIFIKASI
-// ============================================================
+
 function showNotification(type, message) {
     const n = document.createElement('div');
     n.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transform transition-transform duration-300 ${
@@ -853,9 +846,8 @@ function updateTime() {
     document.getElementById('currentTime').textContent = new Date().toLocaleTimeString();
 }
 
-// ============================================================
 // INISIALISASI
-// ============================================================
+
 document.addEventListener('DOMContentLoaded', function() {
     initMap();
     getUserLocation();

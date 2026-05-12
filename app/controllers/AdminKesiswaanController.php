@@ -1,6 +1,5 @@
 <?php
-// app/controllers/AdminKesiswaanController.php
-// Peran admin kesiswaan: kelola buku induk seluruh siswa dan kelola sesi presensi sekolah
+
 require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/BukuIndukModel.php';
 require_once __DIR__ . '/../models/PresensiSekolahSesiModel.php';
@@ -1052,7 +1051,7 @@ class AdminKesiswaanController {
         }
     }
 
-    // Hapus satu sesi presensi
+    
     public function deletePresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id = $_POST['id'] ?? null;
@@ -1068,7 +1067,7 @@ class AdminKesiswaanController {
         exit;
     }
 
-    // Hapus multiple sesi presensi
+    
     public function deleteMultiplePresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $ids = $_POST['ids'] ?? [];

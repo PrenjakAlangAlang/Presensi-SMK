@@ -24,13 +24,12 @@ class SiswaController {
         $this->bukuIndukModel = new BukuIndukModel();
     }
 
-    // ============================================================
-    // DETEKSI MOCK/FAKE LOCATION — validasi utama di backend
-    // Tidak bisa di-bypass oleh siswa karena dieksekusi di server
-    // ============================================================
+    
+    
+   
+    
     private function validateLocationAuthenticity($accuracy, $samplesJson) {
-        // Layer 1: Akurasi terlalu sempurna (< 5 meter sangat tidak wajar untuk GPS HP)
-        // GPS HP asli di luar ruangan biasanya 5-30m, di dalam gedung 20-100m
+        // Layer 1: Akurasi terlalu sempurna 
         if ($accuracy !== null && (float)$accuracy < 5) {
             return [
                 'valid'   => false,
@@ -39,7 +38,7 @@ class SiswaController {
         }
 
         // Layer 2: Cek apakah koordinat benar-benar diam (statis sempurna = fake GPS)
-        // GPS asli selalu punya noise alami minimal ~0.000001 derajat (~0.1 meter)
+        
         $samples = json_decode($samplesJson, true);
 
         if (is_array($samples) && count($samples) >= 2) {
@@ -151,7 +150,7 @@ class SiswaController {
             $longitude = $_POST['longitude'] ?? 0;
             $jenis     = $_POST['jenis']     ?? 'hadir';
             $alasan    = $_POST['alasan']    ?? null;
-            // ✅ Data tambahan untuk deteksi fake GPS
+            //  Data tambahan untuk deteksi fake GPS
             $accuracy  = isset($_POST['accuracy']) ? (float)$_POST['accuracy'] : null;
             $samples   = $_POST['samples'] ?? '[]';
 
@@ -179,7 +178,7 @@ class SiswaController {
                 $distance  = 0;
                 $isValid   = true;
             } else {
-                // ✅ DETEKSI FAKE GPS — validasi di backend (tidak bisa di-bypass)
+                //  DETEKSI FAKE GPS 
                 $mockCheck = $this->validateLocationAuthenticity($accuracy, $samples);
                 if (!$mockCheck['valid']) {
                     header('Content-Type: application/json');
@@ -254,7 +253,7 @@ class SiswaController {
             $longitude         = $_POST['longitude'] ?? 0;
             $jenis             = $_POST['jenis']     ?? 'hadir';
             $alasan            = $_POST['alasan']    ?? null;
-            // ✅ Data tambahan untuk deteksi fake GPS
+            // Data tambahan untuk deteksi fake GPS
             $accuracy          = isset($_POST['accuracy']) ? (float)$_POST['accuracy'] : null;
             $samples           = $_POST['samples'] ?? '[]';
             
@@ -278,7 +277,7 @@ class SiswaController {
                 $distance  = 0;
                 $isValid   = true;
             } else {
-                // ✅ DETEKSI FAKE GPS — validasi di backend (tidak bisa di-bypass)
+                // DETEKSI FAKE GPS 
                 $mockCheck = $this->validateLocationAuthenticity($accuracy, $samples);
                 if (!$mockCheck['valid']) {
                     header('Content-Type: application/json');
@@ -570,7 +569,7 @@ class SiswaController {
             $db->bind(':tahun',   $tahun);
             $results = $db->resultSet();
             foreach ($results as $row) {
-                $weekNum = ceil($row->hari / 7) - 1;
+                $weekNum = (int) ceil($row->hari / 7) - 1;
                 if ($weekNum >= 0 && $weekNum < 5) {
                     $values[$weekNum] += $row->jumlah;
                 }
@@ -641,7 +640,7 @@ class SiswaController {
             $db->bind(':tahun',   $tahun);
             $results = $db->resultSet();
             foreach ($results as $row) {
-                $weekNum = ceil($row->hari / 7) - 1;
+                $weekNum = (int) ceil($row->hari / 7) - 1;
                 if ($weekNum >= 0 && $weekNum < 5) {
                     $values[$weekNum] += $row->jumlah;
                 }

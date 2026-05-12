@@ -1,7 +1,5 @@
 <?php
-// app/models/MataPelajaranModel.php
-// Model untuk operasi terkait mata pelajaran dan relasi siswa-mata pelajaran
-// Menyediakan fungsi CRUD untuk mata pelajaran serta manajemen siswa dalam mata pelajaran
+
 require_once 'Database.php';
 
 class MataPelajaranModel {

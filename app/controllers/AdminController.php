@@ -1,7 +1,5 @@
 <?php
-// app/controllers/AdminController.php
-// Controller untuk fitur administratif: manajemen user, kelas, mata pelajaran, lokasi, dan laporan
-// Menyediakan endpoint untuk view admin dan beberapa API JSON untuk AJAX
+
 require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/KelasModel.php';
 require_once __DIR__ . '/../models/MataPelajaranModel.php';
@@ -35,10 +33,7 @@ class AdminController {
         $this->bukuIndukModel = new BukuIndukModel();
     }
 
-    /**
-     * Admin: halaman manajemen sesi presensi sekolah
-     * Menampilkan daftar sesi (auto dan manual) dan form CRUD sederhana
-     */
+   
     public function presensiSekolah() {
         // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
         $this->presensiSekolahSesiModel->autoCreateDailySesi();
@@ -47,7 +42,7 @@ class AdminController {
         require_once __DIR__ . '/../views/admin/presensi_sekolah.php';
     }
 
-    // API: buat sesi presensi sekolah (manual override)
+    
     public function createPresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $waktu_buka = $_POST['waktu_buka'] ?? null;
@@ -76,7 +71,7 @@ class AdminController {
         exit;
     }
 
-    // API: extend / perpanjang sesi
+    
     public function extendPresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id = $_POST['id'] ?? null;
@@ -104,7 +99,7 @@ class AdminController {
         exit;
     }
 
-    // API: close session (admin)
+    
     public function closePresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id = $_POST['id'] ?? null;
@@ -134,7 +129,7 @@ class AdminController {
         exit;
     }
 
-    // API: status sesi sekolah (dipanggil oleh client siswa)
+    
     public function getPresensiSekolahStatus() {
         // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
         $this->presensiSekolahSesiModel->autoCreateDailySesi();
@@ -204,7 +199,7 @@ class AdminController {
     require_once __DIR__ . '/../views/admin/mata_pelajaran.php';
     }
 
-    // CRUD Kelas
+  
     public function createKelas() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = [
@@ -257,7 +252,7 @@ class AdminController {
         }
     }
     
-    // CRUD Mata Pelajaran
+    
     public function createMataPelajaran() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = [
@@ -310,10 +305,7 @@ class AdminController {
         }
     }
 
-    // NOTE: Siswa dikelola PER MATA PELAJARAN, bukan per kelas
-    // API untuk mengelola siswa per mata pelajaran
     
-    // API: get siswa in mata pelajaran (JSON)
     public function getSiswaDalamMapel() {
         if(isset($_GET['mapel_id'])) {
             $mapel_id = $_GET['mapel_id'];
@@ -324,7 +316,7 @@ class AdminController {
         }
     }
 
-    // API: get siswa available for mata pelajaran (JSON)
+
     public function getSiswaTersediaMapel() {
         $mapel_id = $_GET['mapel_id'] ?? null;
         $siswa = $this->mataPelajaranModel->getAvailableSiswa($mapel_id);
@@ -333,7 +325,7 @@ class AdminController {
         exit;
     }
 
-    // API: add siswa to mata pelajaran
+    
     public function addSiswaToMapel() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $siswa_id = $_POST['siswa_id'];
@@ -345,7 +337,7 @@ class AdminController {
         }
     }
 
-    // API: remove siswa from mata pelajaran
+    
     public function removeSiswaFromMapel() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $siswa_id = $_POST['siswa_id'];
@@ -357,7 +349,7 @@ class AdminController {
         }
     }
     
-    // API: get mata pelajaran in kelas (JSON)
+   
     public function getMataPelajaranDalamKelas() {
         if(isset($_GET['kelas_id'])) {
             $kelas_id = $_GET['kelas_id'];
@@ -368,7 +360,7 @@ class AdminController {
         }
     }
 
-    // API: get mata pelajaran available for kelas (JSON)
+    
     public function getMataPelajaranTersediaKelas() {
         $kelas_id = $_GET['kelas_id'] ?? null;
         $mapel = $this->kelasModel->getAvailableMataPelajaran($kelas_id);
@@ -377,7 +369,6 @@ class AdminController {
         exit;
     }
 
-    // API: add mata pelajaran to kelas
     public function addMataPelajaranToKelas() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $mata_pelajaran_id = $_POST['mata_pelajaran_id'];
@@ -389,7 +380,7 @@ class AdminController {
         }
     }
 
-    // API: remove mata pelajaran from kelas
+    
     public function removeMataPelajaranFromKelas() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $mata_pelajaran_id = $_POST['mata_pelajaran_id'];
@@ -402,13 +393,12 @@ class AdminController {
     }
     
     public function lokasi() {
-        // Halaman pengaturan lokasi sekolah
         $lokasi = $this->locationModel->getLokasiSekolah();
     require_once __DIR__ . '/../views/admin/lokasi.php';
     }
     
     public function laporan() {
-        // Halaman laporan admin - presensi sekolah dan kelas
+        
         // Ambil tipe laporan (sekolah atau kelas)
         $tipe_laporan = $_GET['tipe'] ?? 'sekolah';
         
@@ -1270,7 +1260,7 @@ class AdminController {
         }
     }
 
-    // Hapus satu sesi presensi
+    
     public function deletePresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id = $_POST['id'] ?? null;
@@ -1286,7 +1276,7 @@ class AdminController {
         exit;
     }
 
-    // Hapus multiple sesi presensi
+  
     public function deleteMultiplePresensiSekolah() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $ids = $_POST['ids'] ?? [];
@@ -1302,7 +1292,7 @@ class AdminController {
         exit;
     }
 
-    // Buku Induk Management
+    
     public function bukuInduk() {
         $siswa = $this->userModel->getUsersByRole('siswa');
         $records = $this->bukuIndukModel->getAll();

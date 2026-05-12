@@ -1,7 +1,5 @@
 <?php
-// app/models/LaporanModel.php
-// Model untuk menyimpan dan mengambil laporan kemajuan kelas
-// Menyimpan catatan guru per tanggal dan mengambil riwayatnya
+
 require_once 'Database.php';
 
 class LaporanModel {
@@ -11,10 +9,7 @@ class LaporanModel {
         $this->db = new Database();
     }
 
-    /**
-     * Save laporan kemajuan for a mata pelajaran
-     * Expected data: ['mata_pelajaran_id' => int, 'guru_id' => int, 'catatan' => string]
-     */
+  
     public function saveLaporanKemajuan($data) {
         // Simpan laporan kemajuan untuk mata pelajaran (tanggal bisa diberikan atau default hari ini)
     $this->db->query('INSERT INTO laporan_kemajuan (mata_pelajaran_id, guru_id, tanggal, catatan, created_at) VALUES (:mata_pelajaran_id, :guru_id, :tanggal, :catatan, NOW())');
@@ -31,9 +26,6 @@ class LaporanModel {
         return false;
     }
 
-    /**
-     * Get laporan kemajuan for a specific mata pelajaran (most recent first)
-     */
     public function getLaporanByMataPelajaran($mata_pelajaran_id) {
         // Ambil daftar laporan kemajuan untuk satu mata pelajaran, terbaru terlebih dahulu
         $this->db->query('SELECT lk.*, u.nama as guru_nama 
@@ -45,9 +37,7 @@ class LaporanModel {
         return $this->db->resultSet();
     }
 
-    /**
-     * Get laporan kemajuan for a specific mata pelajaran with date range filter
-     */
+    
     public function getLaporanByMataPelajaranWithDateRange($mata_pelajaran_id, $startDate, $endDate) {
         $this->db->query('SELECT lk.*, u.nama as guru_nama 
                          FROM laporan_kemajuan lk

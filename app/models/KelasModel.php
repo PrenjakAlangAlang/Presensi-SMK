@@ -1,7 +1,5 @@
 <?php
-// app/models/KelasModel.php
-// Model untuk operasi terkait kelas dan relasi siswa-kelas
-// Menyediakan fungsi CRUD untuk kelas serta manajemen siswa dalam kelas
+
 require_once 'Database.php';
 
 class KelasModel {
@@ -75,9 +73,7 @@ class KelasModel {
         return $this->db->execute();
     }
     
-    /**
-     * Get all mata pelajaran in a kelas with guru info
-     */
+    
     public function getMataPelajaranInKelas($kelas_id) {
         $this->db->query('SELECT mp.*, u.nama as guru_pengampu_nama, kmp.id as kelas_mapel_id
                          FROM mata_pelajaran mp
@@ -89,9 +85,7 @@ class KelasModel {
         return $this->db->resultSet();
     }
     
-    /**
-     * Get available mata pelajaran (not in specific kelas)
-     */
+    
     public function getAvailableMataPelajaran($kelas_id = null) {
         if ($kelas_id) {
             $this->db->query('SELECT mp.*, u.nama as guru_pengampu_nama 
@@ -109,9 +103,7 @@ class KelasModel {
         return $this->db->resultSet();
     }
     
-    /**
-     * Add mata pelajaran to kelas
-     */
+  
     public function addMataPelajaranToKelas($mata_pelajaran_id, $kelas_id) {
         $this->db->query('INSERT INTO kelas_mata_pelajaran (kelas_id, mata_pelajaran_id) 
                          VALUES (:kelas_id, :mata_pelajaran_id)');
@@ -120,9 +112,7 @@ class KelasModel {
         return $this->db->execute();
     }
     
-    /**
-     * Remove mata pelajaran from kelas
-     */
+    
     public function removeMataPelajaranFromKelas($mata_pelajaran_id, $kelas_id) {
         $this->db->query('DELETE FROM kelas_mata_pelajaran 
                          WHERE mata_pelajaran_id = :mata_pelajaran_id AND kelas_id = :kelas_id');
@@ -131,10 +121,7 @@ class KelasModel {
         return $this->db->execute();
     }
     
-    /**
-     * Get all siswa in mata pelajaran within a kelas (DISTINCT siswa)
-     * Menampilkan semua siswa unik yang terdaftar di mata pelajaran dalam kelas ini
-     */
+   
     public function getSiswaInKelas($kelas_id) {
         $this->db->query('SELECT DISTINCT u.* FROM users u 
                          INNER JOIN siswa_mata_pelajaran smp ON u.id = smp.siswa_id 
@@ -145,10 +132,7 @@ class KelasModel {
         return $this->db->resultSet();
     }
 
-    /**
-     * Get total number of siswa in a kelas (DISTINCT count)
-     * Returns integer count
-     */
+   
     public function getTotalSiswaByKelas($kelas_id) {
         $this->db->query('SELECT COUNT(DISTINCT smp.siswa_id) as total 
                          FROM kelas_mata_pelajaran kmp

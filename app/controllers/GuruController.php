@@ -1,6 +1,5 @@
 <?php
-// app/controllers/GuruController.php
-// Controller untuk peran guru: melihat mata pelajaran, membuka/tutup sesi presensi, dan laporan
+
 require_once __DIR__ . '/../models/MataPelajaranModel.php';
 require_once __DIR__ . '/../models/PresensiModel.php';
 require_once __DIR__ . '/../models/UserModel.php';
@@ -69,7 +68,7 @@ class GuruController {
         $guru_id = $_SESSION['user_id'];
         $kelasSaya = $this->mataPelajaranModel->getMataPelajaranByGuru($guru_id);
         
-        // Get siswa for each class
+        
         // Per mata pelajaran, lampirkan daftar siswa, total, laporan hari ini, dan info sesi aktif
         foreach($kelasSaya as $kelas) {
             $kelas->siswa = $this->mataPelajaranModel->getSiswaInMataPelajaran($kelas->id);

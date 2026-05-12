@@ -1,7 +1,5 @@
 <?php
-// app/models/Database.php
-// Wrapper sederhana untuk PDO agar query, bind, execute lebih mudah digunakan
-// Menyediakan helper: query, bind, execute, resultSet, single, rowCount, lastInsertId
+
 class Database {
     private $host = DB_HOST;
     private $user = DB_USER;

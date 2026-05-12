@@ -1,7 +1,5 @@
 <?php
-// app/models/UserModel.php
-// Model untuk operasi CRUD pada tabel users dan relasi terkait
-// Menyediakan fungsi login, daftar user berdasarkan role, dan relasi orangtua/siswa
+
 require_once __DIR__ . '/Database.php';
 
 class UserModel {
@@ -30,13 +28,13 @@ class UserModel {
     }
     
     public function getAllUsers() {
-        // Ambil semua user, urutkan menurut role lalu nama
+        
         $this->db->query('SELECT * FROM users ORDER BY role, nama');
         return $this->db->resultSet();
     }
     
     public function getUserById($id) {
-        // Ambil satu user berdasarkan id
+        
         $this->db->query('SELECT * FROM users WHERE id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
@@ -56,7 +54,7 @@ class UserModel {
     }
     
     public function updateUser($data) {
-        // Perbarui data user (nama, email, role, dan password jika ada)
+      
         if (isset($data['password']) && !empty($data['password'])) {
             // Update dengan password ter-hash
             $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
@@ -80,7 +78,7 @@ class UserModel {
     }
     
     public function deleteUser($id) {
-        // Hapus user berdasarkan id
+        
         $this->db->query('DELETE FROM users WHERE id = :id');
         $this->db->bind(':id', $id);
         return $this->db->execute();
@@ -102,7 +100,7 @@ class UserModel {
         return $this->db->resultSet();
     }
 
-    // Get all siswa (students)
+
     public function getAllSiswa() {
         // Ambil semua pengguna yang berperan sebagai siswa
         $this->db->query('SELECT * FROM users WHERE role = "siswa" ORDER BY nama');

@@ -1,7 +1,5 @@
 <?php
-// app/models/LocationModel.php
-// Model untuk menangani lokasi sekolah dan validasi jarak presensi
-// Mengandung fungsi perhitungan jarak (Haversine) dan validasi radius
+
 require_once 'Database.php';
 
 class LocationModel {

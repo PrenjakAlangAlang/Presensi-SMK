@@ -1,6 +1,5 @@
 <?php
-// app/services/EmailService.php
-// Service untuk mengirim email notifikasi menggunakan SwiftMailer
+
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 

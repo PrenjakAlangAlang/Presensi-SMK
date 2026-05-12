@@ -1,6 +1,4 @@
 <?php
-// app/services/WhatsAppService.php
-// Service untuk mengirim notifikasi WhatsApp menggunakan Fonnte API
 
 class WhatsAppService {
     private $token;

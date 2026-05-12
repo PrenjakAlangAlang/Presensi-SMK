@@ -1,7 +1,5 @@
 <?php
-// app/controllers/AuthController.php
-// Controller untuk autentikasi: login dan logout
-// Menangani validasi login, penyimpanan session, dan redirect berdasarkan role
+
 require_once __DIR__ . '/../models/UserModel.php';
 
 class AuthController {
@@ -12,7 +10,7 @@ class AuthController {
     }
     
     public function login() {
-        // jika form login disubmit lakukan proses autentikasi
+        
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $email = trim($_POST['email']);
             $password = trim($_POST['password']);

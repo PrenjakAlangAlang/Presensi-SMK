@@ -1,6 +1,5 @@
 <?php
-// app/models/BukuIndukModel.php
-// Menangani data buku induk siswa: biodata dan dokumen pendukung
+
 require_once __DIR__ . '/Database.php';
 
 class BukuIndukModel {
