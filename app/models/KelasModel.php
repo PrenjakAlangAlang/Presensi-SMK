@@ -123,11 +123,12 @@ class KelasModel {
     
    
     public function getSiswaInKelas($kelas_id) {
-        $this->db->query('SELECT DISTINCT u.* FROM users u 
-                         INNER JOIN siswa_mata_pelajaran smp ON u.id = smp.siswa_id 
+        $this->db->query('SELECT DISTINCT bi.id, bi.nama, COALESCE(bi.email_ortu, "") AS email, "siswa" AS role
+                         FROM buku_induk bi
+                         INNER JOIN siswa_mata_pelajaran smp ON bi.id = smp.siswa_id 
                          INNER JOIN kelas_mata_pelajaran kmp ON smp.mata_pelajaran_id = kmp.mata_pelajaran_id
-                         WHERE kmp.kelas_id = :kelas_id AND u.role = "siswa"
-                         ORDER BY u.nama ASC');
+                         WHERE kmp.kelas_id = :kelas_id
+                         ORDER BY bi.nama ASC');
         $this->db->bind(':kelas_id', $kelas_id);
         return $this->db->resultSet();
     }

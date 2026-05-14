@@ -104,12 +104,11 @@ class PresensiModel {
 
         // Base select — list all siswa in mata pelajaran and join any matching presensi_mapel
         if ($sesi_id) {
-            $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
-                    FROM users u
-                    LEFT JOIN presensi_mapel pk ON u.id = pk.user_id AND pk.presensi_sesi_id = :sesi_id
-                    WHERE u.id IN (SELECT siswa_id FROM siswa_mata_pelajaran WHERE mata_pelajaran_id = :mata_pelajaran_id)
-                    AND u.role = "siswa"
-                    ORDER BY u.nama';
+            $sql = 'SELECT bi.id as siswa_id, bi.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
+                    FROM buku_induk bi
+                    LEFT JOIN presensi_mapel pk ON bi.id = pk.user_id AND pk.presensi_sesi_id = :sesi_id
+                    WHERE bi.id IN (SELECT siswa_id FROM siswa_mata_pelajaran WHERE mata_pelajaran_id = :mata_pelajaran_id)
+                    ORDER BY bi.nama';
             $this->db->query($sql);
             $this->db->bind(':sesi_id', $sesi_id);
             $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
@@ -118,12 +117,11 @@ class PresensiModel {
 
         // fallback: use date filter on presensi_mapel (today by default)
         $tanggal = $tanggal ?: date('Y-m-d');
-        $sql = 'SELECT u.id as siswa_id, u.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
-                FROM users u
-                LEFT JOIN presensi_mapel pk ON u.id = pk.user_id AND DATE(pk.waktu) = :tanggal AND pk.mata_pelajaran_id = :mata_pelajaran_id
-                WHERE u.id IN (SELECT siswa_id FROM siswa_mata_pelajaran WHERE mata_pelajaran_id = :mata_pelajaran_id)
-                AND u.role = "siswa"
-                ORDER BY u.nama';
+        $sql = 'SELECT bi.id as siswa_id, bi.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
+                FROM buku_induk bi
+                LEFT JOIN presensi_mapel pk ON bi.id = pk.user_id AND DATE(pk.waktu) = :tanggal AND pk.mata_pelajaran_id = :mata_pelajaran_id
+                WHERE bi.id IN (SELECT siswa_id FROM siswa_mata_pelajaran WHERE mata_pelajaran_id = :mata_pelajaran_id)
+                ORDER BY bi.nama';
 
         $this->db->query($sql);
         $this->db->bind(':tanggal', $tanggal);
@@ -135,11 +133,10 @@ class PresensiModel {
     public function getLaporanPresensiSekolah($tanggal = null, $sesi_id = null, $filter_status = null, $limit = null, $offset = 0) {
         // Base select — list all siswa and join any matching presensi_sekolah
         if ($sesi_id) {
-            $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
-                    FROM users u
-                    LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND ps.presensi_sekolah_sesi_id = :sesi_id
-                    WHERE u.role = "siswa"
-                    ORDER BY u.nama';
+            $sql = 'SELECT bi.id as siswa_id, bi.nama, COALESCE(bi.email_ortu, "") AS email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+                    FROM buku_induk bi
+                    LEFT JOIN presensi_sekolah ps ON bi.id = ps.user_id AND ps.presensi_sekolah_sesi_id = :sesi_id
+                    ORDER BY bi.nama';
             if ($limit) {
                 $sql .= ' LIMIT :limit OFFSET :offset';
             }
@@ -159,18 +156,16 @@ class PresensiModel {
         if ($filter_status) {
             if ($filter_status == 'valid') {
                 // Filter hanya yang hadir (status valid)
-                $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
-                        FROM users u
-                        INNER JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.status = "valid"
-                        WHERE u.role = "siswa"
-                        ORDER BY u.nama';
+                $sql = 'SELECT bi.id as siswa_id, bi.nama, COALESCE(bi.email_ortu, "") AS email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+                        FROM buku_induk bi
+                        INNER JOIN presensi_sekolah ps ON bi.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.status = "valid"
+                        ORDER BY bi.nama';
             } else {
                 // Filter berdasarkan jenis (izin, sakit, alpha)
-                $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
-                        FROM users u
-                        INNER JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.jenis = :jenis
-                        WHERE u.role = "siswa"
-                        ORDER BY u.nama';
+                $sql = 'SELECT bi.id as siswa_id, bi.nama, COALESCE(bi.email_ortu, "") AS email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+                        FROM buku_induk bi
+                        INNER JOIN presensi_sekolah ps ON bi.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.jenis = :jenis
+                        ORDER BY bi.nama';
                 if ($limit) {
                     $sql .= ' LIMIT :limit OFFSET :offset';
                 }
@@ -185,11 +180,10 @@ class PresensiModel {
             }
         } else {
             // Tampilkan semua
-            $sql = 'SELECT u.id as siswa_id, u.nama, u.email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
-                    FROM users u
-                    LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal
-                    WHERE u.role = "siswa"
-                    ORDER BY u.nama';
+            $sql = 'SELECT bi.id as siswa_id, bi.nama, COALESCE(bi.email_ortu, "") AS email, ps.status, ps.waktu, ps.jarak, ps.latitude, ps.longitude, ps.jenis, ps.alasan, ps.foto_bukti, ps.presensi_sekolah_sesi_id, "sekolah" as sumber
+                    FROM buku_induk bi
+                    LEFT JOIN presensi_sekolah ps ON bi.id = ps.user_id AND DATE(ps.waktu) = :tanggal
+                    ORDER BY bi.nama';
         }
 
         if ($limit) {
@@ -207,7 +201,7 @@ class PresensiModel {
     
     public function countLaporanPresensiSekolah($tanggal = null, $sesi_id = null, $filter_status = null) {
         if ($sesi_id) {
-            $sql = 'SELECT COUNT(u.id) as total FROM users u WHERE u.role = "siswa"';
+            $sql = 'SELECT COUNT(bi.id) as total FROM buku_induk bi';
             $this->db->query($sql);
             $result = $this->db->single();
             return $result->total ?? 0;
@@ -217,21 +211,19 @@ class PresensiModel {
         
         if ($filter_status) {
             if ($filter_status == 'valid') {
-                $sql = 'SELECT COUNT(u.id) as total FROM users u
-                        INNER JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.status = "valid"
-                        WHERE u.role = "siswa"';
+                $sql = 'SELECT COUNT(bi.id) as total FROM buku_induk bi
+                        INNER JOIN presensi_sekolah ps ON bi.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.status = "valid"';
                 $this->db->query($sql);
                 $this->db->bind(':tanggal', $tanggal);
             } else {
-                $sql = 'SELECT COUNT(u.id) as total FROM users u
-                        INNER JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.jenis = :jenis
-                        WHERE u.role = "siswa"';
+                $sql = 'SELECT COUNT(bi.id) as total FROM buku_induk bi
+                        INNER JOIN presensi_sekolah ps ON bi.id = ps.user_id AND DATE(ps.waktu) = :tanggal AND ps.jenis = :jenis';
                 $this->db->query($sql);
                 $this->db->bind(':tanggal', $tanggal);
                 $this->db->bind(':jenis', $filter_status);
             }
         } else {
-            $sql = 'SELECT COUNT(u.id) as total FROM users u WHERE u.role = "siswa"';
+            $sql = 'SELECT COUNT(bi.id) as total FROM buku_induk bi';
             $this->db->query($sql);
         }
         
@@ -259,14 +251,13 @@ class PresensiModel {
             } else {
                 // Statistik untuk semua siswa
                 $sql = 'SELECT 
-                        COUNT(DISTINCT u.id) as total_siswa,
+                        COUNT(DISTINCT bi.id) as total_siswa,
                         COUNT(DISTINCT CASE WHEN ps.status = "valid" AND ps.jenis = "hadir" THEN ps.user_id END) as hadir,
                         COUNT(DISTINCT CASE WHEN ps.jenis = "izin" THEN ps.user_id END) as izin,
                         COUNT(DISTINCT CASE WHEN ps.jenis = "sakit" THEN ps.user_id END) as sakit,
                         COUNT(DISTINCT CASE WHEN ps.jenis = "alpha" THEN ps.user_id END) as alpha
-                        FROM users u
-                        LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = :tanggal
-                        WHERE u.role = "siswa"';
+                        FROM buku_induk bi
+                        LEFT JOIN presensi_sekolah ps ON bi.id = ps.user_id AND DATE(ps.waktu) = :tanggal';
                 $this->db->query($sql);
                 $this->db->bind(':tanggal', $tanggal);
             }
@@ -289,14 +280,13 @@ class PresensiModel {
             } else {
                 // Statistik untuk semua siswa
                 $sql = 'SELECT 
-                        COUNT(DISTINCT u.id) as total_siswa,
+                        COUNT(DISTINCT bi.id) as total_siswa,
                         COUNT(DISTINCT CASE WHEN ps.status = "valid" AND ps.jenis = "hadir" THEN ps.user_id END) as hadir,
                         COUNT(DISTINCT CASE WHEN ps.jenis = "izin" THEN ps.user_id END) as izin,
                         COUNT(DISTINCT CASE WHEN ps.jenis = "sakit" THEN ps.user_id END) as sakit,
                         COUNT(DISTINCT CASE WHEN ps.jenis = "alpha" THEN ps.user_id END) as alpha
-                        FROM users u
-                        LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND MONTH(ps.waktu) = :bulan AND YEAR(ps.waktu) = :tahun
-                        WHERE u.role = "siswa"';
+                        FROM buku_induk bi
+                        LEFT JOIN presensi_sekolah ps ON bi.id = ps.user_id AND MONTH(ps.waktu) = :bulan AND YEAR(ps.waktu) = :tahun';
                 $this->db->query($sql);
                 $this->db->bind(':bulan', $bulan);
                 $this->db->bind(':tahun', $tahun);
@@ -318,14 +308,13 @@ class PresensiModel {
             } else {
                 // Statistik untuk semua siswa
                 $sql = 'SELECT 
-                        COUNT(DISTINCT u.id) as total_siswa,
+                        COUNT(DISTINCT bi.id) as total_siswa,
                         COUNT(DISTINCT CASE WHEN ps.status = "valid" AND ps.jenis = "hadir" THEN ps.user_id END) as hadir,
                         COUNT(DISTINCT CASE WHEN ps.jenis = "izin" THEN ps.user_id END) as izin,
                         COUNT(DISTINCT CASE WHEN ps.jenis = "sakit" THEN ps.user_id END) as sakit,
                         COUNT(DISTINCT CASE WHEN ps.jenis = "alpha" THEN ps.user_id END) as alpha
-                        FROM users u
-                        LEFT JOIN presensi_sekolah ps ON u.id = ps.user_id AND DATE(ps.waktu) = CURDATE()
-                        WHERE u.role = "siswa"';
+                        FROM buku_induk bi
+                        LEFT JOIN presensi_sekolah ps ON bi.id = ps.user_id AND DATE(ps.waktu) = CURDATE()';
                 $this->db->query($sql);
             }
         }
@@ -360,14 +349,13 @@ class PresensiModel {
             } else {
                 // Statistik untuk semua siswa
                 $sql = 'SELECT 
-                        COUNT(DISTINCT u.id) as total_siswa,
+                        COUNT(DISTINCT bi.id) as total_siswa,
                         COUNT(DISTINCT CASE WHEN pk.status = "valid" AND pk.jenis = "hadir" THEN pk.user_id END) as hadir,
                         COUNT(DISTINCT CASE WHEN pk.jenis = "izin" THEN pk.user_id END) as izin,
                         COUNT(DISTINCT CASE WHEN pk.jenis = "sakit" THEN pk.user_id END) as sakit,
                         COUNT(DISTINCT CASE WHEN pk.jenis = "alpha" THEN pk.user_id END) as alpha
-                        FROM users u
-                        LEFT JOIN presensi_mapel pk ON u.id = pk.user_id AND DATE(pk.waktu) = :tanggal
-                        WHERE u.role = "siswa"';
+                        FROM buku_induk bi
+                        LEFT JOIN presensi_mapel pk ON bi.id = pk.user_id AND DATE(pk.waktu) = :tanggal';
                 $this->db->query($sql);
                 $this->db->bind(':tanggal', $tanggal);
             }
@@ -390,14 +378,13 @@ class PresensiModel {
             } else {
                 // Statistik untuk semua siswa
                 $sql = 'SELECT 
-                        COUNT(DISTINCT u.id) as total_siswa,
+                        COUNT(DISTINCT bi.id) as total_siswa,
                         COUNT(DISTINCT CASE WHEN pk.status = "valid" AND pk.jenis = "hadir" THEN pk.user_id END) as hadir,
                         COUNT(DISTINCT CASE WHEN pk.jenis = "izin" THEN pk.user_id END) as izin,
                         COUNT(DISTINCT CASE WHEN pk.jenis = "sakit" THEN pk.user_id END) as sakit,
                         COUNT(DISTINCT CASE WHEN pk.jenis = "alpha" THEN pk.user_id END) as alpha
-                        FROM users u
-                        LEFT JOIN presensi_mapel pk ON u.id = pk.user_id AND MONTH(pk.waktu) = :bulan AND YEAR(pk.waktu) = :tahun
-                        WHERE u.role = "siswa"';
+                        FROM buku_induk bi
+                        LEFT JOIN presensi_mapel pk ON bi.id = pk.user_id AND MONTH(pk.waktu) = :bulan AND YEAR(pk.waktu) = :tahun';
                 $this->db->query($sql);
                 $this->db->bind(':bulan', $bulan);
                 $this->db->bind(':tahun', $tahun);
@@ -419,14 +406,13 @@ class PresensiModel {
             } else {
                 // Statistik untuk semua siswa
                 $sql = 'SELECT 
-                        COUNT(DISTINCT u.id) as total_siswa,
+                        COUNT(DISTINCT bi.id) as total_siswa,
                         COUNT(DISTINCT CASE WHEN pk.status = "valid" AND pk.jenis = "hadir" THEN pk.user_id END) as hadir,
                         COUNT(DISTINCT CASE WHEN pk.jenis = "izin" THEN pk.user_id END) as izin,
                         COUNT(DISTINCT CASE WHEN pk.jenis = "sakit" THEN pk.user_id END) as sakit,
                         COUNT(DISTINCT CASE WHEN pk.jenis = "alpha" THEN pk.user_id END) as alpha
-                        FROM users u
-                        LEFT JOIN presensi_mapel pk ON u.id = pk.user_id AND DATE(pk.waktu) = CURDATE()
-                        WHERE u.role = "siswa"';
+                        FROM buku_induk bi
+                        LEFT JOIN presensi_mapel pk ON bi.id = pk.user_id AND DATE(pk.waktu) = CURDATE()';
                 $this->db->query($sql);
             }
         }
@@ -779,10 +765,9 @@ class PresensiModel {
         
         // Get all students who haven't checked in for this session
         $this->db->query('
-            SELECT u.id, u.nama
-            FROM users u 
-            WHERE u.role = "siswa" 
-            AND u.id NOT IN (
+            SELECT bi.id, bi.nama
+            FROM buku_induk bi
+            WHERE bi.id NOT IN (
                 SELECT user_id 
                 FROM presensi_sekolah 
                 WHERE presensi_sekolah_sesi_id = :sesi_id
@@ -925,9 +910,9 @@ class PresensiModel {
         // Get all students in this class who haven't checked in for this session
         // Use mata_pelajaran_id from PHP variable to avoid double binding issue
         $this->db->query('
-            SELECT smp.siswa_id, u.nama
+            SELECT smp.siswa_id, bi.nama
             FROM siswa_mata_pelajaran smp
-            LEFT JOIN users u ON smp.siswa_id = u.id
+            LEFT JOIN buku_induk bi ON smp.siswa_id = bi.id
             WHERE smp.mata_pelajaran_id = :mata_pelajaran_id
             AND smp.siswa_id NOT IN (
                 SELECT user_id 

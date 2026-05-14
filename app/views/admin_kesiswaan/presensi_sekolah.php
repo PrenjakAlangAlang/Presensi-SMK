@@ -103,7 +103,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <!-- Modal: Create Session -->
 <div id="createSessionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <div class="p-6 border-b border-gray-200">
             <h3 class="text-xl font-semibold text-gray-800">Buat Sesi Presensi Manual</h3>
         </div>
@@ -115,6 +115,39 @@ require_once __DIR__ . '/../layouts/header.php';
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Waktu Tutup</label>
                 <input type="datetime-local" name="waktu_tutup" required class="w-full px-4 py-3 border border-gray-300 rounded-lg" />
+            </div>
+            <div class="border-t border-gray-200 pt-4">
+                <button type="button" id="toggleMultipleSession" class="flex items-center gap-2 text-left text-gray-800 font-semibold">
+                    <i id="multipleSessionIcon" class="fas fa-chevron-right text-sm"></i>
+                    <span>Multiple sessions</span>
+                </button>
+                <div id="multipleSessionPanel" class="hidden mt-4 space-y-4">
+                    <label class="flex items-center gap-2 text-sm text-gray-700">
+                        <input type="checkbox" name="repeat_enabled" value="1" id="repeatEnabled" class="rounded border-gray-300" />
+                        <span>Ulangi sesi di atas dengan jadwal berikut</span>
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-[140px_1fr] gap-3 text-sm">
+                        <div class="text-gray-600 pt-2">Ulangi pada</div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <label class="flex items-center gap-2"><input type="checkbox" name="repeat_days[]" value="1" class="repeat-day rounded border-gray-300" /> Senin</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="repeat_days[]" value="2" class="repeat-day rounded border-gray-300" /> Selasa</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="repeat_days[]" value="3" class="repeat-day rounded border-gray-300" /> Rabu</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="repeat_days[]" value="4" class="repeat-day rounded border-gray-300" /> Kamis</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="repeat_days[]" value="5" class="repeat-day rounded border-gray-300" /> Jumat</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="repeat_days[]" value="6" class="repeat-day rounded border-gray-300" /> Sabtu</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="repeat_days[]" value="0" class="repeat-day rounded border-gray-300" /> Minggu</label>
+                        </div>
+                        <div class="text-gray-600 pt-2">Ulangi setiap</div>
+                        <div class="flex items-center gap-2">
+                            <input type="number" name="repeat_every_weeks" value="1" min="1" max="52" class="w-24 px-3 py-2 border border-gray-300 rounded-lg" />
+                            <span>minggu</span>
+                        </div>
+                        <div class="text-gray-600 pt-2">Ulangi sampai</div>
+                        <div>
+                            <input type="date" name="repeat_until" id="repeatUntil" class="w-full md:w-56 px-3 py-2 border border-gray-300 rounded-lg" />
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
                 <button type="button" onclick="closeCreateSessionModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Batal</button>
@@ -134,14 +167,42 @@ function openExtendSessionModal(id, currentTutup) {
 }
 function closeExtendSessionModal() { document.getElementById('extendSessionModal').classList.add('hidden'); }
 
+const createSessionForm = document.getElementById('createSessionForm');
+const multipleSessionPanel = document.getElementById('multipleSessionPanel');
+const multipleSessionIcon = document.getElementById('multipleSessionIcon');
+const repeatEnabled = document.getElementById('repeatEnabled');
+
+document.getElementById('toggleMultipleSession').addEventListener('click', () => {
+    multipleSessionPanel.classList.toggle('hidden');
+    multipleSessionIcon.classList.toggle('fa-chevron-right');
+    multipleSessionIcon.classList.toggle('fa-chevron-down');
+});
+
+createSessionForm.querySelector('input[name="waktu_buka"]').addEventListener('change', function() {
+    if (!this.value) return;
+    const selectedDate = new Date(this.value);
+    const day = selectedDate.getDay().toString();
+    createSessionForm.querySelectorAll('.repeat-day').forEach(cb => {
+        cb.checked = cb.value === day;
+    });
+    document.getElementById('repeatUntil').min = this.value.slice(0, 10);
+});
+
 // Close modals when clicking outside
 ['createSessionModal','extendSessionModal'].forEach(id => {
     const modal = document.getElementById(id);
     modal.addEventListener('click', e => { if(e.target === modal) modal.classList.add('hidden'); });
 });
 
-document.getElementById('createSessionForm').addEventListener('submit', function(e){
+createSessionForm.addEventListener('submit', function(e){
     e.preventDefault();
+    if (repeatEnabled.checked) {
+        const hasDay = Array.from(this.querySelectorAll('.repeat-day')).some(cb => cb.checked);
+        if (!hasDay || !document.getElementById('repeatUntil').value) {
+            alert('Pilih hari pengulangan dan tanggal selesai.');
+            return;
+        }
+    }
     const fd = new FormData(this);
     fetch('index.php?action=admin_kesiswaan_create_presensi_sekolah', { method: 'POST', body: fd })
         .then(r => r.json())

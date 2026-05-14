@@ -10,7 +10,9 @@ class BukuIndukModel {
     }
 
     public function getAll() {
-        $this->db->query('SELECT bi.*, u.nama as user_nama, u.email FROM buku_induk bi INNER JOIN users u ON bi.user_id = u.id ORDER BY bi.nama');
+        $this->db->query('SELECT bi.*, bi.nama as user_nama, COALESCE(bi.email_ortu, "") AS email
+                          FROM buku_induk bi
+                          ORDER BY bi.nama');
         return $this->db->resultSet();
     }
 
@@ -21,8 +23,14 @@ class BukuIndukModel {
     }
 
     public function getByUserId($userId) {
-        $this->db->query('SELECT * FROM buku_induk WHERE user_id = :uid');
+        $this->db->query('SELECT * FROM buku_induk WHERE id = :uid ORDER BY id DESC LIMIT 1');
         $this->db->bind(':uid', $userId);
+        return $this->db->single();
+    }
+
+    public function getByNis($nis) {
+        $this->db->query('SELECT * FROM buku_induk WHERE nis = :nis ORDER BY id DESC LIMIT 1');
+        $this->db->bind(':nis', $nis);
         return $this->db->single();
     }
 
@@ -32,7 +40,7 @@ class BukuIndukModel {
      * @return array|null Data kontak orang tua atau null jika tidak ada
      */
     public function getParentContact($userId) {
-        $this->db->query('SELECT no_telp_ortu, email_ortu, nama_ayah, nama_ibu FROM buku_induk WHERE user_id = :uid');
+        $this->db->query('SELECT no_telp_ortu, email_ortu, nama_ayah, nama_ibu FROM buku_induk WHERE id = :uid ORDER BY id DESC LIMIT 1');
         $this->db->bind(':uid', $userId);
         $result = $this->db->single();
         
@@ -48,57 +56,31 @@ class BukuIndukModel {
         return null;
     }
 
-    /**
-     * Get all documents for a specific buku induk
-     * @param int $bukuIndukId
-     * @return array
-     */
     public function getDokumen($bukuIndukId) {
-        $this->db->query('SELECT * FROM buku_induk_dokumen WHERE buku_induk_id = :buku_induk_id ORDER BY nama_file ASC');
-        $this->db->bind(':buku_induk_id', $bukuIndukId);
-        return $this->db->resultSet();
+        return [];
     }
 
-    /**
-     * Add a document to buku induk
-     * @param array $data
-     * @return bool
-     */
     public function addDokumen($data) {
-        $this->db->query('INSERT INTO buku_induk_dokumen (buku_induk_id, nama_file, dokumen_pdf, keterangan) 
-                          VALUES (:buku_induk_id, :nama_file, :dokumen_pdf, :keterangan)');
-        $this->db->bind(':buku_induk_id', $data['buku_induk_id']);
-        $this->db->bind(':nama_file', $data['nama_file']);
-        $this->db->bind(':dokumen_pdf', $data['dokumen_pdf']);
-        $this->db->bind(':keterangan', $data['keterangan'] ?? null);
-        return $this->db->execute();
+        return false;
     }
 
-    /**
-     * Delete a document by id
-     * @param int $id
-     * @return bool
-     */
     public function deleteDokumen($id) {
-        $this->db->query('DELETE FROM buku_induk_dokumen WHERE id = :id');
-        $this->db->bind(':id', $id);
-        return $this->db->execute();
+        return false;
     }
 
-    /**
-     * Get document by id
-     * @param int $id
-     * @return object|null
-     */
     public function getDokumenById($id) {
-        $this->db->query('SELECT * FROM buku_induk_dokumen WHERE id = :id');
-        $this->db->bind(':id', $id);
-        return $this->db->single();
+        return null;
     }
 
     public function upsert($data) {
-        // Jika record sudah ada untuk user_id -> update, jika belum -> insert
-        $existing = $this->getByUserId($data['user_id']);
+        $existing = null;
+        if (!empty($data['id'])) {
+            $existing = $this->getById($data['id']);
+        }
+        if (!$existing && !empty($data['nis'])) {
+            $existing = $this->getByNis($data['nis']);
+        }
+
         if ($existing) {
             return $this->update($existing->id, $data);
         }
@@ -106,21 +88,52 @@ class BukuIndukModel {
     }
 
     public function create($data) {
-        $this->db->query('INSERT INTO buku_induk (user_id, nama, nis, nisn, tempat_lahir, tanggal_lahir, alamat, nama_ayah, nama_ibu, nama_wali, no_telp_ortu, email_ortu, dokumen_pdf)
-                          VALUES (:user_id, :nama, :nis, :nisn, :tempat_lahir, :tanggal_lahir, :alamat, :nama_ayah, :nama_ibu, :nama_wali, :no_telp_ortu, :email_ortu, :dokumen_pdf)');
-        $this->db->bind(':user_id', $data['user_id']);
+        $data['password_hash'] = $data['password_hash'] ?? $this->makePasswordHash($data['password'] ?? null);
+        $this->db->query('INSERT INTO buku_induk (nama, nis, nisn, tempat_lahir, tanggal_lahir, alamat, nama_ayah, nama_ibu, nama_wali, no_telp_ortu, email_ortu, dokumen_ijasah, dokumen_pas_foto, dokumen_akta_kelahiran, dokumen_kk, password)
+                          VALUES (:nama, :nis, :nisn, :tempat_lahir, :tanggal_lahir, :alamat, :nama_ayah, :nama_ibu, :nama_wali, :no_telp_ortu, :email_ortu, :dokumen_ijasah, :dokumen_pas_foto, :dokumen_akta_kelahiran, :dokumen_kk, :password)');
         $this->bindCommon($data);
+        $this->db->bind(':password', $data['password_hash']);
         return $this->db->execute();
     }
 
     public function update($id, $data) {
-        $this->db->query('UPDATE buku_induk SET nama = :nama, nis = :nis, nisn = :nisn, tempat_lahir = :tempat_lahir,
-                          tanggal_lahir = :tanggal_lahir, alamat = :alamat, nama_ayah = :nama_ayah, nama_ibu = :nama_ibu,
-                          nama_wali = :nama_wali, no_telp_ortu = :no_telp_ortu, email_ortu = :email_ortu, dokumen_pdf = :dokumen_pdf
-                          WHERE id = :id');
+        $passwordHash = $data['password_hash'] ?? $this->makePasswordHash($data['password'] ?? null);
+        if ($passwordHash) {
+            $this->db->query('UPDATE buku_induk SET nama = :nama, nis = :nis, nisn = :nisn, tempat_lahir = :tempat_lahir,
+                              tanggal_lahir = :tanggal_lahir, alamat = :alamat, nama_ayah = :nama_ayah, nama_ibu = :nama_ibu,
+                              nama_wali = :nama_wali, no_telp_ortu = :no_telp_ortu, email_ortu = :email_ortu,
+                              dokumen_ijasah = :dokumen_ijasah, dokumen_pas_foto = :dokumen_pas_foto,
+                              dokumen_akta_kelahiran = :dokumen_akta_kelahiran, dokumen_kk = :dokumen_kk,
+                              password = :password
+                              WHERE id = :id');
+            $this->db->bind(':password', $passwordHash);
+        } else {
+            $this->db->query('UPDATE buku_induk SET nama = :nama, nis = :nis, nisn = :nisn, tempat_lahir = :tempat_lahir,
+                              tanggal_lahir = :tanggal_lahir, alamat = :alamat, nama_ayah = :nama_ayah, nama_ibu = :nama_ibu,
+                              nama_wali = :nama_wali, no_telp_ortu = :no_telp_ortu, email_ortu = :email_ortu,
+                              dokumen_ijasah = :dokumen_ijasah, dokumen_pas_foto = :dokumen_pas_foto,
+                              dokumen_akta_kelahiran = :dokumen_akta_kelahiran, dokumen_kk = :dokumen_kk
+                              WHERE id = :id');
+        }
         $this->bindCommon($data);
         $this->db->bind(':id', $id);
         return $this->db->execute();
+    }
+
+    public function updatePasswordByUserId($userId, $newPassword) {
+        $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+
+        $this->db->query('UPDATE buku_induk SET password = :password WHERE id = :user_id');
+        $this->db->bind(':user_id', $userId);
+        $this->db->bind(':password', $passwordHash);
+        return $this->db->execute();
+    }
+
+    private function makePasswordHash($password) {
+        if (empty($password)) {
+            return null;
+        }
+        return password_hash($password, PASSWORD_DEFAULT);
     }
 
     private function bindCommon($data) {
@@ -136,7 +149,10 @@ class BukuIndukModel {
         $this->db->bind(':nama_wali', $data['nama_wali'] ?? null);
         $this->db->bind(':no_telp_ortu', $data['no_telp_ortu'] ?? null);
         $this->db->bind(':email_ortu', $data['email_ortu'] ?? null);
-        $this->db->bind(':dokumen_pdf', $data['dokumen_pdf'] ?? null);
+        $this->db->bind(':dokumen_ijasah', $data['dokumen_ijasah'] ?? null);
+        $this->db->bind(':dokumen_pas_foto', $data['dokumen_pas_foto'] ?? null);
+        $this->db->bind(':dokumen_akta_kelahiran', $data['dokumen_akta_kelahiran'] ?? null);
+        $this->db->bind(':dokumen_kk', $data['dokumen_kk'] ?? null);
     }
 }
 ?>

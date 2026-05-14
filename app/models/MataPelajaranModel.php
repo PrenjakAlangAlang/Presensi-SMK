@@ -85,9 +85,10 @@ class MataPelajaranModel {
     
     public function getSiswaInMataPelajaran($mata_pelajaran_id) {
         // Ambil daftar siswa untuk mata pelajaran tertentu
-        $this->db->query('SELECT u.* FROM users u 
-                         INNER JOIN siswa_mata_pelajaran smp ON u.id = smp.siswa_id 
-                         WHERE smp.mata_pelajaran_id = :mata_pelajaran_id AND u.role = "siswa"');
+        $this->db->query('SELECT bi.id, bi.nama, COALESCE(bi.email_ortu, "") AS email, "siswa" AS role
+                         FROM buku_induk bi
+                         INNER JOIN siswa_mata_pelajaran smp ON bi.id = smp.siswa_id 
+                         WHERE smp.mata_pelajaran_id = :mata_pelajaran_id');
         $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         return $this->db->resultSet();
     }
@@ -123,13 +124,13 @@ class MataPelajaranModel {
     public function getAvailableSiswa($mata_pelajaran_id = null) {
         // Ambil semua siswa, kecuali yang sudah ada di mata pelajaran tertentu
         if ($mata_pelajaran_id) {
-            $this->db->query('SELECT * FROM users u 
-                             WHERE u.role = "siswa" 
-                             AND u.id NOT IN (SELECT siswa_id FROM siswa_mata_pelajaran WHERE mata_pelajaran_id = :mata_pelajaran_id)
-                             ORDER BY u.nama');
+            $this->db->query('SELECT id, nama, COALESCE(email_ortu, "") AS email, "siswa" AS role
+                             FROM buku_induk
+                             WHERE id NOT IN (SELECT siswa_id FROM siswa_mata_pelajaran WHERE mata_pelajaran_id = :mata_pelajaran_id)
+                             ORDER BY nama');
             $this->db->bind(':mata_pelajaran_id', $mata_pelajaran_id);
         } else {
-            $this->db->query('SELECT * FROM users u WHERE u.role = "siswa" ORDER BY u.nama');
+            $this->db->query('SELECT id, nama, COALESCE(email_ortu, "") AS email, "siswa" AS role FROM buku_induk ORDER BY nama');
         }
         return $this->db->resultSet();
     }

@@ -35,9 +35,6 @@ class AdminController {
 
    
     public function presensiSekolah() {
-        // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
-        $this->presensiSekolahSesiModel->autoCreateDailySesi();
-        $this->presensiSekolahSesiModel->closeExpiredSessions();
         $sessions = $this->presensiSekolahSesiModel->getSessions();
         require_once __DIR__ . '/../views/admin/presensi_sekolah.php';
     }
@@ -60,7 +57,35 @@ class AdminController {
             $waktu_tutup_formatted = str_replace('T', ' ', $waktu_tutup);
             if (strlen($waktu_buka_formatted) == 16) $waktu_buka_formatted .= ':00';
             if (strlen($waktu_tutup_formatted) == 16) $waktu_tutup_formatted .= ':00';
+
+            if (strtotime($waktu_tutup_formatted) <= strtotime($waktu_buka_formatted)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Waktu tutup harus setelah waktu buka']);
+                exit;
+            }
             
+            $repeatEnabled = isset($_POST['repeat_enabled']) && $_POST['repeat_enabled'] === '1';
+            if ($repeatEnabled) {
+                $repeatDays = $_POST['repeat_days'] ?? [];
+                $repeatEveryWeeks = $_POST['repeat_every_weeks'] ?? 1;
+                $repeatUntil = $_POST['repeat_until'] ?? null;
+
+                if (empty($repeatDays) || !$repeatUntil) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Pilih hari pengulangan dan tanggal selesai']);
+                    exit;
+                }
+
+                $createdCount = $this->presensiSekolahSesiModel->createMultipleSessions($waktu_buka_formatted, $waktu_tutup_formatted, $repeatDays, $repeatEveryWeeks, $repeatUntil, $created_by);
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => $createdCount !== false && $createdCount > 0,
+                    'count' => (int) $createdCount,
+                    'message' => $createdCount ? "$createdCount sesi berhasil dibuat." : 'Tidak ada sesi yang dibuat. Periksa jadwal pengulangan.'
+                ]);
+                exit;
+            }
+
             $id = $this->presensiSekolahSesiModel->createSession($waktu_buka_formatted, $waktu_tutup_formatted, $created_by);
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$id, 'id' => $id]);
@@ -131,10 +156,6 @@ class AdminController {
 
     
     public function getPresensiSekolahStatus() {
-        // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
-        $this->presensiSekolahSesiModel->autoCreateDailySesi();
-        // Pastikan expired sessions ditutup dulu
-        $this->presensiSekolahSesiModel->closeExpiredSessions();
         $active = $this->presensiSekolahSesiModel->getActiveSession();
         header('Content-Type: application/json');
         if ($active) {
@@ -155,9 +176,6 @@ class AdminController {
     }
     
     public function dashboard() {
-        // Auto-create sesi presensi jika hari kerja dan belum ada sesi hari ini
-        $this->presensiSekolahSesiModel->autoCreateDailySesi();
-        
         // Hitung statistik singkat untuk ditampilkan di dashboard admin
         $totalSiswa = count($this->userModel->getUsersByRole('siswa'));
         $totalGuru = count($this->userModel->getUsersByRole('guru'));
@@ -496,9 +514,9 @@ class AdminController {
             // Laporan presensi sekolah (default)
             // Get all presensi sekolah for the period
             $db = new Database();
-            $db->query('SELECT ps.*, u.nama, u.email 
+            $db->query('SELECT ps.*, bi.nama, COALESCE(bi.email_ortu, "") AS email 
                         FROM presensi_sekolah ps 
-                        JOIN users u ON ps.user_id = u.id 
+                        JOIN buku_induk bi ON ps.user_id = bi.id 
                         WHERE DATE(ps.waktu) BETWEEN :start_date AND :end_date
                         ORDER BY ps.waktu DESC');
             $db->bind(':start_date', $startDate);
@@ -717,9 +735,9 @@ class AdminController {
             $laporan_kemajuan = $this->laporanModel->getLaporanByKelasWithDateRange($kelas_id, $startDate, $endDate);
         } else {
             $db = new Database();
-            $db->query('SELECT ps.*, u.nama, u.email 
+            $db->query('SELECT ps.*, bi.nama, COALESCE(bi.email_ortu, "") AS email 
                         FROM presensi_sekolah ps 
-                        JOIN users u ON ps.user_id = u.id 
+                        JOIN buku_induk bi ON ps.user_id = bi.id 
                         WHERE DATE(ps.waktu) BETWEEN :start_date AND :end_date' . 
                         ($filter_status ? ' AND ps.jenis = :status' : '') . '
                         ORDER BY ps.waktu DESC');
@@ -948,9 +966,9 @@ class AdminController {
             $laporan_kemajuan = $this->laporanModel->getLaporanByKelasWithDateRange($kelas_id, $startDate, $endDate);
         } else {
             $db = new Database();
-            $db->query('SELECT ps.*, u.nama, u.email 
+            $db->query('SELECT ps.*, bi.nama, COALESCE(bi.email_ortu, "") AS email 
                         FROM presensi_sekolah ps 
-                        JOIN users u ON ps.user_id = u.id 
+                        JOIN buku_induk bi ON ps.user_id = bi.id 
                         WHERE DATE(ps.waktu) BETWEEN :start_date AND :end_date' . 
                         ($filter_status ? ' AND ps.jenis = :status' : '') . '
                         ORDER BY ps.waktu DESC');
@@ -1305,11 +1323,6 @@ class AdminController {
         $siswa = $this->userModel->getUsersByRole('siswa');
         $records = $this->bukuIndukModel->getAll();
         
-        // Attach documents to each record
-        foreach($records as $record) {
-            $record->dokumen = $this->bukuIndukModel->getDokumen($record->id);
-        }
-        
         require_once __DIR__ . '/../views/admin/buku_induk.php';
     }
 
@@ -1317,7 +1330,7 @@ class AdminController {
         if($_SERVER['REQUEST_METHOD'] !== 'POST') return;
 
         $data = [
-            'user_id' => $_POST['user_id'],
+            'user_id' => !empty($_POST['user_id']) ? $_POST['user_id'] : null,
             'nama' => $_POST['nama'],
             'nis' => $_POST['nis'],
             'nisn' => $_POST['nisn'],
@@ -1329,54 +1342,42 @@ class AdminController {
             'nama_wali' => $_POST['nama_wali'] ?? null,
             'no_telp_ortu' => $_POST['no_telp_ortu'] ?? null,
             'email_ortu' => $_POST['email_ortu'] ?? null,
+            'dokumen_ijasah' => $_POST['existing_ijasah'] ?? null,
+            'dokumen_pas_foto' => $_POST['existing_pas_foto'] ?? null,
+            'dokumen_akta_kelahiran' => $_POST['existing_akta_kelahiran'] ?? null,
+            'dokumen_kk' => $_POST['existing_kk'] ?? null,
         ];
 
-        // Handle upload dokumen PDF opsional
-        if(isset($_FILES['dokumen_pdf']) && $_FILES['dokumen_pdf']['error'] === UPLOAD_ERR_OK) {
-            $uploadResult = $this->handlePdfUpload($_FILES['dokumen_pdf']);
-            if ($uploadResult['success']) {
-                $data['dokumen_pdf'] = $uploadResult['path'];
-            } else {
-                $_SESSION['error'] = $uploadResult['message'];
+        $password = $_POST['password'] ?? '';
+        if ($password !== '') {
+            if (strlen($password) < 6) {
+                $_SESSION['error'] = 'Password siswa minimal 6 karakter.';
                 header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
                 exit();
             }
-        } else {
-            $data['dokumen_pdf'] = $_POST['existing_pdf'] ?? null;
+            $data['password'] = $password;
+        }
+
+        $documentUploads = [
+            'dokumen_ijasah' => ['label' => 'Dokumen ijasah', 'images' => false],
+            'dokumen_pas_foto' => ['label' => 'Pas foto', 'images' => true],
+            'dokumen_akta_kelahiran' => ['label' => 'Akta kelahiran', 'images' => false],
+            'dokumen_kk' => ['label' => 'KK', 'images' => false],
+        ];
+
+        foreach ($documentUploads as $field => $config) {
+            if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
+                $uploadResult = $this->handleBukuIndukUpload($_FILES[$field], $config['images']);
+                if (!$uploadResult['success']) {
+                    $_SESSION['error'] = $config['label'] . ': ' . $uploadResult['message'];
+                    header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
+                    exit();
+                }
+                $data[$field] = $uploadResult['path'];
+            }
         }
 
         if($this->bukuIndukModel->upsert($data)) {
-            // Handle multiple document uploads
-            $bukuIndukRecord = $this->bukuIndukModel->getByUserId($data['user_id']);
-            
-            if(isset($_FILES['dokumen_tambahan']) && is_array($_FILES['dokumen_tambahan']['name'])) {
-                $files = $_FILES['dokumen_tambahan'];
-                $totalFiles = count($files['name']);
-                
-                for($i = 0; $i < $totalFiles; $i++) {
-                    if($files['error'][$i] === UPLOAD_ERR_OK) {
-                        $fileData = [
-                            'name' => $files['name'][$i],
-                            'type' => $files['type'][$i],
-                            'tmp_name' => $files['tmp_name'][$i],
-                            'error' => $files['error'][$i],
-                            'size' => $files['size'][$i]
-                        ];
-                        
-                        $uploadResult = $this->handlePdfUpload($fileData);
-                        if($uploadResult['success']) {
-                            $keterangan = $_POST['keterangan_tambahan'][$i] ?? '';
-                            $this->bukuIndukModel->addDokumen([
-                                'buku_induk_id' => $bukuIndukRecord->id,
-                                'nama_file' => $files['name'][$i],
-                                'dokumen_pdf' => $uploadResult['path'],
-                                'keterangan' => $keterangan
-                            ]);
-                        }
-                    }
-                }
-            }
-            
             $_SESSION['success'] = 'Buku induk berhasil disimpan.';
         } else {
             $_SESSION['error'] = 'Gagal menyimpan buku induk.';
@@ -1387,45 +1388,25 @@ class AdminController {
     }
 
     public function deleteDokumen() {
-        if($_SERVER['REQUEST_METHOD'] !== 'POST') return;
-        
-        $id = $_POST['dokumen_id'] ?? null;
-        if(!$id) {
-            $_SESSION['error'] = 'ID dokumen tidak valid.';
-        } else {
-            $dokumen = $this->bukuIndukModel->getDokumenById($id);
-            if($dokumen) {
-                // Delete physical file
-                $filePath = __DIR__ . '/../../public' . $dokumen->dokumen_pdf;
-                if(file_exists($filePath)) {
-                    unlink($filePath);
-                }
-                
-                // Delete from database
-                if($this->bukuIndukModel->deleteDokumen($id)) {
-                    $_SESSION['success'] = 'Dokumen berhasil dihapus.';
-                } else {
-                    $_SESSION['error'] = 'Gagal menghapus dokumen dari database.';
-                }
-            } else {
-                $_SESSION['error'] = 'Dokumen tidak ditemukan.';
-            }
-        }
-        
+        $_SESSION['error'] = 'Tabel dokumen tambahan sudah tidak digunakan.';
         header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
         exit();
     }
 
-    private function handlePdfUpload($file) {
+    private function handleBukuIndukUpload($file, $allowImage = false) {
         $allowed = ['application/pdf'];
+        if ($allowImage) {
+            $allowed = array_merge($allowed, ['image/jpeg', 'image/jpg', 'image/png']);
+        }
         if(!in_array($file['type'], $allowed)) {
-            return ['success' => false, 'message' => 'Hanya file PDF yang diperbolehkan.'];
+            return ['success' => false, 'message' => $allowImage ? 'Hanya file PDF, JPG, atau PNG yang diperbolehkan.' : 'Hanya file PDF yang diperbolehkan.'];
         }
         $uploadDir = __DIR__ . '/../../public/uploads/buku_induk';
         if(!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
-        $safeName = uniqid('buku-induk-') . '.pdf';
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $safeName = uniqid('buku-induk-') . '.' . $ext;
         $target = $uploadDir . '/' . $safeName;
         if(move_uploaded_file($file['tmp_name'], $target)) {
             return ['success' => true, 'path' => BASE_URL . '/public/uploads/buku_induk/' . $safeName];

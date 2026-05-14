@@ -1,20 +1,17 @@
 <?php
 
 require_once 'Database.php';
-require_once 'PresensiModel.php';
 
 class PresensiSekolahSesiModel {
     private $db;
-    private $presensiModel;
 
     public function __construct() {
         $this->db = new Database();
-        $this->presensiModel = new PresensiModel();
     }
 
     
     public function getActiveSession() {
-        $this->db->query('SELECT * FROM presensi_sekolah_sesi WHERE status = "open" ORDER BY waktu_buka DESC LIMIT 1');
+        $this->db->query('SELECT * FROM presensi_sekolah_sesi WHERE status = "open" AND waktu_buka <= NOW() AND waktu_tutup > NOW() ORDER BY waktu_buka DESC LIMIT 1');
         return $this->db->single();
     }
 
@@ -30,6 +27,42 @@ class PresensiSekolahSesiModel {
         return false;
     }
 
+    public function createMultipleSessions($waktu_buka, $waktu_tutup, $repeatDays, $repeatEveryWeeks, $repeatUntil, $created_by = null) {
+        $start = new DateTime($waktu_buka);
+        $end = new DateTime($waktu_tutup);
+        $until = new DateTime($repeatUntil . ' 23:59:59');
+        $repeatEveryWeeks = max(1, (int) $repeatEveryWeeks);
+        $repeatDays = array_map('intval', (array) $repeatDays);
+        $durationSeconds = $end->getTimestamp() - $start->getTimestamp();
+
+        if ($durationSeconds <= 0 || empty($repeatDays) || $until < $start) {
+            return false;
+        }
+
+        $created = 0;
+        $cursor = new DateTime($start->format('Y-m-d 00:00:00'));
+        while ($cursor <= $until) {
+            $dayNumber = (int) $cursor->format('w');
+            $daysFromStart = $start->diff($cursor)->days;
+            $weekOffset = intdiv($daysFromStart, 7);
+
+            if (in_array($dayNumber, $repeatDays, true) && $weekOffset % $repeatEveryWeeks === 0) {
+                $sessionStart = new DateTime($cursor->format('Y-m-d') . ' ' . $start->format('H:i:s'));
+                if ($sessionStart >= $start && $sessionStart <= $until) {
+                    $sessionEnd = clone $sessionStart;
+                    $sessionEnd->modify('+' . $durationSeconds . ' seconds');
+                    if ($this->createSession($sessionStart->format('Y-m-d H:i:s'), $sessionEnd->format('Y-m-d H:i:s'), $created_by)) {
+                        $created++;
+                    }
+                }
+            }
+
+            $cursor->modify('+1 day');
+        }
+
+        return $created;
+    }
+
     
     public function closeSession($id) {
         $this->db->query('UPDATE presensi_sekolah_sesi SET status = "closed" WHERE id = :id');
@@ -42,22 +75,6 @@ class PresensiSekolahSesiModel {
         $this->db->query('UPDATE presensi_sekolah_sesi SET waktu_tutup = :wt, status = "open" WHERE id = :id');
         $this->db->bind(':wt', $new_waktu_tutup);
         $this->db->bind(':id', $id);
-        return $this->db->execute();
-    }
-
-   
-    public function closeExpiredSessions() {
-        // Get all sessions that need to be closed
-        $this->db->query('SELECT id FROM presensi_sekolah_sesi WHERE status = "open" AND waktu_tutup <= NOW()');
-        $expiredSessions = $this->db->resultSet();
-        
-        // Mark absent students as alpha for each expired session
-        foreach ($expiredSessions as $session) {
-            $this->presensiModel->markAbsentStudentsAsAlphaSekolah($session->id);
-        }
-        
-        // Close the expired sessions
-        $this->db->query('UPDATE presensi_sekolah_sesi SET status = "closed" WHERE status = "open" AND waktu_tutup <= NOW()');
         return $this->db->execute();
     }
 
@@ -86,49 +103,6 @@ class PresensiSekolahSesiModel {
         return $this->db->single();
     }
 
-  
-    public function autoCreateDailySesi() {
-        // Set timezone ke WIB (Asia/Jakarta)
-        date_default_timezone_set('Asia/Jakarta');
-        
-        // Cek apakah hari ini adalah hari kerja (1=Senin, 5=Jumat, 0=Minggu, 6=Sabtu)
-        $hariIni = date('w'); // 0=Minggu, 1=Senin, ..., 6=Sabtu
-        
-        // Jika bukan hari kerja (Sabtu-Minggu), skip
-        if ($hariIni == 0 || $hariIni == 6) {
-            return false;
-        }
-        
-        // Cek apakah sudah melewati jam 07:00
-        $waktuSekarang = date('H:i');
-        if ($waktuSekarang < '07:00') {
-            return false; // Belum jam 07:00
-        }
-        
-        // Cek apakah sudah ada sesi untuk hari ini
-        $tanggalHariIni = date('Y-m-d');
-        $this->db->query('SELECT * FROM presensi_sekolah_sesi WHERE DATE(waktu_buka) = :tanggal');
-        $this->db->bind(':tanggal', $tanggalHariIni);
-        $sesiHariIni = $this->db->resultSet();
-        
-        // Jika sudah ada sesi hari ini, skip
-        if (!empty($sesiHariIni)) {
-            return false;
-        }
-        
-        // Buat sesi otomatis
-        // Waktu buka: Hari ini jam 07:00:00 (untuk testing)
-        // Waktu tutup: Hari ini jam 23:59:59 (bisa disesuaikan)
-        $waktuBuka = $tanggalHariIni . ' 07:00:00';
-        $waktuTutup = $tanggalHariIni . ' 23:59:59';
-        
-        // Created by: NULL (sistem otomatis)
-        $sesiId = $this->createSession($waktuBuka, $waktuTutup, null);
-        
-        return $sesiId ? true : false;
-    }
-    
-    
     private function getNamaHari($dayNumber) {
         $namaHari = [
             0 => 'Minggu',

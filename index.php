@@ -23,15 +23,15 @@ $protectedRoutes = [
     'admin_mata_pelajaran', 'admin_create_mata_pelajaran', 'admin_update_mata_pelajaran', 'admin_delete_mata_pelajaran',
     'admin_get_siswa_mapel', 'admin_get_siswa_tersedia_mapel', 'admin_add_siswa_mapel', 'admin_remove_siswa_mapel',
     'admin_get_mapel_kelas', 'admin_get_mapel_tersedia_kelas', 'admin_add_mapel_kelas', 'admin_remove_mapel_kelas',
-    'admin_buku_induk', 'admin_save_buku_induk', 'admin_delete_dokumen',
+    'admin_buku_induk', 'admin_save_buku_induk',
     'admin_kesiswaan_dashboard', 'admin_kesiswaan_buku_induk', 'admin_kesiswaan_presensi_sekolah',
     'admin_kesiswaan_create_presensi_sekolah', 'admin_kesiswaan_extend_presensi_sekolah', 'admin_kesiswaan_close_presensi_sekolah',
     'admin_kesiswaan_delete_presensi_sekolah', 'admin_kesiswaan_delete_multiple_presensi_sekolah',
-    'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk', 'admin_kesiswaan_delete_dokumen',
+    'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk',
     'admin_kesiswaan_laporan', 'admin_kesiswaan_export_excel', 'admin_kesiswaan_export_pdf',
     'guru_dashboard', 'guru_kelas', 'guru_laporan', 'guru_export_pdf', 'guru_export_excel',
     'siswa_dashboard', 'siswa_presensi', 'siswa_riwayat',
-    'siswa_buku_induk', 'siswa_save_buku_induk', 'siswa_delete_dokumen'
+    'siswa_buku_induk', 'siswa_save_buku_induk', 'siswa_change_password'
 ];
 
 if (in_array($action, $protectedRoutes) && !isset($_SESSION['user_id'])) {
@@ -51,6 +51,12 @@ switch($action) {
         require_once __DIR__ . '/app/controllers/AuthController.php';
         $auth = new AuthController();
         $auth->logout();
+        break;
+
+    case 'register_siswa':
+        require_once __DIR__ . '/app/controllers/AuthController.php';
+        $auth = new AuthController();
+        $auth->registerSiswa();
         break;
         
     // Admin Routes
@@ -263,12 +269,6 @@ switch($action) {
         $admin->saveBukuInduk();
         break;
 
-    case 'admin_delete_dokumen':
-        require_once __DIR__ . '/app/controllers/AdminController.php';
-        $admin = new AdminController();
-        $admin->deleteDokumen();
-        break;
-
     // Admin Kesiswaan Routes
     case 'admin_kesiswaan_dashboard':
         require_once __DIR__ . '/app/controllers/AdminKesiswaanController.php';
@@ -286,12 +286,6 @@ switch($action) {
         require_once __DIR__ . '/app/controllers/AdminKesiswaanController.php';
         $ak = new AdminKesiswaanController();
         $ak->saveBukuInduk();
-        break;
-
-    case 'admin_kesiswaan_delete_dokumen':
-        require_once __DIR__ . '/app/controllers/AdminKesiswaanController.php';
-        $ak = new AdminKesiswaanController();
-        $ak->deleteDokumen();
         break;
 
     case 'admin_kesiswaan_presensi_sekolah':
@@ -391,13 +385,13 @@ switch($action) {
         $siswa = new SiswaController();
         $siswa->saveBukuInduk();
         break;
-    
-    case 'siswa_delete_dokumen':
+
+    case 'siswa_change_password':
         require_once __DIR__ . '/app/controllers/SiswaController.php';
         $siswa = new SiswaController();
-        $siswa->deleteDokumen();
+        $siswa->changePassword();
         break;
-        
+    
     case 'submit_presensi_sekolah':
         require_once __DIR__ . '/app/controllers/SiswaController.php';
         $siswa = new SiswaController();

@@ -6,7 +6,7 @@ require_once __DIR__ . '/../layouts/header.php';
 <div class="flex justify-between items-center mb-6">
     <div>
         <h2 class="text-2xl font-bold text-gray-800">Manajemen User</h2>
-        <p class="text-gray-600">Kelola data pengguna sistem</p>
+        <p class="text-gray-600">Kelola akun admin, admin kesiswaan, dan guru. Akun siswa dibuat dari Buku Induk.</p>
     </div>
     <button onclick="openAddUserModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
         <i class="fas fa-plus"></i>
@@ -41,8 +41,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
                             <?php echo $user->role == 'admin' ? 'bg-red-100 text-red-800' : 
                                    ($user->role == 'admin_kesiswaan' ? 'bg-purple-100 text-purple-800' :
-                                   ($user->role == 'guru' ? 'bg-green-100 text-green-800' : 
-                                   ($user->role == 'siswa' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'))); ?>">
+                                   ($user->role == 'guru' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800')); ?>">
                             <?php echo ucfirst($user->role); ?>
                         </span>
                     </td>
@@ -100,7 +99,6 @@ require_once __DIR__ . '/../layouts/header.php';
                         <option value="admin">Admin</option>
                         <option value="guru">Guru</option>
                         <option value="admin_kesiswaan">Admin Kesiswaan</option>
-                        <option value="siswa">Siswa</option>
                     </select>
                 </div>
             </div>
@@ -150,7 +148,6 @@ require_once __DIR__ . '/../layouts/header.php';
                         <option value="admin">Admin</option>
                         <option value="guru">Guru</option>
                         <option value="admin_kesiswaan">Admin Kesiswaan</option>
-                        <option value="siswa">Siswa</option>
                     </select>
                 </div>
             </div>

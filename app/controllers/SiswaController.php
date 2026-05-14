@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/MataPelajaranModel.php';
 require_once __DIR__ . '/../models/PresensiSesiModel.php';
 require_once __DIR__ . '/../models/PresensiSekolahSesiModel.php';
 require_once __DIR__ . '/../models/BukuIndukModel.php';
+require_once __DIR__ . '/../models/UserModel.php';
 
 class SiswaController {
     private $presensiModel;
@@ -14,6 +15,7 @@ class SiswaController {
     private $presensiSesiModel;
     private $presensiSekolahSesiModel;
     private $bukuIndukModel;
+    private $userModel;
     
     public function __construct() {
         $this->presensiModel = new PresensiModel();
@@ -22,6 +24,7 @@ class SiswaController {
         $this->presensiSesiModel = new PresensiSesiModel();
         $this->presensiSekolahSesiModel = new PresensiSekolahSesiModel();
         $this->bukuIndukModel = new BukuIndukModel();
+        $this->userModel = new UserModel();
     }
 
     
@@ -123,7 +126,6 @@ class SiswaController {
         $riwayatIzin = $this->presensiModel->getIzinBySiswa($user_id);
         $kelasSiswa  = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
         
-        $this->presensiSekolahSesiModel->closeExpiredSessions();
         $sesiSekolahAktif = $this->presensiSekolahSesiModel->getActiveSession();
         
         foreach ($kelasSiswa as $kelas) {
@@ -144,7 +146,6 @@ class SiswaController {
             $accuracy  = isset($_POST['accuracy']) ? (float)$_POST['accuracy'] : null;
             $samples   = $_POST['samples'] ?? '[]';
 
-            $this->presensiSekolahSesiModel->closeExpiredSessions();
             $activeSession = $this->presensiSekolahSesiModel->getActiveSession();
 
             if (!$activeSession) {
@@ -244,10 +245,6 @@ class SiswaController {
     public function bukuInduk() {
         $user_id = $_SESSION['user_id'];
         $record  = $this->bukuIndukModel->getByUserId($user_id);
-        $dokumen = [];
-        if ($record) {
-            $dokumen = $this->bukuIndukModel->getDokumen($record->id);
-        }
         require_once __DIR__ . '/../views/siswa/buku_induk.php';
     }
 
@@ -268,50 +265,32 @@ class SiswaController {
             'nama_wali'     => isset($_POST['nama_wali'])    ? trim($_POST['nama_wali'])    : null,
             'no_telp_ortu'  => isset($_POST['no_telp_ortu']) ? trim($_POST['no_telp_ortu']) : null,
             'email_ortu'    => isset($_POST['email_ortu'])   ? trim($_POST['email_ortu'])   : null,
-            'dokumen_pdf'   => null
+            'dokumen_ijasah' => $_POST['existing_ijasah'] ?? null,
+            'dokumen_pas_foto' => $_POST['existing_pas_foto'] ?? null,
+            'dokumen_akta_kelahiran' => $_POST['existing_akta_kelahiran'] ?? null,
+            'dokumen_kk' => $_POST['existing_kk'] ?? null
         ];
 
-        if (isset($_FILES['dokumen_pdf']) && $_FILES['dokumen_pdf']['error'] === UPLOAD_ERR_OK) {
-            $upload = $this->handlePdfUpload($_FILES['dokumen_pdf']);
-            if (!$upload['success']) {
-                $_SESSION['error'] = $upload['message'];
-                header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
-                exit();
+        $documentUploads = [
+            'dokumen_ijasah' => ['label' => 'Dokumen ijasah', 'images' => false],
+            'dokumen_pas_foto' => ['label' => 'Pas foto', 'images' => true],
+            'dokumen_akta_kelahiran' => ['label' => 'Akta kelahiran', 'images' => false],
+            'dokumen_kk' => ['label' => 'KK', 'images' => false],
+        ];
+
+        foreach ($documentUploads as $field => $config) {
+            if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
+                $upload = $this->handleBukuIndukUpload($_FILES[$field], $config['images']);
+                if (!$upload['success']) {
+                    $_SESSION['error'] = $config['label'] . ': ' . $upload['message'];
+                    header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
+                    exit();
+                }
+                $data[$field] = $upload['path'];
             }
-            $data['dokumen_pdf'] = $upload['path'];
-        } else {
-            $data['dokumen_pdf'] = $_POST['existing_pdf'] ?? null;
         }
 
         if ($this->bukuIndukModel->upsert($data)) {
-            $record = $this->bukuIndukModel->getByUserId($user_id);
-            
-            if (isset($_FILES['dokumen_files']) && !empty($_FILES['dokumen_files']['name'][0])) {
-                $fileCount = count($_FILES['dokumen_files']['name']);
-                for ($i = 0; $i < $fileCount; $i++) {
-                    if ($_FILES['dokumen_files']['error'][$i] === UPLOAD_ERR_OK) {
-                        $file = [
-                            'name'     => $_FILES['dokumen_files']['name'][$i],
-                            'type'     => $_FILES['dokumen_files']['type'][$i],
-                            'tmp_name' => $_FILES['dokumen_files']['tmp_name'][$i],
-                            'error'    => $_FILES['dokumen_files']['error'][$i],
-                            'size'     => $_FILES['dokumen_files']['size'][$i]
-                        ];
-                        
-                        $upload = $this->handlePdfUpload($file);
-                        if ($upload['success']) {
-                            $keterangan = isset($_POST['keterangan'][$i]) ? trim($_POST['keterangan'][$i]) : null;
-                            $this->bukuIndukModel->addDokumen([
-                                'buku_induk_id' => $record->id,
-                                'nama_file'     => $file['name'],
-                                'dokumen_pdf'   => $upload['path'],
-                                'keterangan'    => $keterangan
-                            ]);
-                        }
-                    }
-                }
-            }
-            
             $_SESSION['success'] = 'Data buku induk diperbarui.';
         } else {
             $_SESSION['error'] = 'Gagal menyimpan data.';
@@ -321,42 +300,45 @@ class SiswaController {
         exit();
     }
 
-    public function deleteDokumen() {
+    public function changePassword() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
-        
-        $id = $_POST['dokumen_id'] ?? null;
-        if (!$id) {
-            $_SESSION['error'] = 'ID dokumen tidak valid.';
+
+        $user_id = $_SESSION['user_id'];
+        $password = $_POST['password'] ?? '';
+        $password_confirm = $_POST['password_confirm'] ?? '';
+
+        if (strlen($password) < 6) {
+            $_SESSION['error'] = 'Password minimal 6 karakter.';
+        } elseif ($password !== $password_confirm) {
+            $_SESSION['error'] = 'Konfirmasi password tidak cocok.';
+        } elseif ($this->bukuIndukModel->updatePasswordByUserId($user_id, $password)) {
+            $_SESSION['success'] = 'Password berhasil diperbarui.';
         } else {
-            $dokumen = $this->bukuIndukModel->getDokumenById($id);
-            if ($dokumen) {
-                $filePath = str_replace(BASE_URL . '/public/', __DIR__ . '/../../public/', $dokumen->dokumen_pdf);
-                if (file_exists($filePath)) {
-                    unlink($filePath);
-                }
-                
-                if ($this->bukuIndukModel->deleteDokumen($id)) {
-                    $_SESSION['success'] = 'Dokumen berhasil dihapus.';
-                } else {
-                    $_SESSION['error'] = 'Gagal menghapus dokumen.';
-                }
-            } else {
-                $_SESSION['error'] = 'Dokumen tidak ditemukan.';
-            }
+            $_SESSION['error'] = 'Gagal memperbarui password.';
         }
-        
+
         header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
         exit();
     }
 
-    private function handlePdfUpload($file) {
+    public function deleteDokumen() {
+        $_SESSION['error'] = 'Tabel dokumen tambahan sudah tidak digunakan.';
+        header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
+        exit();
+    }
+
+    private function handleBukuIndukUpload($file, $allowImage = false) {
         $allowed = ['application/pdf'];
+        if ($allowImage) {
+            $allowed = array_merge($allowed, ['image/jpeg', 'image/jpg', 'image/png']);
+        }
         if (!in_array($file['type'], $allowed)) {
-            return ['success' => false, 'message' => 'File harus PDF.'];
+            return ['success' => false, 'message' => $allowImage ? 'File harus PDF, JPG, atau PNG.' : 'File harus PDF.'];
         }
         $uploadDir = __DIR__ . '/../../public/uploads/buku_induk';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-        $safeName = uniqid('buku-induk-') . '.pdf';
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $safeName = uniqid('buku-induk-') . '.' . $ext;
         $target   = $uploadDir . '/' . $safeName;
         if (move_uploaded_file($file['tmp_name'], $target)) {
             return ['success' => true, 'path' => BASE_URL . '/public/uploads/buku_induk/' . $safeName];
