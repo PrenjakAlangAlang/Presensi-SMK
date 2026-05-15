@@ -48,6 +48,9 @@ require_once __DIR__ . '/../layouts/header.php';
                         <i class="fas fa-clock mr-1"></i><?php echo htmlspecialchars($mapel->jadwal); ?>
                     </p>
                     <?php endif; ?>
+                    <p class="text-gray-500 text-xs mt-1">
+                        <i class="fas fa-door-open mr-1"></i>Ruang: <?php echo htmlspecialchars($mapel->ruang ?: '-'); ?>
+                    </p>
                 </div>
             </div>
         </div>

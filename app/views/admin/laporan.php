@@ -13,8 +13,6 @@ require_once __DIR__ . '/../layouts/header.php';
             $periode_display = $periode ?? 'bulanan';
             if ($periode_display === 'harian') {
                 echo date('d ', strtotime($tanggal ?? date('Y-m-d'))) . $bulan_names[intval(date('m', strtotime($tanggal ?? date('Y-m-d')))) - 1] . ' ' . date('Y', strtotime($tanggal ?? date('Y-m-d')));
-            } elseif ($periode_display === 'mingguan') {
-                echo 'Minggu ke-' . ($minggu ?? date('W')) . ' Tahun ' . ($tahun ?? date('Y'));
             } else {
                 echo $bulan_names[intval($bulan ?? date('m')) - 1] . ' ' . ($tahun ?? date('Y'));
             }
@@ -53,7 +51,6 @@ require_once __DIR__ . '/../layouts/header.php';
                 <label class="block text-sm font-medium text-gray-700 mb-2">Periode</label>
                 <select id="periodeSelect" name="periode" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="harian" <?php echo (isset($periode) && $periode === 'harian') ? 'selected' : ''; ?>>Harian</option>
-                    <option value="mingguan" <?php echo (isset($periode) && $periode === 'mingguan') ? 'selected' : ''; ?>>Mingguan</option>
                     <option value="bulanan" <?php echo (!isset($periode) || $periode === 'bulanan') ? 'selected' : ''; ?>>Bulanan</option>
                 </select>
             </div>
@@ -63,22 +60,6 @@ require_once __DIR__ . '/../layouts/header.php';
                 <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
                 <input type="date" name="tanggal" value="<?php echo $tanggal ?? date('Y-m-d'); ?>" 
                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            </div>
-            
-            <!-- Filter Mingguan -->
-            <div id="filterMingguan" class="<?php echo (!isset($periode) || $periode !== 'mingguan') ? 'hidden' : ''; ?> md:col-span-2">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Minggu</label>
-                        <input type="number" name="minggu" value="<?php echo $minggu ?? date('W'); ?>" min="1" max="53"
-                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                        <input type="number" name="tahun" value="<?php echo $tahun ?? date('Y'); ?>" min="2020" max="2099"
-                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                </div>
             </div>
             
             <!-- Filter Bulanan -->
@@ -157,8 +138,6 @@ require_once __DIR__ . '/../layouts/header.php';
             <?php 
             if ($periode === 'harian') {
                 echo date('d F Y', strtotime($tanggal));
-            } elseif ($periode === 'mingguan') {
-                echo 'Minggu ke-' . $minggu . ' Tahun ' . $tahun;
             } else {
                 $bulan_names = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
                 echo $bulan_names[intval($bulan)] . ' ' . $tahun;
@@ -209,8 +188,6 @@ require_once __DIR__ . '/../layouts/header.php';
             <?php 
             if ($periode === 'harian') {
                 echo date('d F Y', strtotime($tanggal));
-            } elseif ($periode === 'mingguan') {
-                echo 'Minggu ke-' . $minggu . ' Tahun ' . $tahun;
             } else {
                 $bulan_names = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
                 echo $bulan_names[intval($bulan)] . ' ' . $tahun;
@@ -505,9 +482,6 @@ require_once __DIR__ . '/../layouts/header.php';
             
             if (isset($tanggal)) {
                 $query_params['tanggal'] = $tanggal;
-            }
-            if (isset($minggu)) {
-                $query_params['minggu'] = $minggu;
             }
             if (isset($_GET['sesi_id'])) {
                 $query_params['sesi_id'] = $_GET['sesi_id'];
@@ -960,25 +934,23 @@ function closeDetailPresensiModal() {
 function exportToPDF() {
     const periode = '<?php echo $periode ?? 'bulanan'; ?>';
     const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
-    const minggu = '<?php echo $minggu ?? date('W'); ?>';
     const bulan = '<?php echo $bulan ?? date('m'); ?>';
     const tahun = '<?php echo $tahun ?? date('Y'); ?>';
     const status = '<?php echo $filter_status ?? ''; ?>';
     const tipe = '<?php echo $tipe_laporan ?? 'sekolah'; ?>';
     const kelasId = '<?php echo $kelas_id ?? ''; ?>';
-    window.open('<?php echo BASE_URL; ?>/index.php?action=admin_export_pdf&periode=' + periode + '&tanggal=' + tanggal + '&minggu=' + minggu + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId, '_blank');
+    window.open('<?php echo BASE_URL; ?>/index.php?action=admin_export_pdf&periode=' + periode + '&tanggal=' + tanggal + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId, '_blank');
 }
 
 function exportToExcel() {
     const periode = '<?php echo $periode ?? 'bulanan'; ?>';
     const tanggal = '<?php echo $tanggal ?? date('Y-m-d'); ?>';
-    const minggu = '<?php echo $minggu ?? date('W'); ?>';
     const bulan = '<?php echo $bulan ?? date('m'); ?>';
     const tahun = '<?php echo $tahun ?? date('Y'); ?>';
     const status = '<?php echo $filter_status ?? ''; ?>';
     const tipe = '<?php echo $tipe_laporan ?? 'sekolah'; ?>';
     const kelasId = '<?php echo $kelas_id ?? ''; ?>';
-    window.location.href = '<?php echo BASE_URL; ?>/index.php?action=admin_export_excel&periode=' + periode + '&tanggal=' + tanggal + '&minggu=' + minggu + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId;
+    window.location.href = '<?php echo BASE_URL; ?>/index.php?action=admin_export_excel&periode=' + periode + '&tanggal=' + tanggal + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId;
 }
 
 // Close modal when clicking outside
@@ -994,14 +966,11 @@ document.getElementById('periodeSelect').addEventListener('change', function() {
     
     // Hide all filters
     document.getElementById('filterHarian').classList.add('hidden');
-    document.getElementById('filterMingguan').classList.add('hidden');
     document.getElementById('filterBulanan').classList.add('hidden');
     
     // Show selected filter
     if (periode === 'harian') {
         document.getElementById('filterHarian').classList.remove('hidden');
-    } else if (periode === 'mingguan') {
-        document.getElementById('filterMingguan').classList.remove('hidden');
     } else {
         document.getElementById('filterBulanan').classList.remove('hidden');
     }

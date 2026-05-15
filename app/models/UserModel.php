@@ -125,7 +125,7 @@ class UserModel {
         // Ambil guru beserta info mata pelajaran jika ada (left join)
         $this->db->query('SELECT u.*, k.nama_mata_pelajaran 
                          FROM users u 
-                         LEFT JOIN mata_pelajaran k ON u.id = k.guru_pengampu 
+                         LEFT JOIN jadwal_mata_pelajaran k ON u.id = k.guru_pengampu 
                          WHERE u.role = "guru"');
         return $this->db->resultSet();
     }

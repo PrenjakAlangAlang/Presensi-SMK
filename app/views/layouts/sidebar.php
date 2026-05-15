@@ -68,17 +68,10 @@ function isActiveMenu($action, $current) {
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_kelas" 
-                       class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_kelas', $current_action); ?>">
-                        <i class="fas fa-school w-5 text-center"></i>
-                        <span class="font-medium">Kelas</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_mata_pelajaran" 
-                       class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_mata_pelajaran', $current_action); ?>">
-                        <i class="fas fa-book w-5 text-center"></i>
-                        <span class="font-medium">Mata Pelajaran</span>
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=admin_jadwal_mata_pelajaran" 
+                       class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('admin_jadwal_mata_pelajaran', $current_action); ?>">
+                        <i class="fas fa-calendar-alt w-5 text-center"></i>
+                        <span class="font-medium">Jadwal Mata Pelajaran</span>
                     </a>
                 </li>
                 <li>

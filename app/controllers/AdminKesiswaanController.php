@@ -286,8 +286,10 @@ class AdminKesiswaanController {
         
         // Ambil parameter filter periode
         $periode = $_GET['periode'] ?? 'bulanan';
+        if (!in_array($periode, ['harian', 'bulanan'], true)) {
+            $periode = 'bulanan';
+        }
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
-        $minggu = $_GET['minggu'] ?? date('W');
         $bulan = $_GET['bulan'] ?? date('m');
         $tahun = $_GET['tahun'] ?? date('Y');
         $kelas_id = $_GET['kelas_id'] ?? null;
@@ -297,9 +299,6 @@ class AdminKesiswaanController {
         if ($periode === 'harian') {
             $startDate = $tanggal;
             $endDate = $tanggal;
-        } elseif ($periode === 'mingguan') {
-            $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
         } else {
             // bulanan - first and last day of month
             $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
@@ -420,25 +419,24 @@ class AdminKesiswaanController {
     }
 
     public function exportExcel() {
-        if (($_GET['tipe'] ?? 'sekolah') === 'kelas') {
+        if (false && (($_GET['tipe'] ?? 'sekolah') === 'kelas')) {
             die('Laporan presensi mata pelajaran telah dinonaktifkan.');
         }
         $periode = $_GET['periode'] ?? 'bulanan';
+        if (!in_array($periode, ['harian', 'bulanan'], true)) {
+            $periode = 'bulanan';
+        }
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
-        $minggu = $_GET['minggu'] ?? date('W');
         $bulan = $_GET['bulan'] ?? date('m');
         $tahun = $_GET['tahun'] ?? date('Y');
         $filter_status = $_GET['status'] ?? null;
-        $tipe = $_GET['tipe'] ?? 'sekolah';
+        $tipe = 'sekolah';
         $kelas_id = $_GET['kelas_id'] ?? null;
         
         // Calculate date range based on periode
         if ($periode === 'harian') {
             $startDate = $tanggal;
             $endDate = $tanggal;
-        } elseif ($periode === 'mingguan') {
-            $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
         } else {
             $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
             $endDate = date('Y-m-t', strtotime($startDate));
@@ -633,25 +631,24 @@ class AdminKesiswaanController {
     }
 
     public function exportPDF() {
-        if (($_GET['tipe'] ?? 'sekolah') === 'kelas') {
+        if (false && (($_GET['tipe'] ?? 'sekolah') === 'kelas')) {
             die('Laporan presensi mata pelajaran telah dinonaktifkan.');
         }
         $periode = $_GET['periode'] ?? 'bulanan';
+        if (!in_array($periode, ['harian', 'bulanan'], true)) {
+            $periode = 'bulanan';
+        }
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
-        $minggu = $_GET['minggu'] ?? date('W');
         $bulan = $_GET['bulan'] ?? date('m');
         $tahun = $_GET['tahun'] ?? date('Y');
         $filter_status = $_GET['status'] ?? null;
-        $tipe = $_GET['tipe'] ?? 'sekolah';
+        $tipe = 'sekolah';
         $kelas_id = $_GET['kelas_id'] ?? null;
         
         // Calculate date range based on periode
         if ($periode === 'harian') {
             $startDate = $tanggal;
             $endDate = $tanggal;
-        } elseif ($periode === 'mingguan') {
-            $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
         } else {
             $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
             $endDate = date('Y-m-t', strtotime($startDate));

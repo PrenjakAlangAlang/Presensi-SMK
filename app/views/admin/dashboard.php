@@ -248,9 +248,9 @@ require_once __DIR__ . '/../layouts/header.php';
                 <i class="fas fa-users text-blue-600 text-2xl mb-2"></i>
                 <p class="text-sm font-medium text-blue-800">Kelola User</p>
             </a>
-            <a href="index.php?action=admin_kelas" class="p-8 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 text-center transition-colors">
+            <a href="index.php?action=admin_jadwal_mata_pelajaran" class="p-8 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 text-center transition-colors">
                 <i class="fas fa-chalkboard text-green-600 text-2xl mb-2"></i>
-                <p class="text-sm font-medium text-green-800">Data Kelas</p>
+                <p class="text-sm font-medium text-green-800">Jadwal Mapel</p>
             </a>
             <a href="index.php?action=admin_lokasi" class="p-8 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 text-center transition-colors">
                 <i class="fas fa-map-marker-alt text-orange-600 text-2xl mb-2"></i>

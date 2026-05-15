@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/../models/UserModel.php';
-require_once __DIR__ . '/../models/KelasModel.php';
 require_once __DIR__ . '/../models/MataPelajaranModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../models/PresensiModel.php';
@@ -12,7 +11,6 @@ require_once __DIR__ . '/../models/BukuIndukModel.php';
 
 class AdminController {
     private $userModel;
-    private $kelasModel;
     private $mataPelajaranModel;
     private $locationModel;
     private $presensiModel;
@@ -23,7 +21,6 @@ class AdminController {
     
     public function __construct() {
         $this->userModel = new UserModel();
-        $this->kelasModel = new KelasModel();
         $this->mataPelajaranModel = new MataPelajaranModel();
         $this->locationModel = new LocationModel();
         $this->presensiModel = new PresensiModel();
@@ -199,113 +196,165 @@ class AdminController {
     }
     
     public function kelas() {
-        // Halaman manajemen kelas
-        $kelas = $this->kelasModel->getAllKelas();
-        $totalSiswa = count($this->userModel->getUsersByRole('siswa'));
-        $totalGuru = count($this->userModel->getUsersByRole('guru'));
-        $guru = $this->userModel->getUsersByRole('guru');
-        $kelasModel = $this->kelasModel;
-    require_once __DIR__ . '/../views/admin/kelas.php';
+        header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
+        exit;
     }
     
-    public function mataPelajaran() {
-        // Halaman manajemen mata pelajaran
-        $mataPelajaran = $this->mataPelajaranModel->getAllMataPelajaran();
+    public function jadwalMataPelajaran() {
+        $kelasList = $this->mataPelajaranModel->getAllKelasJadwal();
+        $selectedKelasId = $_GET['kelas_id'] ?? null;
+        $selectedKelas = $selectedKelasId ? $this->mataPelajaranModel->getKelasJadwalById($selectedKelasId) : null;
+        $mataPelajaran = $selectedKelas
+            ? $this->mataPelajaranModel->getJadwalByKelas($selectedKelas->id)
+            : [];
         $guru = $this->userModel->getUsersByRole('guru');
-        $kelas = $this->kelasModel->getAllKelas();
         $mataPelajaranModel = $this->mataPelajaranModel;
-    require_once __DIR__ . '/../views/admin/mata_pelajaran.php';
+        require_once __DIR__ . '/../views/admin/jadwal_mata_pelajaran.php';
+    }
+
+    public function mataPelajaran() {
+        $this->jadwalMataPelajaran();
     }
 
   
     public function createKelas() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $data = [
-                'nama_kelas' => $_POST['nama_kelas'],
-                'tahun_ajaran' => $_POST['tahun_ajaran'],
-                'wali_kelas_id' => !empty($_POST['wali_kelas_id']) ? $_POST['wali_kelas_id'] : null
-            ];
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $namaKelas = trim($_POST['nama_kelas'] ?? '');
+            $tahunAjaran = trim($_POST['tahun_ajaran'] ?? '');
+            $semester = trim($_POST['semester'] ?? '');
 
-            if($this->kelasModel->createKelas($data)) {
+            if ($namaKelas && $this->mataPelajaranModel->createKelasJadwal($namaKelas, $tahunAjaran ?: null, $semester ?: null)) {
                 $_SESSION['success'] = 'Kelas berhasil dibuat!';
             } else {
                 $_SESSION['error'] = 'Gagal membuat kelas!';
             }
-
-            header('Location: ' . BASE_URL . '/index.php?action=admin_kelas');
-            exit;
         }
+        header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
+        exit;
     }
 
     public function updateKelas() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $data = [
-                'id' => $_POST['id'],
-                'nama_kelas' => $_POST['nama_kelas'],
-                'tahun_ajaran' => $_POST['tahun_ajaran'],
-                'wali_kelas_id' => !empty($_POST['wali_kelas_id']) ? $_POST['wali_kelas_id'] : null
-            ];
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            $namaKelas = trim($_POST['nama_kelas'] ?? '');
+            $tahunAjaran = trim($_POST['tahun_ajaran'] ?? '');
+            $semester = trim($_POST['semester'] ?? '');
 
-            if($this->kelasModel->updateKelas($data)) {
+            if ($id && $namaKelas && $this->mataPelajaranModel->updateKelasJadwal($id, $namaKelas, $tahunAjaran ?: null, $semester ?: null)) {
                 $_SESSION['success'] = 'Kelas berhasil diperbarui!';
             } else {
                 $_SESSION['error'] = 'Gagal memperbarui kelas!';
             }
-
-            header('Location: ' . BASE_URL . '/index.php?action=admin_kelas');
-            exit;
         }
+        header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
+        exit;
     }
 
     public function deleteKelas() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id = $_POST['id'];
-            if($this->kelasModel->deleteKelas($id)) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            if ($id && $this->mataPelajaranModel->deleteKelasJadwal($id)) {
                 $_SESSION['success'] = 'Kelas berhasil dihapus!';
             } else {
                 $_SESSION['error'] = 'Gagal menghapus kelas!';
             }
-            header('Location: ' . BASE_URL . '/index.php?action=admin_kelas');
-            exit;
         }
+        header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
+        exit;
     }
     
     
     public function createMataPelajaran() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $data = [
-                'nama_mata_pelajaran' => $_POST['nama_mata_pelajaran'],
-                'guru_pengampu' => $_POST['guru_pengampu'] ?? null,
-                'jadwal' => $_POST['jadwal'] ?? null
-            ];
-
-            if($this->mataPelajaranModel->createMataPelajaran($data)) {
-                $_SESSION['success'] = 'Mata pelajaran berhasil dibuat!';
-            } else {
-                $_SESSION['error'] = 'Gagal membuat mata pelajaran!';
+            if (!empty($_POST['kelas_id'])) {
+                $kelas = $this->mataPelajaranModel->getKelasJadwalById($_POST['kelas_id']);
+                $_POST['nama_kelas'] = $kelas->nama_kelas ?? ($_POST['nama_kelas'] ?? '');
             }
 
-            header('Location: ' . BASE_URL . '/index.php?action=admin_mata_pelajaran');
+            $baseData = [
+                'kelas_jadwal_id' => $_POST['kelas_id'] ?? null,
+                'nama_kelas' => $_POST['nama_kelas'],
+                'nama_mata_pelajaran' => $_POST['nama_mata_pelajaran'],
+                'guru_pengampu' => $_POST['guru_pengampu'] ?? null
+            ];
+
+            $hariList = is_array($_POST['hari'] ?? null) ? $_POST['hari'] : [$_POST['hari'] ?? null];
+            $jamMulaiList = is_array($_POST['jam_mulai'] ?? null) ? $_POST['jam_mulai'] : [$_POST['jam_mulai'] ?? null];
+            $jamSelesaiList = is_array($_POST['jam_selesai'] ?? null) ? $_POST['jam_selesai'] : [$_POST['jam_selesai'] ?? null];
+            $ruangList = is_array($_POST['ruang'] ?? null) ? $_POST['ruang'] : [$_POST['ruang'] ?? null];
+
+            $createdCount = 0;
+            foreach ($hariList as $index => $hari) {
+                $jamMulai = $jamMulaiList[$index] ?? null;
+                $jamSelesai = $jamSelesaiList[$index] ?? null;
+
+                if (!$hari || !$jamMulai || !$jamSelesai) {
+                    continue;
+                }
+
+                $data = $baseData + [
+                    'hari' => $hari,
+                    'jam_mulai' => $jamMulai,
+                    'jam_selesai' => $jamSelesai,
+                    'ruang' => $ruangList[$index] ?? null
+                ];
+
+                if ($this->mataPelajaranModel->createMataPelajaran($data)) {
+                    $createdCount++;
+                }
+            }
+
+            if($createdCount > 0) {
+                $_SESSION['success'] = $createdCount . ' jadwal mata pelajaran berhasil dibuat!';
+            } else {
+                $_SESSION['error'] = 'Gagal membuat jadwal mata pelajaran!';
+            }
+
+            $redirectKelas = $_POST['kelas_id'] ?? null;
+            header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran' . ($redirectKelas ? '&kelas_id=' . urlencode($redirectKelas) : ''));
             exit;
         }
     }
 
     public function updateMataPelajaran() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $data = [
-                'id' => $_POST['id'],
-                'nama_mata_pelajaran' => $_POST['nama_mata_pelajaran'],
-                'guru_pengampu' => $_POST['guru_pengampu'] ?? null,
-                'jadwal' => $_POST['jadwal'] ?? null
-            ];
-
-            if($this->mataPelajaranModel->updateMataPelajaran($data)) {
-                $_SESSION['success'] = 'Mata pelajaran berhasil diperbarui!';
-            } else {
-                $_SESSION['error'] = 'Gagal memperbarui mata pelajaran!';
+            if (!empty($_POST['kelas_id'])) {
+                $kelas = $this->mataPelajaranModel->getKelasJadwalById($_POST['kelas_id']);
+                $_POST['nama_kelas'] = $kelas->nama_kelas ?? ($_POST['nama_kelas'] ?? '');
             }
 
-            header('Location: ' . BASE_URL . '/index.php?action=admin_mata_pelajaran');
+            $baseData = [
+                'kelas_jadwal_id' => $_POST['kelas_id'] ?? null,
+                'nama_kelas' => $_POST['nama_kelas'],
+                'nama_mata_pelajaran' => $_POST['nama_mata_pelajaran'],
+                'guru_pengampu' => $_POST['guru_pengampu'] ?? null
+            ];
+
+            $hariList = is_array($_POST['hari'] ?? null) ? $_POST['hari'] : [$_POST['hari'] ?? null];
+            $jamMulaiList = is_array($_POST['jam_mulai'] ?? null) ? $_POST['jam_mulai'] : [$_POST['jam_mulai'] ?? null];
+            $jamSelesaiList = is_array($_POST['jam_selesai'] ?? null) ? $_POST['jam_selesai'] : [$_POST['jam_selesai'] ?? null];
+            $ruangList = is_array($_POST['ruang'] ?? null) ? $_POST['ruang'] : [$_POST['ruang'] ?? null];
+            $idList = is_array($_POST['jadwal_id'] ?? null) ? $_POST['jadwal_id'] : [$_POST['id'] ?? null];
+
+            $slots = [];
+            foreach ($hariList as $index => $hari) {
+                $slots[] = [
+                    'id' => $idList[$index] ?? null,
+                    'hari' => $hari,
+                    'jam_mulai' => $jamMulaiList[$index] ?? null,
+                    'jam_selesai' => $jamSelesaiList[$index] ?? null,
+                    'ruang' => $ruangList[$index] ?? null
+                ];
+            }
+
+            if($this->mataPelajaranModel->updateJadwalGroup($baseData, $slots, $_POST['id'])) {
+                $_SESSION['success'] = 'Jadwal mata pelajaran berhasil diperbarui!';
+            } else {
+                $_SESSION['error'] = 'Gagal memperbarui jadwal mata pelajaran!';
+            }
+
+            $redirectKelas = $_POST['kelas_id'] ?? null;
+            header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran' . ($redirectKelas ? '&kelas_id=' . urlencode($redirectKelas) : ''));
             exit;
         }
     }
@@ -314,11 +363,12 @@ class AdminController {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id = $_POST['id'];
             if($this->mataPelajaranModel->deleteMataPelajaran($id)) {
-                $_SESSION['success'] = 'Mata pelajaran berhasil dihapus!';
+                $_SESSION['success'] = 'Jadwal mata pelajaran berhasil dihapus!';
             } else {
-                $_SESSION['error'] = 'Gagal menghapus mata pelajaran!';
+                $_SESSION['error'] = 'Gagal menghapus jadwal mata pelajaran!';
             }
-            header('Location: ' . BASE_URL . '/index.php?action=admin_mata_pelajaran');
+            $redirectKelas = $_POST['kelas_id'] ?? null;
+            header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran' . ($redirectKelas ? '&kelas_id=' . urlencode($redirectKelas) : ''));
             exit;
         }
     }
@@ -369,45 +419,29 @@ class AdminController {
     
    
     public function getMataPelajaranDalamKelas() {
-        if(isset($_GET['kelas_id'])) {
-            $kelas_id = $_GET['kelas_id'];
-            $mapel = $this->kelasModel->getMataPelajaranInKelas($kelas_id);
-            header('Content-Type: application/json');
-            echo json_encode($mapel);
-            exit;
-        }
+        header('Content-Type: application/json');
+        echo json_encode([]);
+        exit;
     }
 
     
     public function getMataPelajaranTersediaKelas() {
-        $kelas_id = $_GET['kelas_id'] ?? null;
-        $mapel = $this->kelasModel->getAvailableMataPelajaran($kelas_id);
         header('Content-Type: application/json');
-        echo json_encode($mapel);
+        echo json_encode([]);
         exit;
     }
 
     public function addMataPelajaranToKelas() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $mata_pelajaran_id = $_POST['mata_pelajaran_id'];
-            $kelas_id = $_POST['kelas_id'];
-            $ok = $this->kelasModel->addMataPelajaranToKelas($mata_pelajaran_id, $kelas_id);
-            header('Content-Type: application/json');
-            echo json_encode(['success' => (bool)$ok]);
-            exit;
-        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Relasi kelas lama sudah diganti jadwal mata pelajaran.']);
+        exit;
     }
 
     
     public function removeMataPelajaranFromKelas() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $mata_pelajaran_id = $_POST['mata_pelajaran_id'];
-            $kelas_id = $_POST['kelas_id'];
-            $ok = $this->kelasModel->removeMataPelajaranFromKelas($mata_pelajaran_id, $kelas_id);
-            header('Content-Type: application/json');
-            echo json_encode(['success' => (bool)$ok]);
-            exit;
-        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Relasi kelas lama sudah diganti jadwal mata pelajaran.']);
+        exit;
     }
     
     public function lokasi() {
@@ -424,8 +458,10 @@ class AdminController {
         
         // Ambil parameter filter periode
         $periode = $_GET['periode'] ?? 'bulanan';
+        if (!in_array($periode, ['harian', 'bulanan'], true)) {
+            $periode = 'bulanan';
+        }
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
-        $minggu = $_GET['minggu'] ?? date('W');
         $bulan = $_GET['bulan'] ?? date('m');
         $tahun = $_GET['tahun'] ?? date('Y');
         $kelas_id = $_GET['kelas_id'] ?? null;
@@ -435,9 +471,6 @@ class AdminController {
         if ($periode === 'harian') {
             $startDate = $tanggal;
             $endDate = $tanggal;
-        } elseif ($periode === 'mingguan') {
-            $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
         } else {
             // bulanan - first and last day of month
             $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
@@ -650,25 +683,24 @@ class AdminController {
     }
 
     public function exportExcel() {
-        if (($_GET['tipe'] ?? 'sekolah') === 'kelas') {
+        if (false && (($_GET['tipe'] ?? 'sekolah') === 'kelas')) {
             die('Laporan presensi mata pelajaran telah dinonaktifkan.');
         }
         $periode = $_GET['periode'] ?? 'bulanan';
+        if (!in_array($periode, ['harian', 'bulanan'], true)) {
+            $periode = 'bulanan';
+        }
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
-        $minggu = $_GET['minggu'] ?? date('W');
         $bulan = $_GET['bulan'] ?? date('m');
         $tahun = $_GET['tahun'] ?? date('Y');
         $filter_status = $_GET['status'] ?? null;
-        $tipe = $_GET['tipe'] ?? 'sekolah';
+        $tipe = 'sekolah';
         $kelas_id = $_GET['kelas_id'] ?? null;
         
         // Calculate date range based on periode
         if ($periode === 'harian') {
             $startDate = $tanggal;
             $endDate = $tanggal;
-        } elseif ($periode === 'mingguan') {
-            $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
         } else {
             $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
             $endDate = date('Y-m-t', strtotime($startDate));
@@ -881,25 +913,24 @@ class AdminController {
     }
 
     public function exportPDF() {
-        if (($_GET['tipe'] ?? 'sekolah') === 'kelas') {
+        if (false && (($_GET['tipe'] ?? 'sekolah') === 'kelas')) {
             die('Laporan presensi mata pelajaran telah dinonaktifkan.');
         }
         $periode = $_GET['periode'] ?? 'bulanan';
+        if (!in_array($periode, ['harian', 'bulanan'], true)) {
+            $periode = 'bulanan';
+        }
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
-        $minggu = $_GET['minggu'] ?? date('W');
         $bulan = $_GET['bulan'] ?? date('m');
         $tahun = $_GET['tahun'] ?? date('Y');
         $filter_status = $_GET['status'] ?? null;
-        $tipe = $_GET['tipe'] ?? 'sekolah';
+        $tipe = 'sekolah';
         $kelas_id = $_GET['kelas_id'] ?? null;
         
         // Calculate date range based on periode
         if ($periode === 'harian') {
             $startDate = $tanggal;
             $endDate = $tanggal;
-        } elseif ($periode === 'mingguan') {
-            $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
         } else {
             $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
             $endDate = date('Y-m-t', strtotime($startDate));

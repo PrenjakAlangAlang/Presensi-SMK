@@ -15,7 +15,7 @@ $action = $_GET['action'] ?? 'login';
 
 // Check authentication for protected routes
 $protectedRoutes = [
-    'admin_dashboard', 'admin_users', 'admin_kelas', 'admin_lokasi', 'admin_laporan', 'admin_create_user',
+    'admin_dashboard', 'admin_users', 'admin_kelas', 'admin_jadwal_mata_pelajaran', 'admin_lokasi', 'admin_laporan', 'admin_create_user',
     'admin_update_user', 'admin_delete_user', 'admin_export_excel', 'admin_export_pdf',
     'admin_presensi_sekolah', 'admin_create_presensi_sekolah', 'admin_extend_presensi_sekolah', 'admin_close_presensi_sekolah',
     'admin_delete_presensi_sekolah', 'admin_delete_multiple_presensi_sekolah',
@@ -76,6 +76,12 @@ switch($action) {
         require_once __DIR__ . '/app/controllers/AdminController.php';
         $admin = new AdminController();
         $admin->kelas();
+        break;
+
+    case 'admin_jadwal_mata_pelajaran':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->jadwalMataPelajaran();
         break;
         
     case 'admin_lokasi':
