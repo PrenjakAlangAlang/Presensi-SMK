@@ -32,6 +32,7 @@ class AdminController {
 
    
     public function presensiSekolah() {
+        $this->presensiModel->closeExpiredSekolahSessions();
         $sessions = $this->presensiSekolahSesiModel->getSessions();
         require_once __DIR__ . '/../views/admin/presensi_sekolah.php';
     }
@@ -153,6 +154,7 @@ class AdminController {
 
     
     public function getPresensiSekolahStatus() {
+        $this->presensiModel->closeExpiredSekolahSessions();
         $active = $this->presensiSekolahSesiModel->getActiveSession();
         header('Content-Type: application/json');
         if ($active) {
@@ -387,7 +389,13 @@ class AdminController {
 
     public function getSiswaTersediaMapel() {
         $mapel_id = $_GET['mapel_id'] ?? null;
-        $siswa = $this->mataPelajaranModel->getAvailableSiswa($mapel_id);
+        $filters = [
+            'kelas' => isset($_GET['kelas']) ? trim($_GET['kelas']) : '',
+            'jurusan' => isset($_GET['jurusan']) ? trim($_GET['jurusan']) : '',
+            'agama' => isset($_GET['agama']) ? trim($_GET['agama']) : '',
+            'search' => isset($_GET['search']) ? trim($_GET['search']) : '',
+        ];
+        $siswa = $this->mataPelajaranModel->getAvailableSiswa($mapel_id, $filters);
         header('Content-Type: application/json');
         echo json_encode($siswa);
         exit;
@@ -401,6 +409,34 @@ class AdminController {
             $ok = $this->mataPelajaranModel->addSiswaToMataPelajaran($siswa_id, $mapel_id);
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$ok]);
+            exit;
+        }
+    }
+
+    public function addMultipleSiswaToMapel() {
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $mapel_id = $_POST['mapel_id'] ?? null;
+            $siswa_ids = $_POST['siswa_ids'] ?? [];
+            if (!is_array($siswa_ids)) {
+                $siswa_ids = explode(',', $siswa_ids);
+            }
+
+            $siswa_ids = array_values(array_unique(array_filter(array_map('intval', $siswa_ids))));
+            if (!$mapel_id || empty($siswa_ids)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'count' => 0]);
+                exit;
+            }
+
+            $successCount = 0;
+            foreach ($siswa_ids as $siswa_id) {
+                if ($this->mataPelajaranModel->addSiswaToMataPelajaran($siswa_id, $mapel_id)) {
+                    $successCount++;
+                }
+            }
+
+            header('Content-Type: application/json');
+            echo json_encode(['success' => $successCount > 0, 'count' => $successCount]);
             exit;
         }
     }
@@ -1362,12 +1398,16 @@ class AdminController {
 
         $data = [
             'user_id' => !empty($_POST['user_id']) ? $_POST['user_id'] : null,
-            'nama' => $_POST['nama'],
-            'nis' => $_POST['nis'],
-            'nisn' => $_POST['nisn'],
-            'tempat_lahir' => $_POST['tempat_lahir'],
-            'tanggal_lahir' => $_POST['tanggal_lahir'],
-            'alamat' => $_POST['alamat'],
+            'nama' => trim($_POST['nama'] ?? ''),
+            'nis' => trim($_POST['nis'] ?? ''),
+            'nisn' => isset($_POST['nisn']) && trim($_POST['nisn']) !== '' ? trim($_POST['nisn']) : null,
+            'kelas' => isset($_POST['kelas']) ? trim($_POST['kelas']) : null,
+            'jurusan' => isset($_POST['jurusan']) ? trim($_POST['jurusan']) : null,
+            'tanggal_diterima' => !empty($_POST['tanggal_diterima']) ? $_POST['tanggal_diterima'] : null,
+            'agama' => isset($_POST['agama']) ? trim($_POST['agama']) : null,
+            'tempat_lahir' => isset($_POST['tempat_lahir']) && trim($_POST['tempat_lahir']) !== '' ? trim($_POST['tempat_lahir']) : null,
+            'tanggal_lahir' => !empty($_POST['tanggal_lahir']) ? $_POST['tanggal_lahir'] : null,
+            'alamat' => isset($_POST['alamat']) && trim($_POST['alamat']) !== '' ? trim($_POST['alamat']) : null,
             'nama_ayah' => $_POST['nama_ayah'] ?? null,
             'nama_ibu' => $_POST['nama_ibu'] ?? null,
             'nama_wali' => $_POST['nama_wali'] ?? null,
@@ -1378,6 +1418,12 @@ class AdminController {
             'dokumen_akta_kelahiran' => $_POST['existing_akta_kelahiran'] ?? null,
             'dokumen_kk' => $_POST['existing_kk'] ?? null,
         ];
+
+        if ($data['nama'] === '' || $data['nis'] === '') {
+            $_SESSION['error'] = 'Nama dan NIS wajib diisi.';
+            header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
+            exit();
+        }
 
         $password = $_POST['password'] ?? '';
         if ($password !== '') {

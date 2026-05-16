@@ -39,19 +39,35 @@ $dokumenFields = [
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">NISN</label>
-                <input type="text" name="nisn" required class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nisn ?? '', ENT_QUOTES); ?>" />
+                <input type="text" name="nisn" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nisn ?? '', ENT_QUOTES); ?>" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                <input type="text" disabled class="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-600" value="<?php echo htmlspecialchars($record->kelas ?? '', ENT_QUOTES); ?>" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>
+                <input type="text" disabled class="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-600" value="<?php echo htmlspecialchars($record->jurusan ?? '', ENT_QUOTES); ?>" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Diterima di Sekolah</label>
+                <input type="date" disabled class="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-600" value="<?php echo htmlspecialchars($record->tanggal_diterima ?? '', ENT_QUOTES); ?>" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Agama</label>
+                <input type="text" disabled class="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-600" value="<?php echo htmlspecialchars($record->agama ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tempat Lahir</label>
-                <input type="text" name="tempat_lahir" required class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->tempat_lahir ?? '', ENT_QUOTES); ?>" />
+                <input type="text" name="tempat_lahir" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->tempat_lahir ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
-                <input type="date" name="tanggal_lahir" required class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->tanggal_lahir ?? '', ENT_QUOTES); ?>" />
+                <input type="date" name="tanggal_lahir" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->tanggal_lahir ?? '', ENT_QUOTES); ?>" />
             </div>
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Alamat</label>
-                <textarea name="alamat" rows="3" class="w-full border rounded-lg px-4 py-2" required><?php echo htmlspecialchars($record->alamat ?? '', ENT_QUOTES); ?></textarea>
+                <textarea name="alamat" rows="3" class="w-full border rounded-lg px-4 py-2"><?php echo htmlspecialchars($record->alamat ?? '', ENT_QUOTES); ?></textarea>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Ayah</label>

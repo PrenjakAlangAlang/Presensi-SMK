@@ -263,7 +263,8 @@ class JadwalMataPelajaranModel {
         $jadwalIds = $this->getRelatedJadwalIds($jadwal_id);
         $placeholders = $this->buildInPlaceholders($jadwalIds, 'jadwal_id');
 
-        $this->db->query('SELECT DISTINCT bi.id, bi.nama, COALESCE(bi.email_ortu, "") AS email, "siswa" AS role
+        $this->db->query('SELECT DISTINCT bi.id, bi.nama, bi.nis, bi.nisn, bi.kelas, bi.jurusan, bi.tanggal_diterima, bi.agama,
+                         COALESCE(bi.email_ortu, "") AS email, "siswa" AS role
                          FROM buku_induk bi
                          INNER JOIN jadwal_mata_pelajaran_siswa js ON bi.id = js.siswa_id
                          WHERE js.jadwal_mata_pelajaran_id IN (' . $placeholders . ')
@@ -272,21 +273,52 @@ class JadwalMataPelajaranModel {
         return $this->db->resultSet();
     }
 
-    public function getAvailableSiswa($jadwal_id = null) {
+    public function getAvailableSiswa($jadwal_id = null, $filters = []) {
+        $conditions = [];
         if ($jadwal_id) {
             $jadwalIds = $this->getRelatedJadwalIds($jadwal_id);
             $placeholders = $this->buildInPlaceholders($jadwalIds, 'jadwal_id');
-
-            $this->db->query('SELECT id, nama, COALESCE(email_ortu, "") AS email, "siswa" AS role
-                             FROM buku_induk
-                             WHERE id NOT IN (
-                                 SELECT siswa_id FROM jadwal_mata_pelajaran_siswa WHERE jadwal_mata_pelajaran_id IN (' . $placeholders . ')
-                             )
-                             ORDER BY nama');
-            $this->bindInValues($jadwalIds, 'jadwal_id');
-        } else {
-            $this->db->query('SELECT id, nama, COALESCE(email_ortu, "") AS email, "siswa" AS role FROM buku_induk ORDER BY nama');
+            $conditions[] = 'id NOT IN (
+                SELECT siswa_id FROM jadwal_mata_pelajaran_siswa WHERE jadwal_mata_pelajaran_id IN (' . $placeholders . ')
+            )';
         }
+
+        if (!empty($filters['kelas'])) {
+            $conditions[] = 'kelas = :filter_kelas';
+        }
+        if (!empty($filters['jurusan'])) {
+            $conditions[] = 'jurusan = :filter_jurusan';
+        }
+        if (!empty($filters['agama'])) {
+            $conditions[] = 'agama = :filter_agama';
+        }
+        if (!empty($filters['search'])) {
+            $conditions[] = '(nama LIKE :filter_search OR nis LIKE :filter_search OR nisn LIKE :filter_search OR kelas LIKE :filter_search OR jurusan LIKE :filter_search OR agama LIKE :filter_search)';
+        }
+
+        $where = $conditions ? ' WHERE ' . implode(' AND ', $conditions) : '';
+
+        $this->db->query('SELECT id, nama, nis, nisn, kelas, jurusan, tanggal_diterima, agama,
+                         COALESCE(email_ortu, "") AS email, "siswa" AS role
+                         FROM buku_induk' . $where . '
+                         ORDER BY kelas IS NULL, kelas, jurusan IS NULL, jurusan, agama IS NULL, agama, nama');
+
+        if ($jadwal_id) {
+            $this->bindInValues($jadwalIds, 'jadwal_id');
+        }
+        if (!empty($filters['kelas'])) {
+            $this->db->bind(':filter_kelas', $filters['kelas']);
+        }
+        if (!empty($filters['jurusan'])) {
+            $this->db->bind(':filter_jurusan', $filters['jurusan']);
+        }
+        if (!empty($filters['agama'])) {
+            $this->db->bind(':filter_agama', $filters['agama']);
+        }
+        if (!empty($filters['search'])) {
+            $this->db->bind(':filter_search', '%' . $filters['search'] . '%');
+        }
+
         return $this->db->resultSet();
     }
 

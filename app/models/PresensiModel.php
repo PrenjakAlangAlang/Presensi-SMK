@@ -884,6 +884,31 @@ class PresensiModel {
         return $count;
     }
 
+    public function closeExpiredSekolahSessions() {
+        $now = date('Y-m-d H:i:s');
+        $this->db->query('SELECT id FROM presensi_sekolah_sesi WHERE status = "open" AND waktu_tutup <= :now ORDER BY waktu_tutup ASC');
+        $this->db->bind(':now', $now);
+        $expiredSessions = $this->db->resultSet();
+
+        $closedCount = 0;
+        $alphaCount = 0;
+
+        foreach ($expiredSessions as $session) {
+            $alphaCount += $this->markAbsentStudentsAsAlphaSekolah($session->id);
+
+            $this->db->query('UPDATE presensi_sekolah_sesi SET status = "closed" WHERE id = :id AND status = "open"');
+            $this->db->bind(':id', $session->id);
+            if ($this->db->execute()) {
+                $closedCount++;
+            }
+        }
+
+        return [
+            'closed_count' => $closedCount,
+            'alpha_count' => $alphaCount
+        ];
+    }
+
     
     public function markAbsentStudentsAsAlphaKelas($mata_pelajaran_id, $sesi_id) {
         return 0;

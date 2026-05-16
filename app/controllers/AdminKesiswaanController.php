@@ -57,12 +57,16 @@ class AdminKesiswaanController {
 
         $data = [
             'user_id' => !empty($_POST['user_id']) ? $_POST['user_id'] : null,
-            'nama' => trim($_POST['nama']),
-            'nis' => trim($_POST['nis']),
-            'nisn' => trim($_POST['nisn']),
-            'tempat_lahir' => trim($_POST['tempat_lahir']),
-            'tanggal_lahir' => $_POST['tanggal_lahir'],
-            'alamat' => trim($_POST['alamat']),
+            'nama' => trim($_POST['nama'] ?? ''),
+            'nis' => trim($_POST['nis'] ?? ''),
+            'nisn' => isset($_POST['nisn']) && trim($_POST['nisn']) !== '' ? trim($_POST['nisn']) : null,
+            'kelas' => isset($_POST['kelas']) ? trim($_POST['kelas']) : null,
+            'jurusan' => isset($_POST['jurusan']) ? trim($_POST['jurusan']) : null,
+            'tanggal_diterima' => !empty($_POST['tanggal_diterima']) ? $_POST['tanggal_diterima'] : null,
+            'agama' => isset($_POST['agama']) ? trim($_POST['agama']) : null,
+            'tempat_lahir' => isset($_POST['tempat_lahir']) && trim($_POST['tempat_lahir']) !== '' ? trim($_POST['tempat_lahir']) : null,
+            'tanggal_lahir' => !empty($_POST['tanggal_lahir']) ? $_POST['tanggal_lahir'] : null,
+            'alamat' => isset($_POST['alamat']) && trim($_POST['alamat']) !== '' ? trim($_POST['alamat']) : null,
             'nama_ayah' => isset($_POST['nama_ayah']) ? trim($_POST['nama_ayah']) : null,
             'nama_ibu' => isset($_POST['nama_ibu']) ? trim($_POST['nama_ibu']) : null,
             'nama_wali' => isset($_POST['nama_wali']) ? trim($_POST['nama_wali']) : null,
@@ -73,6 +77,12 @@ class AdminKesiswaanController {
             'dokumen_akta_kelahiran' => $_POST['existing_akta_kelahiran'] ?? null,
             'dokumen_kk' => $_POST['existing_kk'] ?? null
         ];
+
+        if ($data['nama'] === '' || $data['nis'] === '') {
+            $_SESSION['error'] = 'Nama dan NIS wajib diisi.';
+            header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
+            exit();
+        }
 
         $password = $_POST['password'] ?? '';
         if ($password !== '') {
@@ -121,6 +131,7 @@ class AdminKesiswaanController {
 
     // Presensi sekolah (sama seperti admin)
     public function presensiSekolah() {
+        $this->presensiModel->closeExpiredSekolahSessions();
         $sessions = $this->presensiSekolahSesiModel->getSessions();
         require_once __DIR__ . '/../views/admin_kesiswaan/presensi_sekolah.php';
     }
@@ -238,6 +249,7 @@ class AdminKesiswaanController {
     }
 
     public function getPresensiSekolahStatus() {
+        $this->presensiModel->closeExpiredSekolahSessions();
         $active = $this->presensiSekolahSesiModel->getActiveSession();
         header('Content-Type: application/json');
         if ($active) {

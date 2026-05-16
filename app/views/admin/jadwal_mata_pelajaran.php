@@ -387,11 +387,39 @@ function renderJadwalFormFields($guru, $hariList, $prefix = '', $multiple = fals
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-3">Tambah Siswa</h4>
                     <div class="space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="md:col-span-3">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Cari Siswa</label>
+                                <input type="search" id="filterSiswaKeyword" placeholder="Nama, NIS, NISN, kelas, jurusan, agama" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Kelas</label>
+                                <select id="filterSiswaKelas" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                                    <option value="">Semua kelas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Jurusan</label>
+                                <select id="filterSiswaJurusan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                                    <option value="">Semua jurusan</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Agama</label>
+                                <select id="filterSiswaAgama" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                                    <option value="">Semua agama</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p id="siswaFilterInfo" class="text-sm text-gray-500">Memuat daftar siswa...</p>
                         <select id="siswaJadwalSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
                             <option value="">Pilih Siswa</option>
                         </select>
                         <button onclick="tambahSiswaKeJadwal()" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">
                             <i class="fas fa-plus mr-2"></i>Tambahkan
+                        </button>
+                        <button onclick="tambahSemuaSiswaTerfilter()" id="tambahSemuaSiswaBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed" disabled>
+                            <i class="fas fa-users mr-2"></i>Tambahkan Semua Hasil Filter
                         </button>
                     </div>
                 </div>
@@ -405,6 +433,8 @@ function renderJadwalFormFields($guru, $hariList, $prefix = '', $multiple = fals
 
 <script>
 let currentJadwalId = null;
+let siswaTersediaData = [];
+let siswaTersediaFiltered = [];
 const hariOptions = <?php echo json_encode($hariList); ?>;
 const allJadwal = <?php echo json_encode($mataPelajaran); ?>;
 
@@ -660,6 +690,7 @@ function deleteJadwal(id) {
 function kelolaSiswaJadwal(jadwalId, title) {
     currentJadwalId = jadwalId;
     document.getElementById('modalJadwalTitle').textContent = title;
+    resetSiswaFilters();
     loadSiswaDalamJadwal();
     loadSiswaTersediaJadwal();
     document.getElementById('kelolaSiswaModal').classList.remove('hidden');
@@ -686,7 +717,10 @@ function loadSiswaDalamJadwal() {
                         <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                             <i class="fas fa-user text-purple-600"></i>
                         </div>
-                        <p class="font-medium text-gray-800">${escapeHtml(siswa.nama)}</p>
+                        <div>
+                            <p class="font-medium text-gray-800">${escapeHtml(siswa.nama)}</p>
+                            <p class="text-xs text-gray-500">${escapeHtml([siswa.nis ? `NIS ${siswa.nis}` : '', siswa.kelas || '', siswa.jurusan || '', siswa.agama || ''].filter(Boolean).join(' - ') || 'Data kelas belum diisi')}</p>
+                        </div>
                     </div>
                     <button onclick="hapusSiswaDariJadwal(${siswa.id})" class="text-red-600 hover:text-red-700">
                         <i class="fas fa-times"></i>
@@ -699,17 +733,100 @@ function loadSiswaDalamJadwal() {
 
 function loadSiswaTersediaJadwal() {
     const select = document.getElementById('siswaJadwalSelect');
+    const info = document.getElementById('siswaFilterInfo');
     select.innerHTML = '<option value="">Loading...</option>';
+    info.textContent = 'Memuat daftar siswa...';
+    document.getElementById('tambahSemuaSiswaBtn').disabled = true;
 
     fetch(`index.php?action=admin_get_siswa_tersedia_mapel&mapel_id=${currentJadwalId}`)
         .then(res => res.json())
         .then(data => {
-            select.innerHTML = '<option value="">Pilih Siswa</option>';
-            data.forEach(siswa => {
-                select.innerHTML += `<option value="${siswa.id}">${escapeHtml(siswa.nama || 'Nama tidak tersedia')}</option>`;
-            });
+            siswaTersediaData = Array.isArray(data) ? data : [];
+            populateSiswaFilterOptions();
+            renderSiswaTersediaOptions();
         })
         .catch(() => showNotification('error', 'Gagal memuat daftar siswa'));
+}
+
+function resetSiswaFilters() {
+    const keyword = document.getElementById('filterSiswaKeyword');
+    const kelas = document.getElementById('filterSiswaKelas');
+    const jurusan = document.getElementById('filterSiswaJurusan');
+    const agama = document.getElementById('filterSiswaAgama');
+    if (keyword) keyword.value = '';
+    if (kelas) kelas.innerHTML = '<option value="">Semua kelas</option>';
+    if (jurusan) jurusan.innerHTML = '<option value="">Semua jurusan</option>';
+    if (agama) agama.innerHTML = '<option value="">Semua agama</option>';
+    siswaTersediaData = [];
+    siswaTersediaFiltered = [];
+}
+
+function populateSiswaFilterOptions() {
+    const kelasSelect = document.getElementById('filterSiswaKelas');
+    const jurusanSelect = document.getElementById('filterSiswaJurusan');
+    const agamaSelect = document.getElementById('filterSiswaAgama');
+    const selectedKelas = kelasSelect.value;
+    const selectedJurusan = jurusanSelect.value;
+    const selectedAgama = agamaSelect.value;
+
+    const kelasList = [...new Set(siswaTersediaData.map(s => s.kelas).filter(Boolean))].sort();
+    const jurusanList = [...new Set(siswaTersediaData.map(s => s.jurusan).filter(Boolean))].sort();
+    const agamaList = [...new Set(siswaTersediaData.map(s => s.agama).filter(Boolean))].sort();
+
+    kelasSelect.innerHTML = '<option value="">Semua kelas</option>' + kelasList.map(kelas =>
+        `<option value="${escapeHtml(kelas)}">${escapeHtml(kelas)}</option>`
+    ).join('');
+    jurusanSelect.innerHTML = '<option value="">Semua jurusan</option>' + jurusanList.map(jurusan =>
+        `<option value="${escapeHtml(jurusan)}">${escapeHtml(jurusan)}</option>`
+    ).join('');
+    agamaSelect.innerHTML = '<option value="">Semua agama</option>' + agamaList.map(agama =>
+        `<option value="${escapeHtml(agama)}">${escapeHtml(agama)}</option>`
+    ).join('');
+
+    kelasSelect.value = kelasList.includes(selectedKelas) ? selectedKelas : '';
+    jurusanSelect.value = jurusanList.includes(selectedJurusan) ? selectedJurusan : '';
+    agamaSelect.value = agamaList.includes(selectedAgama) ? selectedAgama : '';
+}
+
+function renderSiswaTersediaOptions() {
+    const select = document.getElementById('siswaJadwalSelect');
+    const keyword = document.getElementById('filterSiswaKeyword').value.trim().toLowerCase();
+    const kelas = document.getElementById('filterSiswaKelas').value;
+    const jurusan = document.getElementById('filterSiswaJurusan').value;
+    const agama = document.getElementById('filterSiswaAgama').value;
+
+    siswaTersediaFiltered = siswaTersediaData.filter(siswa => {
+        const matchesKelas = !kelas || siswa.kelas === kelas;
+        const matchesJurusan = !jurusan || siswa.jurusan === jurusan;
+        const matchesAgama = !agama || siswa.agama === agama;
+        const searchText = [
+            siswa.nama || '',
+            siswa.nis || '',
+            siswa.nisn || '',
+            siswa.kelas || '',
+            siswa.jurusan || '',
+            siswa.agama || ''
+        ].join(' ').toLowerCase();
+        return matchesKelas && matchesJurusan && matchesAgama && (!keyword || searchText.includes(keyword));
+    });
+
+    select.innerHTML = '<option value="">Pilih Siswa</option>';
+    if (!siswaTersediaFiltered.length) {
+        select.innerHTML = '<option value="">Tidak ada siswa sesuai filter</option>';
+    } else {
+        siswaTersediaFiltered.forEach(siswa => {
+            const kelasText = siswa.kelas ? ` - ${siswa.kelas}` : '';
+            const jurusanText = siswa.jurusan ? ` (${siswa.jurusan})` : '';
+            const agamaText = siswa.agama ? ` - ${siswa.agama}` : '';
+            const nisText = siswa.nis ? `NIS ${siswa.nis} - ` : '';
+            select.innerHTML += `<option value="${siswa.id}">${nisText}${escapeHtml(siswa.nama || 'Nama tidak tersedia')}${escapeHtml(kelasText + jurusanText + agamaText)}</option>`;
+        });
+    }
+
+    const total = siswaTersediaData.length;
+    const shown = siswaTersediaFiltered.length;
+    document.getElementById('siswaFilterInfo').textContent = `${shown} dari ${total} siswa tersedia ditampilkan`;
+    document.getElementById('tambahSemuaSiswaBtn').disabled = shown === 0;
 }
 
 function tambahSiswaKeJadwal() {
@@ -733,6 +850,41 @@ function tambahSiswaKeJadwal() {
         setTimeout(() => location.reload(), 800);
     })
     .catch(() => showNotification('error', 'Gagal menambahkan siswa.'));
+}
+
+function tambahSemuaSiswaTerfilter() {
+    if (!siswaTersediaFiltered.length) {
+        showNotification('warning', 'Tidak ada siswa pada hasil filter.');
+        return;
+    }
+
+    const keyword = document.getElementById('filterSiswaKeyword').value.trim();
+    const kelas = document.getElementById('filterSiswaKelas').value;
+    const jurusan = document.getElementById('filterSiswaJurusan').value;
+    const agama = document.getElementById('filterSiswaAgama').value;
+    const labelParts = [kelas, jurusan, agama, keyword ? `cari "${keyword}"` : ''].filter(Boolean);
+    const label = labelParts.length ? labelParts.join(', ') : 'semua siswa tersedia';
+
+    if (!confirm(`Tambahkan ${siswaTersediaFiltered.length} siswa dari filter ${label}?`)) return;
+
+    const params = new URLSearchParams();
+    params.append('mapel_id', currentJadwalId);
+    siswaTersediaFiltered.forEach(siswa => params.append('siswa_ids[]', siswa.id));
+
+    fetch('index.php?action=admin_add_multiple_siswa_mapel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+    })
+    .then(res => res.json())
+    .then(resp => {
+        if (!resp.success) throw new Error();
+        showNotification('success', `${resp.count || siswaTersediaFiltered.length} siswa berhasil ditambahkan.`);
+        loadSiswaDalamJadwal();
+        loadSiswaTersediaJadwal();
+        setTimeout(() => location.reload(), 900);
+    })
+    .catch(() => showNotification('error', 'Gagal menambahkan siswa dari hasil filter.'));
 }
 
 function hapusSiswaDariJadwal(siswaId) {
@@ -768,6 +920,13 @@ function escapeHtml(value) {
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
     }[char]));
 }
+
+['filterSiswaKeyword', 'filterSiswaKelas', 'filterSiswaJurusan', 'filterSiswaAgama'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', renderSiswaTersediaOptions);
+    el.addEventListener('change', renderSiswaTersediaOptions);
+});
 
 ['addJadwalModal', 'editJadwalModal', 'kelolaSiswaModal', 'addKelasModal', 'editKelasModal'].forEach(id => {
     document.getElementById(id).addEventListener('click', function(e) {

@@ -70,6 +70,7 @@ class SiswaController {
     }
     
     public function dashboard() {
+        $this->presensiModel->closeExpiredSekolahSessions();
         $user_id = $_SESSION['user_id'];
         $statistik = $this->presensiModel->getStatistikKehadiran($user_id);
         $presensiTerakhir = $this->presensiModel->getPresensiSekolahByUser($user_id, 5);
@@ -80,6 +81,7 @@ class SiswaController {
     }
     
     public function presensi() {
+        $this->presensiModel->closeExpiredSekolahSessions();
         $user_id = $_SESSION['user_id'];
         $lokasiSekolah = $this->locationModel->getLokasiSekolah();
         $kelas = [];
@@ -88,6 +90,7 @@ class SiswaController {
     }
     
     public function riwayat() {
+        $this->presensiModel->closeExpiredSekolahSessions();
         $user_id = $_SESSION['user_id'];
         
         $periode = $_GET['periode'] ?? 'bulanan';
@@ -122,6 +125,7 @@ class SiswaController {
     }
     
     public function izin() {
+        $this->presensiModel->closeExpiredSekolahSessions();
         $user_id = $_SESSION['user_id'];
         $riwayatIzin = $this->presensiModel->getIzinBySiswa($user_id);
         $kelasSiswa  = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
@@ -137,6 +141,7 @@ class SiswaController {
     
     public function submitPresensiSekolah() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $this->presensiModel->closeExpiredSekolahSessions();
             $user_id   = $_SESSION['user_id'];
             $latitude  = $_POST['latitude']  ?? 0;
             $longitude = $_POST['longitude'] ?? 0;
@@ -252,14 +257,19 @@ class SiswaController {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
 
         $user_id = $_SESSION['user_id'];
+        $existingRecord = $this->bukuIndukModel->getByUserId($user_id);
         $data = [
             'user_id'       => $user_id,
-            'nama'          => trim($_POST['nama']),
-            'nis'           => trim($_POST['nis']),
-            'nisn'          => trim($_POST['nisn']),
-            'tempat_lahir'  => trim($_POST['tempat_lahir']),
-            'tanggal_lahir' => $_POST['tanggal_lahir'],
-            'alamat'        => trim($_POST['alamat']),
+            'nama'          => trim($_POST['nama'] ?? ''),
+            'nis'           => trim($_POST['nis'] ?? ''),
+            'nisn'          => isset($_POST['nisn']) && trim($_POST['nisn']) !== '' ? trim($_POST['nisn']) : null,
+            'kelas'         => $existingRecord->kelas ?? null,
+            'jurusan'       => $existingRecord->jurusan ?? null,
+            'tanggal_diterima' => $existingRecord->tanggal_diterima ?? null,
+            'agama'         => $existingRecord->agama ?? null,
+            'tempat_lahir'  => isset($_POST['tempat_lahir']) && trim($_POST['tempat_lahir']) !== '' ? trim($_POST['tempat_lahir']) : null,
+            'tanggal_lahir' => !empty($_POST['tanggal_lahir']) ? $_POST['tanggal_lahir'] : null,
+            'alamat'        => isset($_POST['alamat']) && trim($_POST['alamat']) !== '' ? trim($_POST['alamat']) : null,
             'nama_ayah'     => isset($_POST['nama_ayah'])    ? trim($_POST['nama_ayah'])    : null,
             'nama_ibu'      => isset($_POST['nama_ibu'])     ? trim($_POST['nama_ibu'])     : null,
             'nama_wali'     => isset($_POST['nama_wali'])    ? trim($_POST['nama_wali'])    : null,
@@ -270,6 +280,12 @@ class SiswaController {
             'dokumen_akta_kelahiran' => $_POST['existing_akta_kelahiran'] ?? null,
             'dokumen_kk' => $_POST['existing_kk'] ?? null
         ];
+
+        if ($data['nama'] === '' || $data['nis'] === '') {
+            $_SESSION['error'] = 'Nama dan NIS wajib diisi.';
+            header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
+            exit();
+        }
 
         $documentUploads = [
             'dokumen_ijasah' => ['label' => 'Dokumen ijasah', 'images' => false],

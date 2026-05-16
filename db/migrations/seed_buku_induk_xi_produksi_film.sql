@@ -1,0 +1,77 @@
+-- Seed data siswa kelas XI jurusan Produksi Film.
+-- Password awal semua siswa: siswa123
+-- Catatan: NIS LILO dikoreksi menjadi 2410966 karena daftar sumber memakai 2410965 dua kali dan melewatkan 2410966.
+
+CREATE TEMPORARY TABLE IF NOT EXISTS tmp_buku_induk_xi_produksi_film (
+  nis varchar(10) NOT NULL,
+  nama varchar(100) NOT NULL
+);
+
+TRUNCATE TABLE tmp_buku_induk_xi_produksi_film;
+
+INSERT INTO tmp_buku_induk_xi_produksi_film (nis, nama) VALUES
+('2410947', 'AGATHA CAROLINE LEIFEBRITA'),
+('2410948', 'AGNEZ PUTRI RIYANTI'),
+('2410949', 'AGNI EKA NINGSIH'),
+('2410950', 'ANANDA CAESAR RIO FERDINAND'),
+('2410951', 'ANEZKA SAFFA BAHTIAR'),
+('2410952', 'ANISA ZIDNEY ILMIYA'),
+('2410953', 'ATHIFA DELYZIA KEY'),
+('2410955', 'BRIANDIKA ALVIANO SAPUTRA'),
+('2410956', 'DZAKI HAIDAR JATI ANEVA'),
+('2410957', 'EMBUN DELA YOTA'),
+('2410958', 'ERFILIA SALSABILALA'),
+('2410959', 'FAQIH ULUMUDIN'),
+('2410960', 'GERRY LANDES LAIRLANANG'),
+('2410961', 'KESYA DARLISA PUTRI'),
+('2410962', 'KHAASYA NAJWA PUTRI'),
+('2410963', 'KHARISMAHARANI CHERRY AYUNDA TITIANASA'),
+('2410964', 'KHEIRA SHABRINA RIDWANA'),
+('2410965', 'KIRANA ISNA CANDRADEWI'),
+('2410966', 'LILO MUKTI WIBOWO'),
+('2410967', 'MARCELINO GERARD PRATAMA .W'),
+('2410968', 'MIFTAHUL JANAH'),
+('2410969', 'MUHAMAD FAREL FARDANA'),
+('2410970', 'NAKITA SYAHWA AQILLA RAMADHANI'),
+('2410971', 'NARESWARA CLAYDIANTO'),
+('2410972', 'NATHANEL EBA SINDUTARA'),
+('2410973', 'RIFKY BAGUS PRATAMA'),
+('2410974', 'RIZKY ADITYA BUSTAMI'),
+('2410975', 'RM. HARBANI RAKHA PRAHAMDANI'),
+('2410976', 'ROSALIDA ANGEL GRACIA TABUNI'),
+('2410977', 'SYIFA DWI FAUZIAH'),
+('2410978', 'THOMAS GOWI HERA'),
+('2410979', 'VERNANDITO PASHA MARTJUANSYAH'),
+('2410980', 'YASMIN MALIKA SEKAR DEWI'),
+('2410981', 'YERICA NASHAKA DILLA'),
+('2410982', 'YUDHISTIRA DANADYAKSA ANDRA DARMAWAN');
+
+INSERT INTO buku_induk (
+  nama,
+  nis,
+  nisn,
+  kelas,
+  jurusan,
+  tempat_lahir,
+  tanggal_lahir,
+  alamat,
+  password
+)
+SELECT
+  tmp.nama,
+  tmp.nis,
+  '',
+  'XI',
+  'PRODUKSI FILM',
+  '',
+  '2000-01-01',
+  '',
+  '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'
+FROM tmp_buku_induk_xi_produksi_film tmp
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM buku_induk bi
+  WHERE bi.nis = tmp.nis
+);
+
+DROP TEMPORARY TABLE IF EXISTS tmp_buku_induk_xi_produksi_film;

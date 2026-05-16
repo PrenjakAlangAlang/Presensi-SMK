@@ -42,19 +42,43 @@ $dokumenFields = [
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Induk Siswa Nasional</label>
-            <input type="text" name="nisn" required class="w-full border rounded-lg px-4 py-2" />
+            <input type="text" name="nisn" class="w-full border rounded-lg px-4 py-2" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+            <input type="text" name="kelas" class="w-full border rounded-lg px-4 py-2" placeholder="Contoh: XI RPL 1" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>
+            <input type="text" name="jurusan" class="w-full border rounded-lg px-4 py-2" placeholder="Contoh: Rekayasa Perangkat Lunak" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Diterima di Sekolah</label>
+            <input type="date" name="tanggal_diterima" class="w-full border rounded-lg px-4 py-2" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Agama</label>
+            <select name="agama" class="w-full border rounded-lg px-4 py-2">
+                <option value="">Pilih Agama</option>
+                <option value="Islam">Islam</option>
+                <option value="Kristen">Kristen</option>
+                <option value="Katolik">Katolik</option>
+                <option value="Hindu">Hindu</option>
+                <option value="Buddha">Buddha</option>
+                <option value="Konghucu">Konghucu</option>
+            </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Tempat Lahir</label>
-            <input type="text" name="tempat_lahir" required class="w-full border rounded-lg px-4 py-2" />
+            <input type="text" name="tempat_lahir" class="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
-            <input type="date" name="tanggal_lahir" required class="w-full border rounded-lg px-4 py-2" />
+            <input type="date" name="tanggal_lahir" class="w-full border rounded-lg px-4 py-2" />
         </div>
         <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">Alamat</label>
-            <textarea name="alamat" rows="3" class="w-full border rounded-lg px-4 py-2" required></textarea>
+            <textarea name="alamat" rows="3" class="w-full border rounded-lg px-4 py-2"></textarea>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Ayah</label>
@@ -108,7 +132,7 @@ $dokumenFields = [
             </div>
             <div class="relative w-full md:w-80">
                 <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input id="searchBukuInduk" type="search" placeholder="Cari nama, nomor induk siswa, nomor induk siswa nasional, alamat..." class="w-full border rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                <input id="searchBukuInduk" type="search" placeholder="Cari nama, NIS, NISN, kelas, jurusan, alamat..." class="w-full border rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
         </div>
     </div>
@@ -119,6 +143,7 @@ $dokumenFields = [
                     <th class="px-4 py-3">Nama</th>
                     <th class="px-4 py-3">Nomor Induk Siswa</th>
                     <th class="px-4 py-3">Nomor Induk Siswa Nasional</th>
+                    <th class="px-4 py-3">Kelas/Jurusan</th>
                     <th class="px-4 py-3">Tempat, Tanggal Lahir</th>
                     <th class="px-4 py-3">Alamat</th>
                     <th class="px-4 py-3">Nomor Telepon Orang Tua</th>
@@ -138,6 +163,10 @@ $dokumenFields = [
                             $r->nama ?? '',
                             $r->nis ?? '',
                             $r->nisn ?? '',
+                            $r->kelas ?? '',
+                            $r->jurusan ?? '',
+                            $r->tanggal_diterima ?? '',
+                            $r->agama ?? '',
                             $r->tempat_lahir ?? '',
                             $r->tanggal_lahir ?? '',
                             $r->alamat ?? '',
@@ -148,12 +177,26 @@ $dokumenFields = [
                             $r->email_ortu ?? '',
                         ]);
                     ?>
-                    <tr class="buku-row" data-search="<?php echo htmlspecialchars(strtolower($searchText), ENT_QUOTES); ?>">
-                        <td class="px-4 py-3"><?php echo htmlspecialchars($r->nama); ?></td>
-                        <td class="px-4 py-3"><?php echo htmlspecialchars($r->nis); ?></td>
-                        <td class="px-4 py-3"><?php echo htmlspecialchars($r->nisn); ?></td>
-                        <td class="px-4 py-3"><?php echo htmlspecialchars($r->tempat_lahir . ', ' . $r->tanggal_lahir); ?></td>
-                        <td class="px-4 py-3 max-w-xs truncate" title="<?php echo htmlspecialchars($r->alamat); ?>"><?php echo htmlspecialchars($r->alamat); ?></td>
+                    <tr class="buku-row"
+                        data-search="<?php echo htmlspecialchars(strtolower($searchText), ENT_QUOTES); ?>"
+                        data-kelas="<?php echo htmlspecialchars($r->kelas ?? '', ENT_QUOTES); ?>"
+                        data-jurusan="<?php echo htmlspecialchars($r->jurusan ?? '', ENT_QUOTES); ?>">
+                        <td class="px-4 py-3"><?php echo htmlspecialchars($r->nama ?? '-'); ?></td>
+                        <td class="px-4 py-3"><?php echo htmlspecialchars($r->nis ?? '-'); ?></td>
+                        <td class="px-4 py-3"><?php echo !empty($r->nisn) ? htmlspecialchars($r->nisn) : '-'; ?></td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-800"><?php echo !empty($r->kelas) ? htmlspecialchars($r->kelas) : '-'; ?></div>
+                            <div class="text-xs text-gray-500"><?php echo !empty($r->jurusan) ? htmlspecialchars($r->jurusan) : 'Jurusan belum diisi'; ?></div>
+                            <div class="text-xs text-gray-500"><?php echo !empty($r->tanggal_diterima) ? 'Diterima: ' . htmlspecialchars($r->tanggal_diterima) : 'Tanggal diterima belum diisi'; ?></div>
+                            <div class="text-xs text-gray-500"><?php echo !empty($r->agama) ? 'Agama: ' . htmlspecialchars($r->agama) : 'Agama belum diisi'; ?></div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <?php
+                                $ttl = trim(implode(', ', array_filter([$r->tempat_lahir ?? '', $r->tanggal_lahir ?? ''])));
+                                echo $ttl !== '' ? htmlspecialchars($ttl) : '-';
+                            ?>
+                        </td>
+                        <td class="px-4 py-3 max-w-xs truncate" title="<?php echo htmlspecialchars($r->alamat ?? ''); ?>"><?php echo !empty($r->alamat) ? htmlspecialchars($r->alamat) : '-'; ?></td>
                         <td class="px-4 py-3"><?php echo !empty($r->no_telp_ortu) ? htmlspecialchars($r->no_telp_ortu) : '-'; ?></td>
                         <td class="px-4 py-3"><?php echo !empty($r->email_ortu) ? htmlspecialchars($r->email_ortu) : '-'; ?></td>
                         <td class="px-4 py-3">
@@ -168,12 +211,16 @@ $dokumenFields = [
                         <td class="px-4 py-3">
                             <button class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 edit-btn"
                                     data-user-id="<?php echo $r->id; ?>"
-                                    data-nama="<?php echo htmlspecialchars($r->nama, ENT_QUOTES); ?>"
-                                    data-nis="<?php echo htmlspecialchars($r->nis, ENT_QUOTES); ?>"
-                                    data-nisn="<?php echo htmlspecialchars($r->nisn, ENT_QUOTES); ?>"
-                                    data-tempat="<?php echo htmlspecialchars($r->tempat_lahir, ENT_QUOTES); ?>"
-                                    data-tanggal="<?php echo $r->tanggal_lahir; ?>"
-                                    data-alamat="<?php echo htmlspecialchars($r->alamat, ENT_QUOTES); ?>"
+                                    data-nama="<?php echo htmlspecialchars($r->nama ?? '', ENT_QUOTES); ?>"
+                                    data-nis="<?php echo htmlspecialchars($r->nis ?? '', ENT_QUOTES); ?>"
+                                    data-nisn="<?php echo htmlspecialchars($r->nisn ?? '', ENT_QUOTES); ?>"
+                                    data-kelas="<?php echo htmlspecialchars($r->kelas ?? '', ENT_QUOTES); ?>"
+                                    data-jurusan="<?php echo htmlspecialchars($r->jurusan ?? '', ENT_QUOTES); ?>"
+                                    data-tanggal-diterima="<?php echo htmlspecialchars($r->tanggal_diterima ?? '', ENT_QUOTES); ?>"
+                                    data-agama="<?php echo htmlspecialchars($r->agama ?? '', ENT_QUOTES); ?>"
+                                    data-tempat="<?php echo htmlspecialchars($r->tempat_lahir ?? '', ENT_QUOTES); ?>"
+                                    data-tanggal="<?php echo htmlspecialchars($r->tanggal_lahir ?? '', ENT_QUOTES); ?>"
+                                    data-alamat="<?php echo htmlspecialchars($r->alamat ?? '', ENT_QUOTES); ?>"
                                     data-nama-ayah="<?php echo htmlspecialchars($r->nama_ayah ?? '', ENT_QUOTES); ?>"
                                     data-nama-ibu="<?php echo htmlspecialchars($r->nama_ibu ?? '', ENT_QUOTES); ?>"
                                     data-nama-wali="<?php echo htmlspecialchars($r->nama_wali ?? '', ENT_QUOTES); ?>"
@@ -188,10 +235,10 @@ $dokumenFields = [
                         </td>
                     </tr>
                 <?php endforeach; else: ?>
-                    <tr><td colspan="9" class="px-4 py-4 text-center text-gray-500">Belum ada data.</td></tr>
+                    <tr><td colspan="10" class="px-4 py-4 text-center text-gray-500">Belum ada data.</td></tr>
                 <?php endif; ?>
                 <tr id="emptySearchRow" class="hidden">
-                    <td colspan="9" class="px-4 py-4 text-center text-gray-500">Data tidak ditemukan.</td>
+                    <td colspan="10" class="px-4 py-4 text-center text-gray-500">Data tidak ditemukan.</td>
                 </tr>
             </tbody>
         </table>
@@ -247,6 +294,10 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
         form.nama.value = btn.dataset.nama;
         form.nis.value = btn.dataset.nis;
         form.nisn.value = btn.dataset.nisn;
+        form.kelas.value = btn.dataset.kelas || '';
+        form.jurusan.value = btn.dataset.jurusan || '';
+        form.tanggal_diterima.value = btn.dataset.tanggalDiterima || '';
+        form.agama.value = btn.dataset.agama || '';
         form.tempat_lahir.value = btn.dataset.tempat;
         form.tanggal_lahir.value = btn.dataset.tanggal;
         form.alamat.value = btn.dataset.alamat;

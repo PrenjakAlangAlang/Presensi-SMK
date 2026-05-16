@@ -21,7 +21,7 @@ $protectedRoutes = [
     'admin_delete_presensi_sekolah', 'admin_delete_multiple_presensi_sekolah',
     'admin_create_kelas', 'admin_update_kelas', 'admin_delete_kelas',
     'admin_mata_pelajaran', 'admin_create_mata_pelajaran', 'admin_update_mata_pelajaran', 'admin_delete_mata_pelajaran',
-    'admin_get_siswa_mapel', 'admin_get_siswa_tersedia_mapel', 'admin_add_siswa_mapel', 'admin_remove_siswa_mapel',
+    'admin_get_siswa_mapel', 'admin_get_siswa_tersedia_mapel', 'admin_add_siswa_mapel', 'admin_add_multiple_siswa_mapel', 'admin_remove_siswa_mapel',
     'admin_get_mapel_kelas', 'admin_get_mapel_tersedia_kelas', 'admin_add_mapel_kelas', 'admin_remove_mapel_kelas',
     'admin_buku_induk', 'admin_save_buku_induk',
     'admin_kesiswaan_dashboard', 'admin_kesiswaan_buku_induk', 'admin_kesiswaan_presensi_sekolah',
@@ -207,6 +207,12 @@ switch($action) {
         require_once __DIR__ . '/app/controllers/AdminController.php';
         $admin = new AdminController();
         $admin->addSiswaToMapel();
+        break;
+
+    case 'admin_add_multiple_siswa_mapel':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->addMultipleSiswaToMapel();
         break;
 
     case 'admin_remove_siswa_mapel':

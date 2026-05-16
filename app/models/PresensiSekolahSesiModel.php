@@ -11,7 +11,9 @@ class PresensiSekolahSesiModel {
 
     
     public function getActiveSession() {
-        $this->db->query('SELECT * FROM presensi_sekolah_sesi WHERE status = "open" AND waktu_buka <= NOW() AND waktu_tutup > NOW() ORDER BY waktu_buka DESC LIMIT 1');
+        $now = date('Y-m-d H:i:s');
+        $this->db->query('SELECT * FROM presensi_sekolah_sesi WHERE status = "open" AND waktu_buka <= :now AND waktu_tutup > :now ORDER BY waktu_buka DESC LIMIT 1');
+        $this->db->bind(':now', $now);
         return $this->db->single();
     }
 

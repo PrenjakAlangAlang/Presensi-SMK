@@ -89,8 +89,8 @@ class BukuIndukModel {
 
     public function create($data) {
         $data['password_hash'] = $data['password_hash'] ?? $this->makePasswordHash($data['password'] ?? null);
-        $this->db->query('INSERT INTO buku_induk (nama, nis, nisn, tempat_lahir, tanggal_lahir, alamat, nama_ayah, nama_ibu, nama_wali, no_telp_ortu, email_ortu, dokumen_ijasah, dokumen_pas_foto, dokumen_akta_kelahiran, dokumen_kk, password)
-                          VALUES (:nama, :nis, :nisn, :tempat_lahir, :tanggal_lahir, :alamat, :nama_ayah, :nama_ibu, :nama_wali, :no_telp_ortu, :email_ortu, :dokumen_ijasah, :dokumen_pas_foto, :dokumen_akta_kelahiran, :dokumen_kk, :password)');
+        $this->db->query('INSERT INTO buku_induk (nama, nis, nisn, kelas, jurusan, tanggal_diterima, agama, tempat_lahir, tanggal_lahir, alamat, nama_ayah, nama_ibu, nama_wali, no_telp_ortu, email_ortu, dokumen_ijasah, dokumen_pas_foto, dokumen_akta_kelahiran, dokumen_kk, password)
+                          VALUES (:nama, :nis, :nisn, :kelas, :jurusan, :tanggal_diterima, :agama, :tempat_lahir, :tanggal_lahir, :alamat, :nama_ayah, :nama_ibu, :nama_wali, :no_telp_ortu, :email_ortu, :dokumen_ijasah, :dokumen_pas_foto, :dokumen_akta_kelahiran, :dokumen_kk, :password)');
         $this->bindCommon($data);
         $this->db->bind(':password', $data['password_hash']);
         return $this->db->execute();
@@ -99,7 +99,9 @@ class BukuIndukModel {
     public function update($id, $data) {
         $passwordHash = $data['password_hash'] ?? $this->makePasswordHash($data['password'] ?? null);
         if ($passwordHash) {
-            $this->db->query('UPDATE buku_induk SET nama = :nama, nis = :nis, nisn = :nisn, tempat_lahir = :tempat_lahir,
+            $this->db->query('UPDATE buku_induk SET nama = :nama, nis = :nis, nisn = :nisn,
+                              kelas = :kelas, jurusan = :jurusan, tanggal_diterima = :tanggal_diterima, agama = :agama,
+                              tempat_lahir = :tempat_lahir,
                               tanggal_lahir = :tanggal_lahir, alamat = :alamat, nama_ayah = :nama_ayah, nama_ibu = :nama_ibu,
                               nama_wali = :nama_wali, no_telp_ortu = :no_telp_ortu, email_ortu = :email_ortu,
                               dokumen_ijasah = :dokumen_ijasah, dokumen_pas_foto = :dokumen_pas_foto,
@@ -108,7 +110,9 @@ class BukuIndukModel {
                               WHERE id = :id');
             $this->db->bind(':password', $passwordHash);
         } else {
-            $this->db->query('UPDATE buku_induk SET nama = :nama, nis = :nis, nisn = :nisn, tempat_lahir = :tempat_lahir,
+            $this->db->query('UPDATE buku_induk SET nama = :nama, nis = :nis, nisn = :nisn,
+                              kelas = :kelas, jurusan = :jurusan, tanggal_diterima = :tanggal_diterima, agama = :agama,
+                              tempat_lahir = :tempat_lahir,
                               tanggal_lahir = :tanggal_lahir, alamat = :alamat, nama_ayah = :nama_ayah, nama_ibu = :nama_ibu,
                               nama_wali = :nama_wali, no_telp_ortu = :no_telp_ortu, email_ortu = :email_ortu,
                               dokumen_ijasah = :dokumen_ijasah, dokumen_pas_foto = :dokumen_pas_foto,
@@ -140,10 +144,14 @@ class BukuIndukModel {
         // Bind hanya field yang ada di kedua query (create dan update)
         $this->db->bind(':nama', $data['nama']);
         $this->db->bind(':nis', $data['nis']);
-        $this->db->bind(':nisn', $data['nisn']);
-        $this->db->bind(':tempat_lahir', $data['tempat_lahir']);
-        $this->db->bind(':tanggal_lahir', $data['tanggal_lahir']);
-        $this->db->bind(':alamat', $data['alamat']);
+        $this->db->bind(':nisn', $data['nisn'] ?? null);
+        $this->db->bind(':kelas', $data['kelas'] ?? null);
+        $this->db->bind(':jurusan', $data['jurusan'] ?? null);
+        $this->db->bind(':tanggal_diterima', $data['tanggal_diterima'] ?? null);
+        $this->db->bind(':agama', $data['agama'] ?? null);
+        $this->db->bind(':tempat_lahir', $data['tempat_lahir'] ?? null);
+        $this->db->bind(':tanggal_lahir', $data['tanggal_lahir'] ?? null);
+        $this->db->bind(':alamat', $data['alamat'] ?? null);
         $this->db->bind(':nama_ayah', $data['nama_ayah'] ?? null);
         $this->db->bind(':nama_ibu', $data['nama_ibu'] ?? null);
         $this->db->bind(':nama_wali', $data['nama_wali'] ?? null);
