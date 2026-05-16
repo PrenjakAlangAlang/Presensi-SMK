@@ -1,6 +1,16 @@
 <?php
 $page_title = "Dashboard Siswa";
 require_once __DIR__ . '/../layouts/header.php';
+
+$hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+$jadwalByHari = array_fill_keys($hariList, []);
+
+foreach ($kelas ?? [] as $item) {
+    $hari = $item->hari ?? null;
+    if ($hari && isset($jadwalByHari[$hari])) {
+        $jadwalByHari[$hari][] = $item;
+    }
+}
 ?>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -109,65 +119,7 @@ require_once __DIR__ . '/../layouts/header.php';
     
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <!-- Riwayat Presensi Terakhir -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Riwayat Presensi Terakhir</h3>
-        <div class="space-y-3">
-            <?php foreach($presensiTerakhir as $presensi): ?>
-            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <i class="fas fa-school text-blue-600"></i>
-                    </div>
-                    <div>
-                        <p class="font-medium text-gray-800">Presensi Sekolah</p>
-                        <p class="text-sm text-gray-600"><?php echo date('d M Y H:i', strtotime($presensi->waktu)); ?></p>
-                    </div>
-                </div>
-                <?php 
-                $jenis = $presensi->jenis ?? 'hadir';
-                $status = $presensi->status ?? 'valid';
-                
-                // Determine badge styling based on type and status
-                if($jenis == 'hadir' && $status == 'valid') {
-                    $badgeClass = 'bg-green-100 text-green-800';
-                    $icon = 'fa-check-circle';
-                    $label = 'Hadir';
-                } elseif($jenis == 'hadir' && $status == 'invalid') {
-                    $badgeClass = 'bg-red-100 text-red-800';
-                    $icon = 'fa-exclamation-circle';
-                    $label = 'Invalid';
-                } elseif($jenis == 'izin') {
-                    $badgeClass = 'bg-yellow-100 text-yellow-800';
-                    $icon = 'fa-envelope';
-                    $label = 'Izin';
-                } elseif($jenis == 'sakit') {
-                    $badgeClass = 'bg-orange-100 text-orange-800';
-                    $icon = 'fa-first-aid';
-                    $label = 'Sakit';
-                } elseif($jenis == 'alpha') {
-                    $badgeClass = 'bg-gray-100 text-gray-800';
-                    $icon = 'fa-times-circle';
-                    $label = 'Alpha';
-                } else {
-                    $badgeClass = 'bg-gray-100 text-gray-600';
-                    $icon = 'fa-question-circle';
-                    $label = ucfirst($jenis);
-                }
-                ?>
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium <?php echo $badgeClass; ?>">
-                    <i class="fas <?php echo $icon; ?> mr-1"></i>
-                    <?php echo $label; ?>
-                </span>
-            </div>
-            <?php endforeach; ?>
-        </div>
-        <a href="index.php?action=siswa_riwayat" class="block text-center mt-4 text-blue-600 hover:text-blue-800 transition-colors">
-            Lihat Semua Riwayat →
-        </a>
-    </div>
-
+<div class="grid grid-cols-1 gap-8">
     <!-- Mata Pelajaran Aktif -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div class="flex items-center space-x-3 mb-4">
@@ -175,32 +127,67 @@ require_once __DIR__ . '/../layouts/header.php';
                 <i class="fas fa-book text-purple-600 text-xl"></i>
             </div>
             <div>
-                <h3 class="text-lg font-semibold text-gray-800">Mata Pelajaran Anda</h3>
-                <p class="text-gray-600 text-sm">Jadwal mata pelajaran</p>
+                <h3 class="text-lg font-semibold text-gray-800">Jadwal Mata Pelajaran</h3>
+                <p class="text-gray-600 text-sm">Dikelompokkan berdasarkan hari</p>
             </div>
         </div>
-        <div class="space-y-3">
-            <?php if(!empty($kelas)): ?>
-                <?php foreach($kelas as $k): ?>
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                        <p class="font-medium text-gray-800"><?php echo htmlspecialchars($k->nama_mata_pelajaran); ?></p>
-                        <p class="text-sm text-gray-600">
-                            <i class="fas fa-clock text-gray-500 mr-1"></i>
-                            <?php echo htmlspecialchars($k->jadwal ?? 'Jadwal belum diatur'); ?>
-                        </p>
-                    </div>
-                    
-                </div>
+
+        <?php if(!empty($kelas)): ?>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <?php foreach($hariList as $hari): ?>
+                    <?php $jadwalHari = $jadwalByHari[$hari] ?? []; ?>
+                    <section class="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                        <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                            <h4 class="font-semibold text-gray-800"><?php echo $hari; ?></h4>
+                            <span class="text-xs font-medium px-2 py-1 rounded-full <?php echo !empty($jadwalHari) ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'; ?>">
+                                <?php echo count($jadwalHari); ?> mapel
+                            </span>
+                        </div>
+
+                        <div class="divide-y divide-gray-100">
+                            <?php if(!empty($jadwalHari)): ?>
+                                <?php foreach($jadwalHari as $jadwal): ?>
+                                    <?php
+                                        $jamMulai = !empty($jadwal->jam_mulai) ? date('H:i', strtotime($jadwal->jam_mulai)) : '--:--';
+                                        $jamSelesai = !empty($jadwal->jam_selesai) ? date('H:i', strtotime($jadwal->jam_selesai)) : '--:--';
+                                    ?>
+                                    <div class="p-4 flex gap-3">
+                                        <div class="w-20 shrink-0 text-sm font-semibold text-purple-700">
+                                            <?php echo $jamMulai; ?><br>
+                                            <span class="text-xs font-normal text-gray-500"><?php echo $jamSelesai; ?></span>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="font-medium text-gray-800 leading-snug"><?php echo htmlspecialchars($jadwal->nama_mata_pelajaran ?? '-'); ?></p>
+                                            <div class="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
+                                                <?php if(!empty($jadwal->ruang)): ?>
+                                                    <span class="inline-flex items-center px-2 py-1 bg-gray-100 rounded">
+                                                        <i class="fas fa-door-open mr-1 text-gray-500"></i><?php echo htmlspecialchars($jadwal->ruang); ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                                <?php if(!empty($jadwal->guru_pengampu_nama)): ?>
+                                                    <span class="inline-flex items-center px-2 py-1 bg-gray-100 rounded">
+                                                        <i class="fas fa-user-tie mr-1 text-gray-500"></i><?php echo htmlspecialchars($jadwal->guru_pengampu_nama); ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="p-4 text-sm text-gray-400 text-center">Tidak ada jadwal</div>
+                            <?php endif; ?>
+                        </div>
+                    </section>
                 <?php endforeach; ?>
-            <?php else: ?>
-                <div class="text-center py-4 text-gray-500">
-                    <i class="fas fa-info-circle mb-2"></i>
-                    <p class="text-sm">Anda belum terdaftar di mata pelajaran manapun</p>
-                </div>
-            <?php endif; ?>
-        </div>
+            </div>
+        <?php else: ?>
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-info-circle mb-2"></i>
+                <p class="text-sm">Anda belum terdaftar di mata pelajaran manapun</p>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+

@@ -10,6 +10,28 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <?php if (!empty($kelasSaya)): ?>
     <?php 
+    $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+    $jadwalByHari = array_fill_keys($hariList, []);
+    $jadwalLainnya = [];
+
+    foreach ($kelasSaya as $mapel) {
+        $hari = $mapel->hari ?? '';
+        if ($hari && isset($jadwalByHari[$hari])) {
+            $jadwalByHari[$hari][] = $mapel;
+        } elseif ($hari) {
+            $jadwalLainnya[$hari][] = $mapel;
+        } else {
+            $jadwalLainnya['Belum Dijadwalkan'][] = $mapel;
+        }
+    }
+
+    foreach ($jadwalByHari as &$items) {
+        usort($items, function($a, $b) {
+            return strcmp($a->jam_mulai ?? '', $b->jam_mulai ?? '');
+        });
+    }
+    unset($items);
+
     $belumDitugaskan = array_filter($kelasSaya, function($m) { 
         return empty($m->nama_kelas); 
     });
@@ -27,80 +49,79 @@ require_once __DIR__ . '/../layouts/header.php';
     <?php endif; ?>
 <?php endif; ?>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-    <?php foreach($kelasSaya as $mapel): ?>
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-chalkboard text-blue-600 text-xl"></i>
-                </div>
-                <div>
-                    <?php if(isset($mapel->nama_kelas) && !empty($mapel->nama_kelas)): ?>
-                    <h3 class="font-semibold text-gray-800 text-lg"><?php echo htmlspecialchars($mapel->nama_mata_pelajaran); ?></h3>
-                    <p class="text-gray-600 text-sm"><?php echo htmlspecialchars($mapel->nama_kelas); ?> - <?php echo htmlspecialchars($mapel->tahun_ajaran); ?></p>
-                    <?php else: ?>
-                    <h3 class="font-semibold text-gray-800 text-lg"><?php echo htmlspecialchars($mapel->nama_mata_pelajaran); ?></h3>
-                    <p class="text-amber-600 text-sm italic">Belum ditugaskan ke kelas</p>
-                    <?php endif; ?>
-                    <?php if(!empty($mapel->jadwal)): ?>
-                    <p class="text-gray-500 text-xs mt-1">
-                        <i class="fas fa-clock mr-1"></i><?php echo htmlspecialchars($mapel->jadwal); ?>
-                    </p>
-                    <?php endif; ?>
-                    <p class="text-gray-500 text-xs mt-1">
-                        <i class="fas fa-door-open mr-1"></i>Ruang: <?php echo htmlspecialchars($mapel->ruang ?: '-'); ?>
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="space-y-3 mb-4">
-            <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Total Siswa:</span>
-                <span class="font-medium text-gray-800">
-                    <?php 
-                    echo isset($mapel->total_siswa) ? $mapel->total_siswa : '0'; 
-                    ?> siswa
+<?php if(!empty($kelasSaya)): ?>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+    <?php foreach($jadwalByHari as $hari => $items): ?>
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="font-semibold text-gray-800"><?php echo $hari; ?></h3>
+                <span class="text-xs font-medium px-2 py-1 rounded-full <?php echo !empty($items) ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'; ?>">
+                    <?php echo count($items); ?> mapel
                 </span>
             </div>
-            <div class="flex justify-between text-sm hidden">
-                <span class="text-gray-600">Presensi:</span>
-                <span class="font-medium text-blue-600" id="statusPresensi<?php echo $mapel->id; ?>">
-                    <?php echo isset($mapel->sesi_aktif) && $mapel->sesi_aktif ? 'Aktif' : 'Tutup'; ?>
-                </span>
+            <div class="divide-y divide-gray-100">
+                <?php if(!empty($items)): ?>
+                    <?php foreach($items as $mapel): ?>
+                        <?php
+                            $jamMulai = !empty($mapel->jam_mulai) ? date('H:i', strtotime($mapel->jam_mulai)) : '--:--';
+                            $jamSelesai = !empty($mapel->jam_selesai) ? date('H:i', strtotime($mapel->jam_selesai)) : '--:--';
+                        ?>
+                        <div class="p-5 flex gap-4">
+                            <div class="w-20 shrink-0 text-sm font-semibold text-blue-700">
+                                <?php echo $jamMulai; ?><br>
+                                <span class="text-xs font-normal text-gray-500"><?php echo $jamSelesai; ?></span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-semibold text-gray-800 leading-snug"><?php echo htmlspecialchars($mapel->nama_mata_pelajaran ?? '-'); ?></p>
+                                <p class="text-sm <?php echo !empty($mapel->nama_kelas) ? 'text-gray-600' : 'text-amber-600 italic'; ?>">
+                                    <?php echo !empty($mapel->nama_kelas) ? htmlspecialchars($mapel->nama_kelas . ' - ' . ($mapel->tahun_ajaran ?? '-')) : 'Belum ditugaskan ke kelas'; ?>
+                                </p>
+                                <div class="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
+                                    <span class="inline-flex items-center px-2 py-1 bg-gray-100 rounded">
+                                        <i class="fas fa-door-open mr-1 text-gray-500"></i><?php echo htmlspecialchars($mapel->ruang ?: '-'); ?>
+                                    </span>
+                                    <span class="inline-flex items-center px-2 py-1 bg-gray-100 rounded">
+                                        <i class="fas fa-users mr-1 text-gray-500"></i><?php echo (int)($mapel->total_siswa ?? 0); ?> siswa
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="p-5 text-sm text-gray-400 text-center">Tidak ada jadwal</div>
+                <?php endif; ?>
             </div>
-        </div>
-
-        <div class="flex space-x-2 hidden">
-            <?php if (isset($mapel->sesi_aktif) && $mapel->sesi_aktif): ?>
-                <button onclick="tutupPresensi(<?php echo $mapel->id; ?>)" 
-                        class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium">
-                    <i class="fas fa-stop mr-1"></i>Tutup Sesi
-                </button>
-            <?php else: ?>
-                <button onclick="bukaPresensi(<?php echo $mapel->id; ?>)" 
-                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium">
-                    <i class="fas fa-play mr-1"></i>Buka Sesi
-                </button>
-            <?php endif; ?>
-
-            <button onclick="lihatLaporan(<?php echo $mapel->id; ?>)" 
-                    class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium">
-                <i class="fas fa-chart-bar mr-1"></i>Laporan
-            </button>
-        </div>
-    </div>
+        </section>
     <?php endforeach; ?>
-    
-    <?php if(empty($kelasSaya)): ?>
+</div>
+
+<?php if(!empty($jadwalLainnya)): ?>
+    <div class="mt-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <?php foreach($jadwalLainnya as $hari => $items): ?>
+            <section class="bg-white rounded-xl shadow-sm border border-amber-100 overflow-hidden">
+                <div class="px-5 py-4 bg-amber-50 border-b border-amber-100 flex items-center justify-between">
+                    <h3 class="font-semibold text-gray-800"><?php echo htmlspecialchars($hari); ?></h3>
+                    <span class="text-xs font-medium px-2 py-1 rounded-full bg-amber-100 text-amber-700"><?php echo count($items); ?> mapel</span>
+                </div>
+                <div class="divide-y divide-gray-100">
+                    <?php foreach($items as $mapel): ?>
+                        <div class="p-5">
+                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($mapel->nama_mata_pelajaran ?? '-'); ?></p>
+                            <p class="text-sm text-gray-600"><?php echo htmlspecialchars($mapel->nama_kelas ?? 'Belum ditugaskan ke kelas'); ?></p>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+<?php else: ?>
     <div class="col-span-full bg-white rounded-xl shadow-sm p-12 border border-gray-100 text-center">
         <i class="fas fa-inbox text-gray-400 text-5xl mb-4"></i>
         <h3 class="text-xl font-semibold text-gray-700 mb-2">Tidak Ada Mata Pelajaran</h3>
         <p class="text-gray-500">Anda belum ditugaskan untuk mengampu mata pelajaran apapun.</p>
     </div>
-    <?php endif; ?>
-</div>
+<?php endif; ?>
 
 <!-- Modal Tutup Presensi -->
 <div id="tutupPresensiModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
