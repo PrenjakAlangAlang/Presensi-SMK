@@ -197,22 +197,6 @@ $presentase = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
     <div class="p-6 border-b border-gray-200 flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-800">Daftar Presensi - <?php echo htmlspecialchars($selected_kelas->nama_mata_pelajaran); ?></h3>
         <div class="flex flex-wrap items-end gap-2 no-print">
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">Bulan Export</label>
-                <select id="exportBulanInput" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    <?php
-                    $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                    for ($i = 1; $i <= 12; $i++):
-                        $value = str_pad($i, 2, '0', STR_PAD_LEFT);
-                    ?>
-                        <option value="<?php echo $value; ?>" <?php echo $value === date('m') ? 'selected' : ''; ?>><?php echo $bulan_names[$i - 1]; ?></option>
-                    <?php endfor; ?>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">Tahun</label>
-                <input id="exportTahunInput" type="number" value="<?php echo date('Y'); ?>" min="2020" max="2099" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-24">
-            </div>
             <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
                 <i class="fas fa-file-pdf"></i>
                 <span>Export PDF</span>
@@ -498,30 +482,38 @@ function submitEditPresensi(event) {
 
 function exportToPDF() {
     const kelasId = '<?php echo $kelas_id ?? ''; ?>';
-    const bulan = document.getElementById('exportBulanInput').value;
-    const tahun = document.getElementById('exportTahunInput').value;
+    const sesiId = '<?php echo $selected_sesi_id ?? ''; ?>';
     
     if (!kelasId) {
         showNotification('error', 'Pilih kelas terlebih dahulu');
         return;
     }
+
+    if (!sesiId) {
+        showNotification('error', 'Pilih sesi presensi terlebih dahulu');
+        return;
+    }
     
-    let url = '<?php echo BASE_URL; ?>/index.php?action=guru_export_pdf&kelas_id=' + kelasId + '&periode=bulanan&bulan=' + bulan + '&tahun=' + tahun;
+    let url = '<?php echo BASE_URL; ?>/index.php?action=guru_export_pdf&kelas_id=' + kelasId + '&sesi_id=' + sesiId;
     
     window.open(url, '_blank');
 }
 
 function exportToExcel() {
     const kelasId = '<?php echo $kelas_id ?? ''; ?>';
-    const bulan = document.getElementById('exportBulanInput').value;
-    const tahun = document.getElementById('exportTahunInput').value;
+    const sesiId = '<?php echo $selected_sesi_id ?? ''; ?>';
     
     if (!kelasId) {
         showNotification('error', 'Pilih kelas terlebih dahulu');
         return;
     }
+
+    if (!sesiId) {
+        showNotification('error', 'Pilih sesi presensi terlebih dahulu');
+        return;
+    }
     
-    let url = '<?php echo BASE_URL; ?>/index.php?action=guru_export_excel&kelas_id=' + kelasId + '&periode=bulanan&bulan=' + bulan + '&tahun=' + tahun;
+    let url = '<?php echo BASE_URL; ?>/index.php?action=guru_export_excel&kelas_id=' + kelasId + '&sesi_id=' + sesiId;
     
     window.location.href = url;
 }

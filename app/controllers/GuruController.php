@@ -518,12 +518,13 @@ class GuruController {
         $guru_id = $_SESSION['user_id'];
         $mata_pelajaran_id = $_GET['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id
         $sesi_id = $_GET['sesi_id'] ?? null;
-        $periode = $_GET['periode'] ?? 'sesi';
-        $bulan = $_GET['bulan'] ?? date('m');
-        $tahun = $_GET['tahun'] ?? date('Y');
         
         if (!$mata_pelajaran_id) {
             die('Mata pelajaran tidak dipilih');
+        }
+
+        if (!$sesi_id) {
+            die('Sesi presensi tidak dipilih');
         }
 
         $report = $this->buildGuruMapelReport($guru_id, (int) $mata_pelajaran_id, (int) $sesi_id);
@@ -532,13 +533,6 @@ class GuruController {
         }
 
         $selectedKelas = $report['selected_jadwal'];
-        if ($periode === 'bulanan') {
-            $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
-            $endDate = date('Y-m-t', strtotime($startDate));
-            $presensiBulanan = $this->getGuruMonthlyMapelRows($guru_id, $selectedKelas, $startDate, $endDate);
-            $this->renderMonthlyAttendanceExport($presensiBulanan, 'Laporan Presensi Mata Pelajaran - ' . $selectedKelas->nama_mata_pelajaran, $bulan, $tahun, false);
-        }
-
         $presensi = $report['presensi'];
         $periode_text = $report['periode_text'];
         $session = $report['selected_sesi'];
@@ -655,12 +649,13 @@ class GuruController {
         $guru_id = $_SESSION['user_id'];
         $mata_pelajaran_id = $_GET['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id
         $sesi_id = $_GET['sesi_id'] ?? null;
-        $periode = $_GET['periode'] ?? 'sesi';
-        $bulan = $_GET['bulan'] ?? date('m');
-        $tahun = $_GET['tahun'] ?? date('Y');
         
         if (!$mata_pelajaran_id) {
             die('Mata pelajaran tidak dipilih');
+        }
+
+        if (!$sesi_id) {
+            die('Sesi presensi tidak dipilih');
         }
 
         $report = $this->buildGuruMapelReport($guru_id, (int) $mata_pelajaran_id, (int) $sesi_id);
@@ -669,13 +664,6 @@ class GuruController {
         }
 
         $selectedKelas = $report['selected_jadwal'];
-        if ($periode === 'bulanan') {
-            $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
-            $endDate = date('Y-m-t', strtotime($startDate));
-            $presensiBulanan = $this->getGuruMonthlyMapelRows($guru_id, $selectedKelas, $startDate, $endDate);
-            $this->renderMonthlyAttendanceExport($presensiBulanan, 'Laporan Presensi Mata Pelajaran - ' . $selectedKelas->nama_mata_pelajaran, $bulan, $tahun, true);
-        }
-
         $presensi = $report['presensi'];
         $periode_text = $report['periode_text'];
         $session = $report['selected_sesi'];
