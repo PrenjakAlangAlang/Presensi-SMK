@@ -88,38 +88,60 @@ class SiswaController {
 
         require_once __DIR__ . '/../views/siswa/presensi.php';
     }
+
+    public function presensiMapel() {
+        $this->presensiSesiModel->closeExpiredSessions();
+        $user_id = $_SESSION['user_id'];
+        $lokasiSekolah = $this->locationModel->getLokasiSekolah();
+        $jadwalHariIni = $this->presensiSesiModel->getTodayForSiswa($user_id);
+        $riwayatMapel = $this->presensiModel->getPresensiKelasByUser($user_id, 10);
+
+        require_once __DIR__ . '/../views/siswa/presensi_mapel.php';
+    }
     
     public function riwayat() {
         $this->presensiModel->closeExpiredSekolahSessions();
+        $this->presensiSesiModel->closeExpiredSessions();
         $user_id = $_SESSION['user_id'];
         
         $periode = $_GET['periode'] ?? 'bulanan';
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
-        $minggu  = $_GET['minggu']  ?? date('W');
         $bulan   = $_GET['bulan']   ?? date('m');
         $tahun   = $_GET['tahun']   ?? date('Y');
+        if (!in_array($periode, ['harian', 'bulanan'], true)) {
+            $periode = 'bulanan';
+        }
+        $mapelFilter = trim($_GET['mapel'] ?? '');
+        $semesterFilter = trim($_GET['semester'] ?? '');
+        $tahunAjaranFilter = trim($_GET['tahun_ajaran'] ?? '');
+        $mapelFilterOptions = $this->getMapelRiwayatFilterOptions($user_id);
+        $mapelFilters = [
+            'mapel' => $mapelFilter !== '' ? $mapelFilter : null,
+            'semester' => $semesterFilter !== '' ? $semesterFilter : null,
+            'tahun_ajaran' => $tahunAjaranFilter !== '' ? $tahunAjaranFilter : null,
+        ];
         
         if ($periode === 'harian') {
             $statistik      = $this->presensiModel->getStatistikPresensiSekolah($tanggal, null, null, $user_id);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUserPeriode($user_id, $tanggal, null);
-        } elseif ($periode === 'mingguan') {
-            $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $endDate   = date('Y-m-d', strtotime($startDate . ' +6 days'));
-            $statistik      = $this->getStatistikMingguan($user_id, $startDate, $endDate);
-            $presensiSekolah = $this->presensiModel->getPresensiSekolahByUserPeriode($user_id, $startDate, $endDate);
+            $statistikKelas = $this->presensiModel->getStatistikPresensiKelas($tanggal, null, null, $user_id, $mapelFilters);
+            $presensiKelas = $this->presensiModel->getPresensiKelasByUserPeriode($user_id, $tanggal, null, $mapelFilters);
         } else {
             $statistik      = $this->presensiModel->getStatistikPresensiSekolah(null, $bulan, $tahun, $user_id);
             $presensiSekolah = $this->presensiModel->getPresensiSekolahByUser($user_id, 100);
+            $statistikKelas = $this->presensiModel->getStatistikPresensiKelas(null, $bulan, $tahun, $user_id, $mapelFilters);
+            $presensiKelas = $this->presensiModel->getPresensiKelasByUser($user_id, 100, $mapelFilters);
             
             $presensiSekolah = array_filter($presensiSekolah, function($p) use ($bulan, $tahun) {
                 return date('m', strtotime($p->waktu)) == $bulan && date('Y', strtotime($p->waktu)) == $tahun;
             });
+            $presensiKelas = array_filter($presensiKelas, function($p) use ($bulan, $tahun) {
+                return date('m', strtotime($p->waktu)) == $bulan && date('Y', strtotime($p->waktu)) == $tahun;
+            });
         }
         
-        $chartData      = $this->getChartData($user_id, $periode, $tanggal, $minggu, $bulan, $tahun);
-        $statistikKelas = (object) ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpha' => 0];
-        $presensiKelas = [];
-        $chartDataKelas = ['labels' => [], 'values' => []];
+        $chartData      = $this->getChartData($user_id, $periode, $tanggal, null, $bulan, $tahun);
+        $chartDataKelas = $this->getChartDataKelas($user_id, $periode, $tanggal, null, $bulan, $tahun, $mapelFilters);
         
         require_once __DIR__ . '/../views/siswa/riwayat.php';
     }
@@ -242,8 +264,100 @@ class SiswaController {
     }
     
     public function submitPresensiKelas() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Metode tidak valid.']);
+            exit;
+        }
+
+        $user_id = $_SESSION['user_id'];
+        $jadwal_id = (int) ($_POST['kelas_id'] ?? 0);
+        $jenis = $_POST['jenis'] ?? 'hadir';
+        $alasan = $_POST['alasan'] ?? null;
+        $latitude = (float) ($_POST['latitude'] ?? 0);
+        $longitude = (float) ($_POST['longitude'] ?? 0);
+        $accuracy = isset($_POST['accuracy']) ? (float) $_POST['accuracy'] : null;
+        $samples = $_POST['samples'] ?? '[]';
+
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Presensi mata pelajaran telah dinonaktifkan.']);
+        $this->presensiSesiModel->closeExpiredSessions();
+
+        if (!$jadwal_id || !in_array($jenis, ['hadir', 'izin', 'sakit'], true)) {
+            echo json_encode(['success' => false, 'message' => 'Data presensi tidak lengkap.']);
+            exit;
+        }
+
+        $kelasSiswa = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
+        $terdaftar = false;
+        foreach ($kelasSiswa as $kelas) {
+            if ((int) $kelas->id === $jadwal_id) {
+                $terdaftar = true;
+                break;
+            }
+        }
+        if (!$terdaftar) {
+            echo json_encode(['success' => false, 'message' => 'Anda tidak terdaftar pada mata pelajaran ini.']);
+            exit;
+        }
+
+        $activeSession = $this->presensiSesiModel->getActiveSessionByKelas($jadwal_id);
+        if (!$activeSession) {
+            echo json_encode(['success' => false, 'message' => 'Sesi presensi mata pelajaran belum aktif atau sudah ditutup.']);
+            exit;
+        }
+
+        if ($this->presensiModel->hasPresensiInSession($user_id, $activeSession->id)) {
+            echo json_encode(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk sesi ini.']);
+            exit;
+        }
+
+        if (($jenis === 'izin' || $jenis === 'sakit') && trim((string) $alasan) === '') {
+            echo json_encode(['success' => false, 'message' => 'Alasan wajib diisi untuk izin atau sakit.']);
+            exit;
+        }
+
+        if ($jenis === 'hadir') {
+            $mockCheck = $this->validateLocationAuthenticity($accuracy, $samples);
+            if (!$mockCheck['valid']) {
+                echo json_encode(['success' => false, 'message' => $mockCheck['message']]);
+                exit;
+            }
+
+            $distance = $this->locationModel->getDistance($latitude, $longitude);
+            if (!$this->locationModel->validateLocation($latitude, $longitude)) {
+                echo json_encode(['success' => false, 'message' => 'Presensi ditolak! Anda berada di luar radius sekolah.']);
+                exit;
+            }
+        } else {
+            $latitude = 0;
+            $longitude = 0;
+            $distance = 0;
+        }
+
+        $foto_bukti = null;
+        if (isset($_FILES['bukti']) && $_FILES['bukti']['error'] === UPLOAD_ERR_OK) {
+            $upload = $this->handleBuktiUpload($_FILES['bukti']);
+            if (!$upload['success']) {
+                echo json_encode(['success' => false, 'message' => $upload['message']]);
+                exit;
+            }
+            $foto_bukti = $upload['path'];
+        }
+
+        $ok = $this->presensiModel->recordPresensiKelas([
+            'presensi_sesi_id' => $activeSession->id,
+            'user_id' => $user_id,
+            'jadwal_mata_pelajaran_id' => $jadwal_id,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'jarak' => $distance,
+            'status' => 'valid',
+            'jenis' => $jenis,
+            'alasan' => $alasan,
+            'foto_bukti' => $foto_bukti
+        ]);
+
+        echo json_encode(['success' => (bool) $ok, 'message' => $ok ? 'Presensi mata pelajaran berhasil dicatat.' : 'Gagal menyimpan presensi.']);
         exit;
     }
 
@@ -380,6 +494,35 @@ class SiswaController {
         }
         return ['success' => false, 'message' => 'Gagal upload bukti.'];
     }
+
+    private function getMapelRiwayatFilterOptions($user_id) {
+        $jadwalSiswa = $this->mataPelajaranModel->getMataPelajaranBySiswa($user_id);
+        $mapel = [];
+        $semester = [];
+        $tahunAjaran = [];
+
+        foreach ($jadwalSiswa as $jadwal) {
+            if (!empty($jadwal->nama_mata_pelajaran)) {
+                $mapel[$jadwal->nama_mata_pelajaran] = $jadwal->nama_mata_pelajaran;
+            }
+            if (!empty($jadwal->semester)) {
+                $semester[$jadwal->semester] = $jadwal->semester;
+            }
+            if (!empty($jadwal->tahun_ajaran)) {
+                $tahunAjaran[$jadwal->tahun_ajaran] = $jadwal->tahun_ajaran;
+            }
+        }
+
+        natcasesort($mapel);
+        natcasesort($semester);
+        rsort($tahunAjaran, SORT_NATURAL);
+
+        return [
+            'mapel' => array_values($mapel),
+            'semester' => array_values($semester),
+            'tahun_ajaran' => array_values($tahunAjaran),
+        ];
+    }
     
     private function getStatistikMingguan($user_id, $startDate, $endDate) {
         $db = new Database();
@@ -397,21 +540,24 @@ class SiswaController {
         return $db->single();
     }
     
-    private function getStatistikMingguanKelas($user_id, $startDate, $endDate) {
-        return (object) ['total' => 0, 'hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpha' => 0];
-
+    private function getStatistikMingguanKelas($user_id, $startDate, $endDate, $kelas_jadwal_id = null) {
         $db = new Database();
         $db->query('SELECT 
                     COUNT(*) as total,
-                    SUM(CASE WHEN status = "valid" AND jenis = "hadir" THEN 1 ELSE 0 END) as hadir,
-                    SUM(CASE WHEN jenis = "izin" THEN 1 ELSE 0 END) as izin,
-                    SUM(CASE WHEN jenis = "sakit" THEN 1 ELSE 0 END) as sakit,
-                    SUM(CASE WHEN jenis = "alpha" THEN 1 ELSE 0 END) as alpha
-                    FROM presensi_mapel 
-                    WHERE user_id = :user_id AND DATE(waktu) BETWEEN :start_date AND :end_date');
+                    SUM(CASE WHEN pm.status = "valid" AND pm.jenis = "hadir" THEN 1 ELSE 0 END) as hadir,
+                    SUM(CASE WHEN pm.jenis = "izin" THEN 1 ELSE 0 END) as izin,
+                    SUM(CASE WHEN pm.jenis = "sakit" THEN 1 ELSE 0 END) as sakit,
+                    SUM(CASE WHEN pm.jenis = "alpha" THEN 1 ELSE 0 END) as alpha
+                    FROM presensi_mapel pm
+                    INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
+                    WHERE pm.user_id = :user_id AND DATE(pm.waktu) BETWEEN :start_date AND :end_date' .
+                    ($kelas_jadwal_id ? ' AND j.kelas_jadwal_id = :kelas_jadwal_id' : ''));
         $db->bind(':user_id',    $user_id);
         $db->bind(':start_date', $startDate);
         $db->bind(':end_date',   $endDate);
+        if ($kelas_jadwal_id) {
+            $db->bind(':kelas_jadwal_id', (int) $kelas_jadwal_id);
+        }
         return $db->single();
     }
     
@@ -486,11 +632,11 @@ class SiswaController {
         return $data;
     }
     
-    private function getChartDataKelas($user_id, $periode, $tanggal, $minggu, $bulan, $tahun) {
-        return ['labels' => [], 'values' => []];
-
+    private function getChartDataKelas($user_id, $periode, $tanggal, $minggu, $bulan, $tahun, $filters = []) {
+        $filters = is_array($filters) ? $filters : ['kelas_jadwal_id' => $filters];
         $db   = new Database();
         $data = [];
+        $filterSql = $this->buildMapelFilterSql($filters);
         
         if ($periode === 'harian') {
             $labels = [];
@@ -499,34 +645,18 @@ class SiswaController {
                 $labels[] = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
                 $values[] = 0;
             }
-            $db->query('SELECT HOUR(waktu) as jam, COUNT(*) as jumlah 
-                       FROM presensi_mapel 
-                       WHERE user_id = :user_id AND DATE(waktu) = :tanggal 
-                       GROUP BY HOUR(waktu)');
+            $db->query('SELECT HOUR(pm.waktu) as jam, COUNT(*) as jumlah 
+                       FROM presensi_mapel pm
+                       INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
+                       LEFT JOIN kelas k ON j.kelas_jadwal_id = k.id
+                       WHERE pm.user_id = :user_id AND DATE(pm.waktu) = :tanggal' . $filterSql . '
+                       GROUP BY HOUR(pm.waktu)');
             $db->bind(':user_id', $user_id);
             $db->bind(':tanggal', $tanggal);
+            $this->bindMapelFiltersToDb($db, $filters);
             $results = $db->resultSet();
             foreach ($results as $row) {
                 $values[$row->jam] = $row->jumlah;
-            }
-            $data['labels'] = $labels;
-            $data['values'] = $values;
-            
-        } elseif ($periode === 'mingguan') {
-            $startDate = date('Y-m-d', strtotime($tahun . 'W' . str_pad($minggu, 2, '0', STR_PAD_LEFT)));
-            $labels    = [];
-            $values    = [];
-            for ($i = 0; $i < 7; $i++) {
-                $date     = date('Y-m-d', strtotime($startDate . ' +' . $i . ' days'));
-                $dayName  = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                $labels[] = $dayName[date('w', strtotime($date))];
-                $db->query('SELECT COUNT(*) as jumlah 
-                           FROM presensi_mapel 
-                           WHERE user_id = :user_id AND DATE(waktu) = :tanggal AND (status = "valid" OR jenis IN ("izin", "sakit"))');
-                $db->bind(':user_id', $user_id);
-                $db->bind(':tanggal', $date);
-                $result   = $db->single();
-                $values[] = $result->jumlah ?? 0;
             }
             $data['labels'] = $labels;
             $data['values'] = $values;
@@ -538,13 +668,16 @@ class SiswaController {
                 $labels[] = 'Minggu ' . $week;
                 $values[] = 0;
             }
-            $db->query('SELECT DAY(waktu) as hari, COUNT(*) as jumlah 
-                       FROM presensi_mapel 
-                       WHERE user_id = :user_id AND MONTH(waktu) = :bulan AND YEAR(waktu) = :tahun AND (status = "valid" OR jenis IN ("izin", "sakit"))
-                       GROUP BY DAY(waktu)');
+            $db->query('SELECT DAY(pm.waktu) as hari, COUNT(*) as jumlah 
+                       FROM presensi_mapel pm
+                       INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
+                       LEFT JOIN kelas k ON j.kelas_jadwal_id = k.id
+                       WHERE pm.user_id = :user_id AND MONTH(pm.waktu) = :bulan AND YEAR(pm.waktu) = :tahun AND (pm.status = "valid" OR pm.jenis IN ("izin", "sakit"))' . $filterSql . '
+                       GROUP BY DAY(pm.waktu)');
             $db->bind(':user_id', $user_id);
             $db->bind(':bulan',   $bulan);
             $db->bind(':tahun',   $tahun);
+            $this->bindMapelFiltersToDb($db, $filters);
             $results = $db->resultSet();
             foreach ($results as $row) {
                 $weekNum = (int) ceil($row->hari / 7) - 1;
@@ -557,6 +690,32 @@ class SiswaController {
         }
         
         return $data;
+    }
+
+    private function buildMapelFilterSql($filters) {
+        $sql = '';
+        if (!empty($filters['mapel'])) {
+            $sql .= ' AND j.nama_mata_pelajaran = :filter_mapel';
+        }
+        if (!empty($filters['semester'])) {
+            $sql .= ' AND k.semester = :filter_semester';
+        }
+        if (!empty($filters['tahun_ajaran'])) {
+            $sql .= ' AND k.tahun_ajaran = :filter_tahun_ajaran';
+        }
+        return $sql;
+    }
+
+    private function bindMapelFiltersToDb($db, $filters) {
+        if (!empty($filters['mapel'])) {
+            $db->bind(':filter_mapel', $filters['mapel']);
+        }
+        if (!empty($filters['semester'])) {
+            $db->bind(':filter_semester', $filters['semester']);
+        }
+        if (!empty($filters['tahun_ajaran'])) {
+            $db->bind(':filter_tahun_ajaran', $filters['tahun_ajaran']);
+        }
     }
 }
 ?>

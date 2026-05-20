@@ -29,12 +29,11 @@ require_once __DIR__ . '/../layouts/header.php';
     <div class="border-b border-gray-200">
         <nav class="-mb-px flex space-x-8">
             <a href="?action=admin_kesiswaan_laporan&tipe=sekolah&bulan=<?php echo $bulan ?? date('m'); ?>&tahun=<?php echo $tahun ?? date('Y'); ?>" 
-               class="<?php echo (!isset($_GET['tipe']) || $_GET['tipe'] == 'sekolah') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?> whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+               class="<?php echo (($tipe_laporan ?? 'sekolah') == 'sekolah') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?> whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-school mr-2"></i>Presensi Sekolah
             </a>
-            <a href="?action=admin_kesiswaan_laporan&tipe=kelas&bulan=<?php echo $bulan ?? date('m'); ?>&tahun=<?php echo $tahun ?? date('Y'); ?><?php echo isset($_GET['kelas_id']) ? '&kelas_id='.$_GET['kelas_id'] : ''; ?>" 
-               hidden
-               class="<?php echo (isset($_GET['tipe']) && $_GET['tipe'] == 'kelas') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?> whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+            <a href="?action=admin_kesiswaan_laporan&tipe=kelas&bulan=<?php echo $bulan ?? date('m'); ?>&tahun=<?php echo $tahun ?? date('Y'); ?>" 
+               class="<?php echo (($tipe_laporan ?? 'sekolah') == 'kelas') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?> whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-book mr-2"></i>Presensi Mata Pelajaran
             </a>
         </nav>
@@ -91,18 +90,45 @@ require_once __DIR__ . '/../layouts/header.php';
         
             <?php if ($tipe_laporan === 'kelas'): ?>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Mata Pelajaran</label>
-                <select name="kelas_id" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                    <option value="">Pilih Mata Pelajaran</option>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Ajaran</label>
+                <select name="tahun_ajaran_filter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="this.form.kelas_filter_id.value=''; this.form.mapel_id.value=''; this.form.submit()">
+                    <option value="">Semua Tahun</option>
+                    <?php foreach($tahun_ajaran_list as $item): ?>
+                        <option value="<?php echo htmlspecialchars($item->tahun_ajaran); ?>" <?php echo (($tahun_ajaran_filter ?? '') === $item->tahun_ajaran) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($item->tahun_ajaran); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Semester</label>
+                <select name="semester_filter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="this.form.kelas_filter_id.value=''; this.form.mapel_id.value=''; this.form.submit()">
+                    <option value="">Semua Semester</option>
+                    <?php foreach($semester_list as $item): ?>
+                        <option value="<?php echo htmlspecialchars($item->semester); ?>" <?php echo (($semester_filter ?? '') === $item->semester) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($item->semester); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Kelas</label>
+                <select name="kelas_filter_id" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="this.form.mapel_id.value=''; this.form.submit()">
+                    <option value="">Semua Kelas</option>
                     <?php foreach($kelas_list as $kls): ?>
-                        <option value="<?php echo $kls->id; ?>" <?php echo (isset($_GET['kelas_id']) && $_GET['kelas_id'] == $kls->id) ? 'selected' : ''; ?>>
-                            <?php 
-                            if (isset($kls->nama_kelas) && !empty($kls->nama_kelas)) {
-                                echo htmlspecialchars($kls->nama_kelas) . ' - ' . htmlspecialchars($kls->nama_mata_pelajaran);
-                            } else {
-                                echo htmlspecialchars($kls->nama_mata_pelajaran) . ' (Belum ditugaskan ke kelas)';
-                            }
-                            ?>
+                        <option value="<?php echo (int) $kls->id; ?>" <?php echo (($kelas_filter_id ?? '') == $kls->id) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($kls->nama_kelas . (!empty($kls->tahun_ajaran) ? ' - ' . $kls->tahun_ajaran : '')); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Mata Pelajaran</label>
+                <select name="mapel_id" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Semua Mata Pelajaran</option>
+                    <?php foreach($mapel_list as $mapel): ?>
+                        <option value="<?php echo (int) $mapel->id; ?>" <?php echo (($mapel_id ?? '') == $mapel->id) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($mapel->nama_kelas . ' - ' . $mapel->nama_mata_pelajaran . (!empty($mapel->guru_nama) ? ' (' . $mapel->guru_nama . ')' : '')); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -129,7 +155,7 @@ require_once __DIR__ . '/../layouts/header.php';
     </form>
 </div>
 
-<?php if ($tipe_laporan === 'kelas' && $kelas_id && isset($laporan_kemajuan) && count($laporan_kemajuan) > 0): ?>
+<?php if ($tipe_laporan === 'kelas' && ($kelas_id || ($kelas_filter_id ?? '')) && isset($laporan_kemajuan) && count($laporan_kemajuan) > 0): ?>
 <!-- Laporan Kemajuan Section -->
 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
     <div class="flex justify-between items-center mb-4">
@@ -180,7 +206,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <?php endforeach; ?>
     </div>
 </div>
-<?php elseif ($tipe_laporan === 'kelas' && $kelas_id && (!isset($laporan_kemajuan) || count($laporan_kemajuan) === 0)): ?>
+<?php elseif ($tipe_laporan === 'kelas' && ($kelas_id || ($kelas_filter_id ?? '')) && (!isset($laporan_kemajuan) || count($laporan_kemajuan) === 0)): ?>
 <!-- Empty State -->
 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
     <div class="text-center py-8">
@@ -316,6 +342,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <tr class="bg-gray-50 border-b border-gray-200">
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Nama Siswa</th>
                     <?php if ($tipe_laporan === 'kelas'): ?>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Kelas</th>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Mata Pelajaran</th>
                     <?php endif; ?>
                     <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Tanggal</th>
@@ -329,7 +356,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <tbody class="divide-y divide-gray-200">
                 <?php if (empty($presensi)): ?>
                 <tr>
-                    <td colspan="<?php echo $tipe_laporan === 'kelas' ? '8' : '8'; ?>" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="<?php echo $tipe_laporan === 'kelas' ? '9' : '8'; ?>" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>Tidak ada data presensi untuk <?php echo $tipe_laporan === 'kelas' ? 'mata pelajaran dan ' : ''; ?>tanggal yang dipilih</p>
                     </td>
@@ -352,7 +379,13 @@ require_once __DIR__ . '/../layouts/header.php';
                         </td>
                         <?php if ($tipe_laporan === 'kelas'): ?>
                         <td class="px-6 py-4 text-gray-600">
+                            <?php echo isset($p->nama_kelas) ? htmlspecialchars($p->nama_kelas) : '-'; ?>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">
                             <?php echo isset($p->nama_mata_pelajaran) ? htmlspecialchars($p->nama_mata_pelajaran) : '-'; ?>
+                            <?php if (!empty($p->guru_nama)): ?>
+                                <br><span class="text-xs text-gray-500"><?php echo htmlspecialchars($p->guru_nama); ?></span>
+                            <?php endif; ?>
                         </td>
                         <?php endif; ?>
                         <?php 
@@ -448,7 +481,11 @@ require_once __DIR__ . '/../layouts/header.php';
                 'periode' => $periode ?? 'bulanan',
                 'bulan' => $bulan ?? date('m'),
                 'tahun' => $tahun ?? date('Y'),
-                'status' => $filter_status ?? ''
+                'status' => $filter_status ?? '',
+                'tahun_ajaran_filter' => $tahun_ajaran_filter ?? '',
+                'semester_filter' => $semester_filter ?? '',
+                'kelas_filter_id' => $kelas_filter_id ?? '',
+                'mapel_id' => $mapel_id ?? ''
             ];
             
             if (isset($tanggal)) {
@@ -456,9 +493,6 @@ require_once __DIR__ . '/../layouts/header.php';
             }
             if (isset($_GET['sesi_id'])) {
                 $query_params['sesi_id'] = $_GET['sesi_id'];
-            }
-            if (isset($kelas_id) && $kelas_id) {
-                $query_params['kelas_id'] = $kelas_id;
             }
             
             $base_query = http_build_query($query_params);
@@ -982,8 +1016,11 @@ function exportToPDF() {
     const tahun = '<?php echo $tahun ?? date('Y'); ?>';
     const status = '<?php echo $filter_status ?? ''; ?>';
     const tipe = '<?php echo $tipe_laporan ?? 'sekolah'; ?>';
-    const kelasId = '<?php echo $kelas_id ?? ''; ?>';
-    window.open('<?php echo BASE_URL; ?>/index.php?action=admin_kesiswaan_export_pdf&periode=' + periode + '&tanggal=' + tanggal + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId, '_blank');
+    const tahunAjaranFilter = '<?php echo rawurlencode($tahun_ajaran_filter ?? ''); ?>';
+    const semesterFilter = '<?php echo rawurlencode($semester_filter ?? ''); ?>';
+    const kelasFilterId = '<?php echo $kelas_filter_id ?? ''; ?>';
+    const mapelId = '<?php echo $mapel_id ?? ''; ?>';
+    window.open('<?php echo BASE_URL; ?>/index.php?action=admin_kesiswaan_export_pdf&periode=' + periode + '&tanggal=' + tanggal + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&tahun_ajaran_filter=' + tahunAjaranFilter + '&semester_filter=' + semesterFilter + '&kelas_filter_id=' + kelasFilterId + '&mapel_id=' + mapelId, '_blank');
 }
 
 function exportToExcel() {
@@ -993,8 +1030,11 @@ function exportToExcel() {
     const tahun = '<?php echo $tahun ?? date('Y'); ?>';
     const status = '<?php echo $filter_status ?? ''; ?>';
     const tipe = '<?php echo $tipe_laporan ?? 'sekolah'; ?>';
-    const kelasId = '<?php echo $kelas_id ?? ''; ?>';
-    window.location.href = '<?php echo BASE_URL; ?>/index.php?action=admin_kesiswaan_export_excel&periode=' + periode + '&tanggal=' + tanggal + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&kelas_id=' + kelasId;
+    const tahunAjaranFilter = '<?php echo rawurlencode($tahun_ajaran_filter ?? ''); ?>';
+    const semesterFilter = '<?php echo rawurlencode($semester_filter ?? ''); ?>';
+    const kelasFilterId = '<?php echo $kelas_filter_id ?? ''; ?>';
+    const mapelId = '<?php echo $mapel_id ?? ''; ?>';
+    window.location.href = '<?php echo BASE_URL; ?>/index.php?action=admin_kesiswaan_export_excel&periode=' + periode + '&tanggal=' + tanggal + '&bulan=' + bulan + '&tahun=' + tahun + '&status=' + status + '&tipe=' + tipe + '&tahun_ajaran_filter=' + tahunAjaranFilter + '&semester_filter=' + semesterFilter + '&kelas_filter_id=' + kelasFilterId + '&mapel_id=' + mapelId;
 }
 
 // Period selector change handler

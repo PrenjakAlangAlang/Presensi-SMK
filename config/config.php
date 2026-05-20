@@ -1,6 +1,8 @@
 <?php
 // config/config.php
-session_start();
+if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Enable error logging for debugging
 ini_set('log_errors', 1);

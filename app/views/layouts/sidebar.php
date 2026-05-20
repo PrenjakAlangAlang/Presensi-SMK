@@ -143,7 +143,14 @@ function isActiveMenu($action, $current) {
                         <span class="font-medium">Mata Pelajaran Saya</span>
                     </a>
                 </li>
-                <li class="hidden">
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=guru_presensi_mapel" 
+                       class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('guru_presensi_mapel', $current_action); ?>">
+                        <i class="fas fa-clipboard-check w-5 text-center"></i>
+                        <span class="font-medium">Presensi Mapel</span>
+                    </a>
+                </li>
+                <li>
                     <a href="<?php echo BASE_URL; ?>/index.php?action=guru_laporan" 
                        class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('guru_laporan', $current_action); ?>">
                         <i class="fas fa-file-alt w-5 text-center"></i>
@@ -170,9 +177,16 @@ function isActiveMenu($action, $current) {
                 </li>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/index.php?action=siswa_presensi" 
-                       class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('siswa_presensi', $current_action); ?>">
+                       class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo $current_action === 'siswa_presensi' ? 'bg-blue-700' : ''; ?>">
                         <i class="fas fa-fingerprint w-5 text-center"></i>
-                        <span class="font-medium">Presensi</span>
+                        <span class="font-medium">Presensi Sekolah</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/index.php?action=siswa_presensi_mapel" 
+                       class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:translate-x-1 <?php echo isActiveMenu('siswa_presensi_mapel', $current_action); ?>">
+                        <i class="fas fa-clipboard-check w-5 text-center"></i>
+                        <span class="font-medium">Presensi Mapel</span>
                     </a>
                 </li>
                 <li>

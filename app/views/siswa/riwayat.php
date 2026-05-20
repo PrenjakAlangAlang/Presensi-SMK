@@ -5,25 +5,26 @@ require_once __DIR__ . '/../layouts/header.php';
 // Get current filter values
 $periode = $_GET['periode'] ?? 'bulanan';
 $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
-$minggu = $_GET['minggu'] ?? date('W');
 $bulan = $_GET['bulan'] ?? date('m');
 $tahun = $_GET['tahun'] ?? date('Y');
+$mapelFilter = $_GET['mapel'] ?? '';
+$semesterFilter = $_GET['semester'] ?? '';
+$tahunAjaranFilter = $_GET['tahun_ajaran'] ?? '';
 ?>
 
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-800">Riwayat Presensi</h2>
-    <p class="text-gray-600">Lihat history kehadiran Anda di sekolah</p>
+    <p class="text-gray-600">Lihat history kehadiran Anda di sekolah dan mata pelajaran</p>
 </div>
 
 <!-- Filter Periode -->
 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
         <!-- Pilih Periode -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Periode</label>
             <select id="periodeSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 <option value="harian" <?php echo $periode === 'harian' ? 'selected' : ''; ?>>Harian</option>
-                <option value="mingguan" <?php echo $periode === 'mingguan' ? 'selected' : ''; ?>>Mingguan</option>
                 <option value="bulanan" <?php echo $periode === 'bulanan' ? 'selected' : ''; ?>>Bulanan</option>
             </select>
         </div>
@@ -33,22 +34,6 @@ $tahun = $_GET['tahun'] ?? date('Y');
             <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
             <input type="date" id="tanggalInput" value="<?php echo $tanggal; ?>" 
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-        </div>
-        
-        <!-- Filter Mingguan -->
-        <div id="filterMingguan" class="<?php echo $periode !== 'mingguan' ? 'hidden' : ''; ?> md:col-span-2">
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Minggu</label>
-                    <input type="number" id="mingguInput" value="<?php echo $minggu; ?>" min="1" max="53"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                    <input type="number" id="tahunMingguInput" value="<?php echo $tahun; ?>" min="2020" max="2099"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-            </div>
         </div>
         
         <!-- Filter Bulanan -->
@@ -72,6 +57,42 @@ $tahun = $_GET['tahun'] ?? date('Y');
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Mapel</label>
+            <select id="mapelInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Semua Mapel</option>
+                <?php foreach (($mapelFilterOptions['mapel'] ?? []) as $mapelOption): ?>
+                    <option value="<?php echo htmlspecialchars($mapelOption, ENT_QUOTES); ?>" <?php echo (string) $mapelFilter === (string) $mapelOption ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($mapelOption); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Semester</label>
+            <select id="semesterInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Semua Semester</option>
+                <?php foreach (($mapelFilterOptions['semester'] ?? []) as $semesterOption): ?>
+                    <option value="<?php echo htmlspecialchars($semesterOption, ENT_QUOTES); ?>" <?php echo (string) $semesterFilter === (string) $semesterOption ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($semesterOption); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Ajaran</label>
+            <select id="tahunAjaranInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Semua Tahun</option>
+                <?php foreach (($mapelFilterOptions['tahun_ajaran'] ?? []) as $tahunAjaranOption): ?>
+                    <option value="<?php echo htmlspecialchars($tahunAjaranOption, ENT_QUOTES); ?>" <?php echo (string) $tahunAjaranFilter === (string) $tahunAjaranOption ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($tahunAjaranOption); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         
         <!-- Tombol Filter -->
@@ -162,8 +183,6 @@ $tahun = $_GET['tahun'] ?? date('Y');
                 <?php 
                 if ($periode === 'harian') {
                     echo date('d M Y', strtotime($tanggal));
-                } elseif ($periode === 'mingguan') {
-                    echo 'Minggu ' . $minggu . ' Tahun ' . $tahun;
                 } else {
                     $bulan_names = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
                     echo $bulan_names[$bulan - 1] . ' ' . $tahun;
@@ -192,8 +211,6 @@ $tahun = $_GET['tahun'] ?? date('Y');
                 <?php 
                 if ($periode === 'harian') {
                     echo date('d M Y', strtotime($tanggal));
-                } elseif ($periode === 'mingguan') {
-                    echo 'Minggu ' . $minggu . ' Tahun ' . $tahun;
                 } else {
                     $bulan_names = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
                     echo $bulan_names[$bulan - 1] . ' ' . $tahun;
@@ -225,7 +242,6 @@ $tahun = $_GET['tahun'] ?? date('Y');
                 <i class="fas fa-school mr-2"></i>Presensi Sekolah
             </button>
             <button onclick="switchTab('kelas')" 
-                    hidden
                     id="tab-kelas" 
                     class="flex-1 py-4 px-6 text-center border-b-2 font-medium text-sm transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
                 <i class="fas fa-book mr-2"></i>Presensi Mata Pelajaran
@@ -344,6 +360,7 @@ $tahun = $_GET['tahun'] ?? date('Y');
                     <tr class="bg-gray-50 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">No</th>
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Tanggal</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Kelas</th>
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Mata Pelajaran</th>
                         <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Waktu</th>
                         <!--
@@ -362,6 +379,9 @@ $tahun = $_GET['tahun'] ?? date('Y');
                             <td class="px-6 py-4 text-sm text-gray-900"><?php echo $no++; ?></td>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <?php echo date('d M Y', strtotime($presensi->waktu)); ?>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700">
+                                <?php echo htmlspecialchars($presensi->nama_kelas ?? '-'); ?>
                             </td>
                             <td class="px-6 py-4 text-sm font-medium text-gray-800">
                                 <?php echo htmlspecialchars($presensi->nama_mata_pelajaran ?? 'Mata Pelajaran'); ?>
@@ -445,9 +465,9 @@ $tahun = $_GET['tahun'] ?? date('Y');
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="9" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="10" class="px-6 py-12 text-center text-gray-500">
                                 <i class="fas fa-inbox text-4xl mb-3 text-gray-400"></i>
-                                <p class="text-sm">Belum ada data presensi kelas untuk periode ini</p>
+                                <p class="text-sm">Belum ada data presensi mata pelajaran untuk periode ini</p>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -464,18 +484,27 @@ $tahun = $_GET['tahun'] ?? date('Y');
 function applyFilter() {
     const periode = document.getElementById('periodeSelect').value;
     let url = '<?php echo BASE_URL; ?>/index.php?action=siswa_riwayat&periode=' + periode;
+    const mapel = document.getElementById('mapelInput').value;
+    const semester = document.getElementById('semesterInput').value;
+    const tahunAjaran = document.getElementById('tahunAjaranInput').value;
     
     if (periode === 'harian') {
         const tanggal = document.getElementById('tanggalInput').value;
         url += '&tanggal=' + tanggal;
-    } else if (periode === 'mingguan') {
-        const minggu = document.getElementById('mingguInput').value;
-        const tahun = document.getElementById('tahunMingguInput').value;
-        url += '&minggu=' + minggu + '&tahun=' + tahun;
     } else {
         const bulan = document.getElementById('bulanInput').value;
         const tahun = document.getElementById('tahunBulanInput').value;
         url += '&bulan=' + bulan + '&tahun=' + tahun;
+    }
+
+    if (mapel) {
+        url += '&mapel=' + encodeURIComponent(mapel);
+    }
+    if (semester) {
+        url += '&semester=' + encodeURIComponent(semester);
+    }
+    if (tahunAjaran) {
+        url += '&tahun_ajaran=' + encodeURIComponent(tahunAjaran);
     }
     
     window.location.href = url;
@@ -630,18 +659,19 @@ document.getElementById('periodeSelect').addEventListener('change', function() {
     
     // Hide all filters
     document.getElementById('filterHarian').classList.add('hidden');
-    document.getElementById('filterMingguan').classList.add('hidden');
     document.getElementById('filterBulanan').classList.add('hidden');
     
     // Show selected filter
     if (periode === 'harian') {
         document.getElementById('filterHarian').classList.remove('hidden');
-    } else if (periode === 'mingguan') {
-        document.getElementById('filterMingguan').classList.remove('hidden');
     } else {
         document.getElementById('filterBulanan').classList.remove('hidden');
     }
 });
+
+<?php if (!empty($mapelFilter) || !empty($semesterFilter) || !empty($tahunAjaranFilter)): ?>
+switchTab('kelas');
+<?php endif; ?>
 
 // Grafik Bulanan
 const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');

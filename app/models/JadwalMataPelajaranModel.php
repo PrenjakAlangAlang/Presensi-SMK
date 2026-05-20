@@ -10,7 +10,7 @@ class JadwalMataPelajaranModel {
     }
 
     public function getAllJadwal() {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, u.nama as guru_pengampu_nama,
+        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, k.status as kelas_status, u.nama as guru_pengampu_nama,
                          CONCAT(j.hari, ", ", TIME_FORMAT(j.jam_mulai, "%H:%i"), "-", TIME_FORMAT(j.jam_selesai, "%H:%i")) as jadwal,
                          (SELECT COUNT(DISTINCT js.siswa_id)
                           FROM jadwal_mata_pelajaran rel
@@ -27,7 +27,7 @@ class JadwalMataPelajaranModel {
     }
 
     public function getJadwalByKelas($kelas_jadwal_id) {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, u.nama as guru_pengampu_nama,
+        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, k.status as kelas_status, u.nama as guru_pengampu_nama,
                          CONCAT(j.hari, ", ", TIME_FORMAT(j.jam_mulai, "%H:%i"), "-", TIME_FORMAT(j.jam_selesai, "%H:%i")) as jadwal,
                          (SELECT COUNT(DISTINCT js.siswa_id)
                           FROM jadwal_mata_pelajaran rel
@@ -62,6 +62,32 @@ class JadwalMataPelajaranModel {
         $this->db->query('SELECT * FROM kelas WHERE id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
+    }
+
+    public function updateKelasStatus($id, $status) {
+        if (!in_array($status, ['active', 'archived'], true)) {
+            return false;
+        }
+
+        $kelas = $this->getKelasJadwalById($id);
+        if (!$kelas) return false;
+
+        $this->db->query('UPDATE kelas SET status = :status WHERE id = :id');
+        $this->db->bind(':id', (int) $id);
+        $this->db->bind(':status', $status);
+        $ok = $this->db->execute();
+
+        if ($ok && $status === 'archived') {
+            $this->db->query('UPDATE presensi_mapel_sesi s
+                             INNER JOIN jadwal_mata_pelajaran j ON s.jadwal_mata_pelajaran_id = j.id
+                             SET s.status = "closed"
+                             WHERE j.kelas_jadwal_id = :kelas_jadwal_id
+                               AND s.status = "open"');
+            $this->db->bind(':kelas_jadwal_id', (int) $id);
+            $ok = $this->db->execute() && $ok;
+        }
+
+        return $ok;
     }
 
     public function createKelasJadwal($nama_kelas, $tahun_ajaran = null, $semester = null) {
@@ -134,7 +160,7 @@ class JadwalMataPelajaranModel {
     }
 
     public function getJadwalById($id) {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, u.nama as guru_pengampu_nama,
+        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, k.status as kelas_status, u.nama as guru_pengampu_nama,
                          CONCAT(j.hari, ", ", TIME_FORMAT(j.jam_mulai, "%H:%i"), "-", TIME_FORMAT(j.jam_selesai, "%H:%i")) as jadwal
                          FROM jadwal_mata_pelajaran j
                          INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
@@ -232,12 +258,12 @@ class JadwalMataPelajaranModel {
     }
 
     public function getJadwalByGuru($guru_id) {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester,
+        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, k.status as kelas_status,
                          j.id as mata_pelajaran_id,
                          CONCAT(j.hari, ", ", TIME_FORMAT(j.jam_mulai, "%H:%i"), "-", TIME_FORMAT(j.jam_selesai, "%H:%i")) as jadwal
                          FROM jadwal_mata_pelajaran j
                          INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
-                         WHERE j.guru_pengampu = :guru_id
+                         WHERE j.guru_pengampu = :guru_id AND k.status = "active"
                          ORDER BY FIELD(j.hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"),
                                   j.jam_mulai, k.nama_kelas');
         $this->db->bind(':guru_id', $guru_id);
@@ -245,14 +271,14 @@ class JadwalMataPelajaranModel {
     }
 
     public function getJadwalBySiswa($siswa_id) {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, u.nama as guru_pengampu_nama,
+        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, k.status as kelas_status, u.nama as guru_pengampu_nama,
                          j.id as mata_pelajaran_id,
                          CONCAT(j.hari, ", ", TIME_FORMAT(j.jam_mulai, "%H:%i"), "-", TIME_FORMAT(j.jam_selesai, "%H:%i")) as jadwal
                          FROM jadwal_mata_pelajaran j
                          INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
                          INNER JOIN jadwal_mata_pelajaran_siswa js ON j.id = js.jadwal_mata_pelajaran_id
                          LEFT JOIN users u ON j.guru_pengampu = u.id
-                         WHERE js.siswa_id = :siswa_id
+                         WHERE js.siswa_id = :siswa_id AND k.status = "active"
                          ORDER BY FIELD(j.hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"),
                                   j.jam_mulai, j.nama_mata_pelajaran');
         $this->db->bind(':siswa_id', $siswa_id);

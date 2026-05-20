@@ -264,6 +264,23 @@ class AdminController {
         header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
         exit;
     }
+
+    public function toggleKelasStatus() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            $status = $_POST['status'] ?? '';
+
+            if ($id && $this->mataPelajaranModel->updateKelasStatus($id, $status)) {
+                $_SESSION['success'] = $status === 'archived'
+                    ? 'Kelas berhasil dinonaktifkan dan diarsipkan.'
+                    : 'Kelas berhasil diaktifkan kembali.';
+            } else {
+                $_SESSION['error'] = 'Gagal mengubah status kelas.';
+            }
+        }
+        header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
+        exit;
+    }
     
     
     public function createMataPelajaran() {
@@ -271,6 +288,9 @@ class AdminController {
             if (!empty($_POST['kelas_id'])) {
                 $kelas = $this->mataPelajaranModel->getKelasJadwalById($_POST['kelas_id']);
                 $_POST['nama_kelas'] = $kelas->nama_kelas ?? ($_POST['nama_kelas'] ?? '');
+                if ($this->isKelasArchived($kelas)) {
+                    $this->redirectJadwalKelas($_POST['kelas_id'], 'Kelas arsip tidak bisa ditambah jadwal baru.');
+                }
             }
 
             $baseData = [
@@ -323,6 +343,9 @@ class AdminController {
             if (!empty($_POST['kelas_id'])) {
                 $kelas = $this->mataPelajaranModel->getKelasJadwalById($_POST['kelas_id']);
                 $_POST['nama_kelas'] = $kelas->nama_kelas ?? ($_POST['nama_kelas'] ?? '');
+                if ($this->isKelasArchived($kelas)) {
+                    $this->redirectJadwalKelas($_POST['kelas_id'], 'Kelas arsip tidak bisa diubah jadwalnya.');
+                }
             }
 
             $baseData = [
@@ -364,6 +387,9 @@ class AdminController {
     public function deleteMataPelajaran() {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id = $_POST['id'];
+            if ($this->isJadwalInArchivedKelas($id)) {
+                $this->redirectJadwalKelas($_POST['kelas_id'] ?? null, 'Kelas arsip tidak bisa dihapus jadwalnya.');
+            }
             if($this->mataPelajaranModel->deleteMataPelajaran($id)) {
                 $_SESSION['success'] = 'Jadwal mata pelajaran berhasil dihapus!';
             } else {
@@ -406,6 +432,11 @@ class AdminController {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $siswa_id = $_POST['siswa_id'];
             $mapel_id = $_POST['mapel_id'];
+            if ($this->isJadwalInArchivedKelas($mapel_id)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Kelas arsip tidak bisa diubah pesertanya.']);
+                exit;
+            }
             $ok = $this->mataPelajaranModel->addSiswaToMataPelajaran($siswa_id, $mapel_id);
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$ok]);
@@ -417,6 +448,11 @@ class AdminController {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $mapel_id = $_POST['mapel_id'] ?? null;
             $siswa_ids = $_POST['siswa_ids'] ?? [];
+            if ($mapel_id && $this->isJadwalInArchivedKelas($mapel_id)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'count' => 0, 'message' => 'Kelas arsip tidak bisa diubah pesertanya.']);
+                exit;
+            }
             if (!is_array($siswa_ids)) {
                 $siswa_ids = explode(',', $siswa_ids);
             }
@@ -446,6 +482,11 @@ class AdminController {
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $siswa_id = $_POST['siswa_id'];
             $mapel_id = $_POST['mapel_id'];
+            if ($this->isJadwalInArchivedKelas($mapel_id)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Kelas arsip tidak bisa diubah pesertanya.']);
+                exit;
+            }
             $ok = $this->mataPelajaranModel->removeSiswaFromMataPelajaran($siswa_id, $mapel_id);
             header('Content-Type: application/json');
             echo json_encode(['success' => (bool)$ok]);
@@ -479,6 +520,21 @@ class AdminController {
         echo json_encode(['success' => false, 'message' => 'Relasi kelas lama sudah diganti jadwal mata pelajaran.']);
         exit;
     }
+
+    private function isKelasArchived($kelas) {
+        return $kelas && ($kelas->status ?? 'active') === 'archived';
+    }
+
+    private function isJadwalInArchivedKelas($jadwalId) {
+        $jadwal = $this->mataPelajaranModel->getMataPelajaranById($jadwalId);
+        return $jadwal && ($jadwal->kelas_status ?? 'active') === 'archived';
+    }
+
+    private function redirectJadwalKelas($kelasId, $message) {
+        $_SESSION['error'] = $message;
+        header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran' . ($kelasId ? '&kelas_id=' . urlencode($kelasId) : ''));
+        exit;
+    }
     
     public function lokasi() {
         $lokasi = $this->locationModel->getLokasiSekolah();
@@ -486,11 +542,19 @@ class AdminController {
     }
     
     public function laporan() {
-        
-        // Presensi mata pelajaran dinonaktifkan; laporan hanya menampilkan presensi sekolah.
-        $tipe_laporan = 'sekolah';
-        
-        $kelas_list = [];
+        $tipe_laporan = $_GET['tipe'] ?? 'sekolah';
+        if (!in_array($tipe_laporan, ['sekolah', 'kelas'], true)) {
+            $tipe_laporan = 'sekolah';
+        }
+
+        $kelas_filter_id = $_GET['kelas_filter_id'] ?? '';
+        $tahun_ajaran_filter = $_GET['tahun_ajaran_filter'] ?? '';
+        $semester_filter = $_GET['semester_filter'] ?? '';
+        $mapel_id = $_GET['mapel_id'] ?? ($_GET['kelas_id'] ?? '');
+        $tahun_ajaran_list = $this->getTahunAjaranFilterList();
+        $semester_list = $this->getSemesterFilterList();
+        $kelas_list = $this->getKelasFilterList($tahun_ajaran_filter, $semester_filter);
+        $mapel_list = $this->getMapelFilterList($kelas_filter_id, $tahun_ajaran_filter, $semester_filter);
         
         // Ambil parameter filter periode
         $periode = $_GET['periode'] ?? 'bulanan';
@@ -500,7 +564,7 @@ class AdminController {
         $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
         $bulan = $_GET['bulan'] ?? date('m');
         $tahun = $_GET['tahun'] ?? date('Y');
-        $kelas_id = $_GET['kelas_id'] ?? null;
+        $kelas_id = $mapel_id;
         $filter_status = $_GET['status'] ?? null;
         
         // Calculate date range based on periode
@@ -520,70 +584,18 @@ class AdminController {
         $offset = ($page - 1) * $limit;
         
         if ($tipe_laporan === 'kelas') {
-            // Laporan presensi kelas
-            if ($kelas_id) {
-                // Get all presensi kelas for the period
-                $db = new Database();
-                $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
-                            FROM presensi_mapel pk
-                            JOIN users u ON pk.user_id = u.id
-                            JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id
-                            WHERE pk.mata_pelajaran_id = :kelas_id 
-                            AND DATE(pk.waktu) BETWEEN :start_date AND :end_date
-                            ORDER BY pk.waktu DESC');
-                $db->bind(':kelas_id', $kelas_id);
-                $db->bind(':start_date', $startDate);
-                $db->bind(':end_date', $endDate);
-                $all_presensi = $db->resultSet();
-                
-                // Apply status filter if provided
-                if ($filter_status) {
-                    $all_presensi = array_filter($all_presensi, function($p) use ($filter_status) {
-                        return $p->jenis == $filter_status;
-                    });
-                }
-                
-                $total_records = count($all_presensi);
-                $total_pages = ceil($total_records / $limit);
-                
-                // Paginate
-                $presensi = array_slice($all_presensi, $offset, $limit);
-                
-                // Get statistics from filtered data
-                $statistik = new stdClass();
-                $statistik->total_siswa = count($all_presensi);
-                $statistik->hadir = 0;
-                $statistik->izin = 0;
-                $statistik->sakit = 0;
-                $statistik->alpha = 0;
-                
-                foreach ($all_presensi as $p) {
-                    if (isset($p->jenis)) {
-                        if ($p->jenis == 'hadir') $statistik->hadir++;
-                        elseif ($p->jenis == 'izin') $statistik->izin++;
-                        elseif ($p->jenis == 'sakit') $statistik->sakit++;
-                        elseif ($p->jenis == 'alpha') $statistik->alpha++;
-                    }
-                }
-                
-                // Get sessions for this class
-                $sessions = $this->presensiSesiModel->getSessionsByKelas($kelas_id);
-                
-                // Get laporan kemajuan for this class with date range filter
-                $laporan_kemajuan = $this->laporanModel->getLaporanByKelasWithDateRange($kelas_id, $startDate, $endDate);
-            } else {
-                $presensi = [];
-                $statistik = null;
-                $total_records = 0;
-                $total_pages = 0;
-                $sessions = [];
-                $laporan_kemajuan = [];
-            }
+            $all_presensi = $this->getPresensiMapelReportRows($startDate, $endDate, $kelas_filter_id, $mapel_id, $filter_status, $tahun_ajaran_filter, $semester_filter);
+            $statistik = $this->buildPresensiMapelStats($all_presensi);
+            $total_records = count($all_presensi);
+            $total_pages = ceil($total_records / $limit);
+            $presensi = array_slice($all_presensi, $offset, $limit);
+            $sessions = [];
+            $laporan_kemajuan = $this->getLaporanKemajuanMapelRows($startDate, $endDate, $kelas_filter_id, $mapel_id, $tahun_ajaran_filter, $semester_filter);
         } else {
             // Laporan presensi sekolah (default)
             // Get all presensi sekolah for the period
             $db = new Database();
-            $db->query('SELECT ps.*, bi.nama, COALESCE(bi.email_ortu, "") AS email 
+            $db->query('SELECT ps.*, bi.nis, bi.nama, COALESCE(bi.email_ortu, "") AS email 
                         FROM presensi_sekolah ps 
                         JOIN buku_induk bi ON ps.user_id = bi.id 
                         WHERE DATE(ps.waktu) BETWEEN :start_date AND :end_date
@@ -624,6 +636,362 @@ class AdminController {
         }
         
     require_once __DIR__ . '/../views/admin/laporan.php';
+    }
+
+    private function getTahunAjaranFilterList() {
+        $db = new Database();
+        $db->query('SELECT DISTINCT tahun_ajaran
+                    FROM kelas
+                    WHERE tahun_ajaran IS NOT NULL AND tahun_ajaran <> ""
+                    ORDER BY tahun_ajaran DESC');
+        return $db->resultSet();
+    }
+
+    private function getSemesterFilterList() {
+        $db = new Database();
+        $db->query('SELECT DISTINCT semester
+                    FROM kelas
+                    WHERE semester IS NOT NULL AND semester <> ""
+                    ORDER BY semester ASC');
+        return $db->resultSet();
+    }
+
+    private function getKelasFilterList($tahun_ajaran_filter = '', $semester_filter = '') {
+        $db = new Database();
+        $sql = 'SELECT id, nama_kelas, tahun_ajaran, semester
+                FROM kelas
+                WHERE 1=1';
+        if ($tahun_ajaran_filter) {
+            $sql .= ' AND tahun_ajaran = :tahun_ajaran_filter';
+        }
+        if ($semester_filter) {
+            $sql .= ' AND semester = :semester_filter';
+        }
+        $sql .= ' ORDER BY tahun_ajaran DESC, semester ASC, nama_kelas ASC';
+        $db->query($sql);
+        if ($tahun_ajaran_filter) {
+            $db->bind(':tahun_ajaran_filter', $tahun_ajaran_filter);
+        }
+        if ($semester_filter) {
+            $db->bind(':semester_filter', $semester_filter);
+        }
+        return $db->resultSet();
+    }
+
+    private function getMapelFilterList($kelas_filter_id = '', $tahun_ajaran_filter = '', $semester_filter = '') {
+        $db = new Database();
+        $sql = 'SELECT MIN(j.id) as id, j.kelas_jadwal_id, k.nama_kelas, j.nama_mata_pelajaran, u.nama as guru_nama,
+                       COUNT(*) as jumlah_pertemuan
+                FROM jadwal_mata_pelajaran j
+                INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                LEFT JOIN users u ON j.guru_pengampu = u.id
+                WHERE 1=1';
+        if ($kelas_filter_id) {
+            $sql .= ' AND j.kelas_jadwal_id = :kelas_filter_id';
+        }
+        if ($tahun_ajaran_filter) {
+            $sql .= ' AND k.tahun_ajaran = :tahun_ajaran_filter';
+        }
+        if ($semester_filter) {
+            $sql .= ' AND k.semester = :semester_filter';
+        }
+        $sql .= ' GROUP BY j.kelas_jadwal_id, k.nama_kelas, j.nama_mata_pelajaran, j.guru_pengampu, u.nama
+                  ORDER BY k.nama_kelas ASC, j.nama_mata_pelajaran ASC';
+        $db->query($sql);
+        if ($kelas_filter_id) {
+            $db->bind(':kelas_filter_id', (int) $kelas_filter_id);
+        }
+        if ($tahun_ajaran_filter) {
+            $db->bind(':tahun_ajaran_filter', $tahun_ajaran_filter);
+        }
+        if ($semester_filter) {
+            $db->bind(':semester_filter', $semester_filter);
+        }
+        return $db->resultSet();
+    }
+
+    private function getSelectedMapelGroup($mapel_id) {
+        if (!$mapel_id) return null;
+        $db = new Database();
+        $db->query('SELECT kelas_jadwal_id, nama_mata_pelajaran, guru_pengampu
+                    FROM jadwal_mata_pelajaran
+                    WHERE id = :mapel_id
+                    LIMIT 1');
+        $db->bind(':mapel_id', (int) $mapel_id);
+        return $db->single();
+    }
+
+    private function getPresensiMapelReportRows($startDate, $endDate, $kelas_filter_id = '', $mapel_id = '', $filter_status = null, $tahun_ajaran_filter = '', $semester_filter = '') {
+        $selectedMapel = $this->getSelectedMapelGroup($mapel_id);
+        $db = new Database();
+        $sql = 'SELECT COALESCE(pm.id, 0) as id,
+                       bi.id as user_id,
+                       bi.nis,
+                       bi.nama,
+                       COALESCE(bi.email_ortu, "") as email,
+                       pm.status,
+                       COALESCE(pm.waktu, s.waktu_buka) as waktu,
+                       pm.jarak,
+                       pm.latitude,
+                       pm.longitude,
+                       pm.jenis,
+                       pm.alasan,
+                       pm.foto_bukti,
+                       s.id as sesi_id,
+                       s.waktu_buka as sesi_waktu_buka,
+                       s.waktu_tutup as sesi_waktu_tutup,
+                       j.id as kelas_id,
+                       j.id as jadwal_mata_pelajaran_id,
+                       j.nama_mata_pelajaran,
+                       k.nama_kelas,
+                       u.nama as guru_nama
+                FROM presensi_mapel_sesi s
+                INNER JOIN jadwal_mata_pelajaran j ON s.jadwal_mata_pelajaran_id = j.id
+                INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                LEFT JOIN users u ON j.guru_pengampu = u.id
+                INNER JOIN jadwal_mata_pelajaran_siswa js ON js.jadwal_mata_pelajaran_id = j.id
+                INNER JOIN buku_induk bi ON js.siswa_id = bi.id
+                LEFT JOIN presensi_mapel pm ON pm.presensi_sesi_id = s.id AND pm.user_id = bi.id
+                WHERE DATE(s.waktu_buka) BETWEEN :start_date AND :end_date';
+        if ($kelas_filter_id) {
+            $sql .= ' AND j.kelas_jadwal_id = :kelas_filter_id';
+        }
+        if ($tahun_ajaran_filter) {
+            $sql .= ' AND k.tahun_ajaran = :tahun_ajaran_filter';
+        }
+        if ($semester_filter) {
+            $sql .= ' AND k.semester = :semester_filter';
+        }
+        if ($selectedMapel) {
+            $sql .= ' AND j.kelas_jadwal_id = :mapel_kelas_id
+                      AND j.nama_mata_pelajaran = :nama_mata_pelajaran
+                      AND (j.guru_pengampu <=> :guru_pengampu)';
+        }
+        $sql .= ' ORDER BY s.waktu_buka DESC, k.nama_kelas ASC, j.nama_mata_pelajaran ASC, bi.nama ASC';
+        $db->query($sql);
+        $db->bind(':start_date', $startDate);
+        $db->bind(':end_date', $endDate);
+        if ($kelas_filter_id) {
+            $db->bind(':kelas_filter_id', (int) $kelas_filter_id);
+        }
+        if ($tahun_ajaran_filter) {
+            $db->bind(':tahun_ajaran_filter', $tahun_ajaran_filter);
+        }
+        if ($semester_filter) {
+            $db->bind(':semester_filter', $semester_filter);
+        }
+        if ($selectedMapel) {
+            $db->bind(':mapel_kelas_id', (int) $selectedMapel->kelas_jadwal_id);
+            $db->bind(':nama_mata_pelajaran', $selectedMapel->nama_mata_pelajaran);
+            $db->bind(':guru_pengampu', $selectedMapel->guru_pengampu !== null ? (int) $selectedMapel->guru_pengampu : null);
+        }
+        $rows = $db->resultSet();
+        if ($filter_status) {
+            $rows = array_values(array_filter($rows, function($row) use ($filter_status) {
+                $jenis = $row->jenis ?: 'alpha';
+                return $jenis === $filter_status;
+            }));
+        }
+        return $rows;
+    }
+
+    private function buildPresensiMapelStats($rows) {
+        $statistik = new stdClass();
+        $statistik->total_siswa = count($rows);
+        $statistik->hadir = 0;
+        $statistik->izin = 0;
+        $statistik->sakit = 0;
+        $statistik->alpha = 0;
+        foreach ($rows as $row) {
+            $jenis = $row->jenis ?: 'alpha';
+            if ($jenis === 'hadir') $statistik->hadir++;
+            elseif ($jenis === 'izin') $statistik->izin++;
+            elseif ($jenis === 'sakit') $statistik->sakit++;
+            elseif ($jenis === 'alpha') $statistik->alpha++;
+        }
+        return $statistik;
+    }
+
+    private function renderMonthlyAttendanceExport($presensi, $report_title, $bulan, $tahun, $asPdf = false) {
+        $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $bulan_name = $bulan_names[(int) $bulan - 1] ?? $bulan;
+        $daysInMonth = (int) date('t', strtotime($tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01'));
+        $rows = $this->buildMonthlyAttendanceRows($presensi, $daysInMonth);
+
+        if ($asPdf) {
+            ?><!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title><?php echo htmlspecialchars($report_title . ' - ' . $bulan_name . ' ' . $tahun); ?></title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 11px; margin: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #333; padding: 4px; text-align: center; }
+        th.name, td.name { text-align: left; min-width: 180px; }
+        .kop { text-align: center; border-bottom: 3px solid #000; margin-bottom: 12px; padding-bottom: 8px; }
+        .print-btn { margin-bottom: 12px; padding: 8px 12px; }
+        @media print { .no-print { display: none; } body { margin: 0; } }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">Cetak / Simpan PDF</button>
+    <div class="kop">
+        <h2>SMK NEGERI 7 Yogyakarta</h2>
+        <p>Jalan Gowongan Kidul Blok JT3 No.416, Gowongan, Kec. Jetis, Kota Yogyakarta, DIY 55232</p>
+    </div>
+    <h3><?php echo htmlspecialchars($report_title); ?></h3>
+    <p>Bulan: <?php echo htmlspecialchars($bulan_name . ' ' . $tahun); ?></p>
+    <?php $this->echoMonthlyAttendanceTable($rows, $daysInMonth); ?>
+</body>
+</html><?php
+            exit;
+        }
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment; filename="Laporan_Bulanan_' . $bulan_name . '_' . $tahun . '.xls"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        echo '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
+        echo '<style>table{border-collapse:collapse}th,td{border:1px solid #333;padding:4px;text-align:center}.name{text-align:left;min-width:180px}</style>';
+        echo '</head><body>';
+        echo '<h2>SMK NEGERI 7 Yogyakarta</h2>';
+        echo '<h3>' . htmlspecialchars($report_title) . '</h3>';
+        echo '<p>Bulan: ' . htmlspecialchars($bulan_name . ' ' . $tahun) . '</p>';
+        $this->echoMonthlyAttendanceTable($rows, $daysInMonth);
+        echo '</body></html>';
+        exit;
+    }
+
+    private function buildMonthlyAttendanceRows($presensi, $daysInMonth) {
+        $students = [];
+        foreach ($presensi as $row) {
+            $studentId = $row->user_id ?? $row->siswa_id ?? $row->id ?? $row->nama;
+            if (!isset($students[$studentId])) {
+                $students[$studentId] = [
+                    'nis' => $row->nis ?? $studentId,
+                    'nama' => $row->nama ?? '-',
+                    'days' => array_fill(1, $daysInMonth, ''),
+                    'hadir' => 0,
+                    'izin' => 0,
+                    'sakit' => 0,
+                    'alpha' => 0
+                ];
+            }
+
+            if (empty($row->waktu)) {
+                continue;
+            }
+
+            $day = (int) date('j', strtotime($row->waktu));
+            if ($day < 1 || $day > $daysInMonth) {
+                continue;
+            }
+
+            $code = $this->getAttendanceExportCode($row);
+            if ($code === '') {
+                continue;
+            }
+
+            $existing = $students[$studentId]['days'][$day];
+            $students[$studentId]['days'][$day] = ($existing === '' || strpos($existing, $code) !== false) ? ($existing ?: $code) : $existing . '/' . $code;
+        }
+
+        uasort($students, function($a, $b) {
+            return strcasecmp($a['nama'], $b['nama']);
+        });
+
+        foreach ($students as &$student) {
+            foreach ($student['days'] as $code) {
+                if (strpos($code, 'H') !== false) $student['hadir']++;
+                elseif (strpos($code, 'I') !== false) $student['izin']++;
+                elseif (strpos($code, 'S') !== false) $student['sakit']++;
+                elseif (strpos($code, 'A') !== false) $student['alpha']++;
+            }
+        }
+
+        return array_values($students);
+    }
+
+    private function getAttendanceExportCode($row) {
+        $jenis = $row->jenis ?? null;
+        if (!$jenis && empty($row->status)) {
+            return 'A';
+        }
+        if ($jenis === 'hadir') return 'H';
+        if ($jenis === 'izin') return 'I';
+        if ($jenis === 'sakit') return 'S';
+        if ($jenis === 'alpha') return 'A';
+        return '';
+    }
+
+    private function echoMonthlyAttendanceTable($rows, $daysInMonth) {
+        echo '<table>';
+        echo '<tr><th rowspan="2">Urut</th><th rowspan="2">NIPD/NIS</th><th rowspan="2" class="name">Nama Lengkap</th><th rowspan="2">L/P</th><th colspan="' . $daysInMonth . '">Tanggal</th><th colspan="4">Jumlah</th></tr>';
+        echo '<tr>';
+        for ($day = 1; $day <= $daysInMonth; $day++) echo '<th>' . $day . '</th>';
+        echo '<th>H</th><th>I</th><th>S</th><th>A</th></tr>';
+        $no = 1;
+        foreach ($rows as $row) {
+            echo '<tr>';
+            echo '<td>' . $no++ . '</td>';
+            echo '<td>' . htmlspecialchars($row['nis']) . '</td>';
+            echo '<td class="name">' . htmlspecialchars($row['nama']) . '</td>';
+            echo '<td></td>';
+            for ($day = 1; $day <= $daysInMonth; $day++) echo '<td>' . htmlspecialchars($row['days'][$day]) . '</td>';
+            echo '<td>' . $row['hadir'] . '</td><td>' . $row['izin'] . '</td><td>' . $row['sakit'] . '</td><td>' . $row['alpha'] . '</td>';
+            echo '</tr>';
+        }
+        echo '</table>';
+        echo '<p>Ket: H = Hadir, I = Izin, S = Sakit, A = Alpha</p>';
+    }
+
+    private function getLaporanKemajuanMapelRows($startDate, $endDate, $kelas_filter_id = '', $mapel_id = '', $tahun_ajaran_filter = '', $semester_filter = '') {
+        $selectedMapel = $this->getSelectedMapelGroup($mapel_id);
+        $db = new Database();
+        $sql = 'SELECT s.waktu_buka as tanggal, s.waktu_buka as created_at, s.laporan_kemajuan as catatan,
+                       u.nama as guru_nama, j.nama_mata_pelajaran, k.nama_kelas
+                FROM presensi_mapel_sesi s
+                INNER JOIN jadwal_mata_pelajaran j ON s.jadwal_mata_pelajaran_id = j.id
+                INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                LEFT JOIN users u ON s.guru_id = u.id
+                WHERE DATE(s.waktu_buka) BETWEEN :start_date AND :end_date
+                  AND s.laporan_kemajuan IS NOT NULL
+                  AND s.laporan_kemajuan <> ""';
+        if ($kelas_filter_id) {
+            $sql .= ' AND j.kelas_jadwal_id = :kelas_filter_id';
+        }
+        if ($tahun_ajaran_filter) {
+            $sql .= ' AND k.tahun_ajaran = :tahun_ajaran_filter';
+        }
+        if ($semester_filter) {
+            $sql .= ' AND k.semester = :semester_filter';
+        }
+        if ($selectedMapel) {
+            $sql .= ' AND j.kelas_jadwal_id = :mapel_kelas_id
+                      AND j.nama_mata_pelajaran = :nama_mata_pelajaran
+                      AND (j.guru_pengampu <=> :guru_pengampu)';
+        }
+        $sql .= ' ORDER BY s.waktu_buka DESC';
+        $db->query($sql);
+        $db->bind(':start_date', $startDate);
+        $db->bind(':end_date', $endDate);
+        if ($kelas_filter_id) {
+            $db->bind(':kelas_filter_id', (int) $kelas_filter_id);
+        }
+        if ($tahun_ajaran_filter) {
+            $db->bind(':tahun_ajaran_filter', $tahun_ajaran_filter);
+        }
+        if ($semester_filter) {
+            $db->bind(':semester_filter', $semester_filter);
+        }
+        if ($selectedMapel) {
+            $db->bind(':mapel_kelas_id', (int) $selectedMapel->kelas_jadwal_id);
+            $db->bind(':nama_mata_pelajaran', $selectedMapel->nama_mata_pelajaran);
+            $db->bind(':guru_pengampu', $selectedMapel->guru_pengampu !== null ? (int) $selectedMapel->guru_pengampu : null);
+        }
+        return $db->resultSet();
     }
     
     public function createUser() {
@@ -719,9 +1087,6 @@ class AdminController {
     }
 
     public function exportExcel() {
-        if (false && (($_GET['tipe'] ?? 'sekolah') === 'kelas')) {
-            die('Laporan presensi mata pelajaran telah dinonaktifkan.');
-        }
         $periode = $_GET['periode'] ?? 'bulanan';
         if (!in_array($periode, ['harian', 'bulanan'], true)) {
             $periode = 'bulanan';
@@ -730,8 +1095,15 @@ class AdminController {
         $bulan = $_GET['bulan'] ?? date('m');
         $tahun = $_GET['tahun'] ?? date('Y');
         $filter_status = $_GET['status'] ?? null;
-        $tipe = 'sekolah';
-        $kelas_id = $_GET['kelas_id'] ?? null;
+        $tipe = $_GET['tipe'] ?? 'sekolah';
+        if (!in_array($tipe, ['sekolah', 'kelas'], true)) {
+            $tipe = 'sekolah';
+        }
+        $kelas_filter_id = $_GET['kelas_filter_id'] ?? '';
+        $tahun_ajaran_filter = $_GET['tahun_ajaran_filter'] ?? '';
+        $semester_filter = $_GET['semester_filter'] ?? '';
+        $mapel_id = $_GET['mapel_id'] ?? ($_GET['kelas_id'] ?? '');
+        $kelas_id = $mapel_id;
         
         // Calculate date range based on periode
         if ($periode === 'harian') {
@@ -743,64 +1115,11 @@ class AdminController {
         }
         
         // Get all data (no pagination for export)
-        if ($tipe === 'kelas' && $kelas_id) {
-            $db = new Database();
-            $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
-                        FROM presensi_mapel pk
-                        JOIN users u ON pk.user_id = u.id
-                        JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id
-                        WHERE pk.mata_pelajaran_id = :kelas_id 
-                        AND DATE(pk.waktu) BETWEEN :start_date AND :end_date' . 
-                        ($filter_status ? ' AND pk.jenis = :status' : '') . '
-                        ORDER BY pk.waktu DESC');
-            $db->bind(':kelas_id', $kelas_id);
-            $db->bind(':start_date', $startDate);
-            $db->bind(':end_date', $endDate);
-            if ($filter_status) {
-                $db->bind(':status', $filter_status);
-            }
-            $presensi = $db->resultSet();
-            
-            // Get mata pelajaran info with kelas
-            $db_info = new Database();
-            $db_info->query('SELECT mp.*, k.nama_kelas, k.tahun_ajaran
-                            FROM mata_pelajaran mp
-                            LEFT JOIN kelas_mata_pelajaran kmp ON mp.id = kmp.mata_pelajaran_id
-                            LEFT JOIN kelas k ON kmp.kelas_id = k.id
-                            WHERE mp.id = :kelas_id
-                            LIMIT 1');
-            $db_info->bind(':kelas_id', $kelas_id);
-            $kelas_info = $db_info->single();
-            
-            $report_title = 'Laporan Presensi Mata Pelajaran ';
-            if ($kelas_info) {
-                if (!empty($kelas_info->nama_kelas)) {
-                    $report_title .= $kelas_info->nama_kelas . ' - ' . $kelas_info->nama_mata_pelajaran;
-                } else {
-                    $report_title .= $kelas_info->nama_mata_pelajaran;
-                }
-            } else {
-                $report_title .= $kelas_id;
-            }
-            
-            // Calculate statistics from actual data
-            $statistik = new stdClass();
-            $statistik->total_siswa = count($presensi);
-            $statistik->hadir = 0;
-            $statistik->izin = 0;
-            $statistik->sakit = 0;
-            $statistik->alpha = 0;
-            foreach ($presensi as $p) {
-                if (isset($p->jenis)) {
-                    if ($p->jenis == 'hadir') $statistik->hadir++;
-                    elseif ($p->jenis == 'izin') $statistik->izin++;
-                    elseif ($p->jenis == 'sakit') $statistik->sakit++;
-                    elseif ($p->jenis == 'alpha') $statistik->alpha++;
-                }
-            }
-            
-            // Get laporan kemajuan for the selected date range
-            $laporan_kemajuan = $this->laporanModel->getLaporanByKelasWithDateRange($kelas_id, $startDate, $endDate);
+        if ($tipe === 'kelas') {
+            $presensi = $this->getPresensiMapelReportRows($startDate, $endDate, $kelas_filter_id, $mapel_id, $filter_status, $tahun_ajaran_filter, $semester_filter);
+            $statistik = $this->buildPresensiMapelStats($presensi);
+            $laporan_kemajuan = $this->getLaporanKemajuanMapelRows($startDate, $endDate, $kelas_filter_id, $mapel_id, $tahun_ajaran_filter, $semester_filter);
+            $report_title = 'Laporan Presensi Mata Pelajaran';
         } else {
             $db = new Database();
             $db->query('SELECT ps.*, bi.nama, COALESCE(bi.email_ortu, "") AS email 
@@ -834,6 +1153,10 @@ class AdminController {
                 }
             }
             }
+
+        if ($periode === 'bulanan') {
+            $this->renderMonthlyAttendanceExport($presensi, $report_title, $bulan, $tahun, false);
+        }
         
         // Set headers for Excel download
         $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -878,7 +1201,7 @@ class AdminController {
         echo '<br><br>';
         
         // Laporan Kemajuan (only for class reports)
-        if ($tipe === 'kelas' && $kelas_id && !empty($laporan_kemajuan)) {
+        if ($tipe === 'kelas' && !empty($laporan_kemajuan)) {
             echo '<h3>Laporan Kemajuan</h3>';
             echo '<table border="1" cellpadding="5">';
             echo '<tr><th>No</th><th>Tanggal</th><th>Guru</th><th>Catatan</th></tr>';
@@ -904,6 +1227,8 @@ class AdminController {
         echo '<th>Email</th>';
         if ($tipe === 'kelas') {
             echo '<th>Kelas</th>';
+            echo '<th>Mata Pelajaran</th>';
+            echo '<th>Guru</th>';
         }
         echo '<th>Tanggal</th>';
         echo '<th>Waktu</th>';
@@ -920,14 +1245,18 @@ class AdminController {
             echo '<td>' . htmlspecialchars($p->nama ?? '') . '</td>';
             echo '<td>' . htmlspecialchars($p->email ?? '') . '</td>';
             if ($tipe === 'kelas') {
+                echo '<td>' . htmlspecialchars($p->nama_kelas ?? '') . '</td>';
                 echo '<td>' . htmlspecialchars($p->nama_mata_pelajaran ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($p->guru_nama ?? '-') . '</td>';
             }
             
             $waktuTs = (isset($p->waktu) && $p->waktu) ? strtotime($p->waktu) : null;
             echo '<td>' . ($waktuTs ? date('d M Y', $waktuTs) : '-') . '</td>';
             echo '<td>' . ($waktuTs ? date('H:i', $waktuTs) : '-') . '</td>';
             
-            if (isset($p->status) && $p->status) {
+            if ($tipe === 'kelas' && empty($p->status) && empty($p->jenis)) {
+                echo '<td>Alpha</td>';
+            } elseif (isset($p->status) && $p->status) {
                 if ($p->status == 'valid') {
                     echo '<td>' . (isset($p->jenis) ? ucfirst($p->jenis) : 'Hadir') . '</td>';
                 } else {
@@ -949,9 +1278,6 @@ class AdminController {
     }
 
     public function exportPDF() {
-        if (false && (($_GET['tipe'] ?? 'sekolah') === 'kelas')) {
-            die('Laporan presensi mata pelajaran telah dinonaktifkan.');
-        }
         $periode = $_GET['periode'] ?? 'bulanan';
         if (!in_array($periode, ['harian', 'bulanan'], true)) {
             $periode = 'bulanan';
@@ -960,8 +1286,15 @@ class AdminController {
         $bulan = $_GET['bulan'] ?? date('m');
         $tahun = $_GET['tahun'] ?? date('Y');
         $filter_status = $_GET['status'] ?? null;
-        $tipe = 'sekolah';
-        $kelas_id = $_GET['kelas_id'] ?? null;
+        $tipe = $_GET['tipe'] ?? 'sekolah';
+        if (!in_array($tipe, ['sekolah', 'kelas'], true)) {
+            $tipe = 'sekolah';
+        }
+        $kelas_filter_id = $_GET['kelas_filter_id'] ?? '';
+        $tahun_ajaran_filter = $_GET['tahun_ajaran_filter'] ?? '';
+        $semester_filter = $_GET['semester_filter'] ?? '';
+        $mapel_id = $_GET['mapel_id'] ?? ($_GET['kelas_id'] ?? '');
+        $kelas_id = $mapel_id;
         
         // Calculate date range based on periode
         if ($periode === 'harian') {
@@ -973,67 +1306,14 @@ class AdminController {
         }
         
         // Get all data (no pagination for export)
-        if ($tipe === 'kelas' && $kelas_id) {
-            $db = new Database();
-            $db->query('SELECT pk.*, u.nama, u.email, k.nama_mata_pelajaran
-                        FROM presensi_mapel pk
-                        JOIN users u ON pk.user_id = u.id
-                        JOIN mata_pelajaran k ON pk.mata_pelajaran_id = k.id
-                        WHERE pk.mata_pelajaran_id = :kelas_id 
-                        AND DATE(pk.waktu) BETWEEN :start_date AND :end_date' . 
-                        ($filter_status ? ' AND pk.jenis = :status' : '') . '
-                        ORDER BY pk.waktu DESC');
-            $db->bind(':kelas_id', $kelas_id);
-            $db->bind(':start_date', $startDate);
-            $db->bind(':end_date', $endDate);
-            if ($filter_status) {
-                $db->bind(':status', $filter_status);
-            }
-            $presensi = $db->resultSet();
-            
-            // Get mata pelajaran info with kelas
-            $db_info = new Database();
-            $db_info->query('SELECT mp.*, k.nama_kelas, k.tahun_ajaran
-                            FROM mata_pelajaran mp
-                            LEFT JOIN kelas_mata_pelajaran kmp ON mp.id = kmp.mata_pelajaran_id
-                            LEFT JOIN kelas k ON kmp.kelas_id = k.id
-                            WHERE mp.id = :kelas_id
-                            LIMIT 1');
-            $db_info->bind(':kelas_id', $kelas_id);
-            $kelas_info = $db_info->single();
-            
-            $report_title = 'Laporan Presensi Mata Pelajaran ';
-            if ($kelas_info) {
-                if (!empty($kelas_info->nama_kelas)) {
-                    $report_title .= $kelas_info->nama_kelas . ' - ' . $kelas_info->nama_mata_pelajaran;
-                } else {
-                    $report_title .= $kelas_info->nama_mata_pelajaran;
-                }
-            } else {
-                $report_title .= $kelas_id;
-            }
-            
-            // Calculate statistics from actual data
-            $statistik = new stdClass();
-            $statistik->total_siswa = count($presensi);
-            $statistik->hadir = 0;
-            $statistik->izin = 0;
-            $statistik->sakit = 0;
-            $statistik->alpha = 0;
-            foreach ($presensi as $p) {
-                if (isset($p->jenis)) {
-                    if ($p->jenis == 'hadir') $statistik->hadir++;
-                    elseif ($p->jenis == 'izin') $statistik->izin++;
-                    elseif ($p->jenis == 'sakit') $statistik->sakit++;
-                    elseif ($p->jenis == 'alpha') $statistik->alpha++;
-                }
-            }
-            
-            // Get laporan kemajuan for the selected date range
-            $laporan_kemajuan = $this->laporanModel->getLaporanByKelasWithDateRange($kelas_id, $startDate, $endDate);
+        if ($tipe === 'kelas') {
+            $presensi = $this->getPresensiMapelReportRows($startDate, $endDate, $kelas_filter_id, $mapel_id, $filter_status, $tahun_ajaran_filter, $semester_filter);
+            $statistik = $this->buildPresensiMapelStats($presensi);
+            $laporan_kemajuan = $this->getLaporanKemajuanMapelRows($startDate, $endDate, $kelas_filter_id, $mapel_id, $tahun_ajaran_filter, $semester_filter);
+            $report_title = 'Laporan Presensi Mata Pelajaran';
         } else {
             $db = new Database();
-            $db->query('SELECT ps.*, bi.nama, COALESCE(bi.email_ortu, "") AS email 
+            $db->query('SELECT ps.*, bi.nis, bi.nama, COALESCE(bi.email_ortu, "") AS email 
                         FROM presensi_sekolah ps 
                         JOIN buku_induk bi ON ps.user_id = bi.id 
                         WHERE DATE(ps.waktu) BETWEEN :start_date AND :end_date' . 
@@ -1065,6 +1345,10 @@ class AdminController {
             }
         }
         
+        if ($periode === 'bulanan') {
+            $this->renderMonthlyAttendanceExport($presensi, $report_title, $bulan, $tahun, true);
+        }
+
         $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         $bulan_name = $bulan_names[intval($bulan) - 1];
         
@@ -1165,7 +1449,7 @@ class AdminController {
         </div>
     </div>
     
-    <?php if ($tipe === 'kelas' && $kelas_id && !empty($laporan_kemajuan)): ?>
+    <?php if ($tipe === 'kelas' && !empty($laporan_kemajuan)): ?>
     <h2>Laporan Kemajuan</h2>
     <table>
         <thead>
@@ -1198,6 +1482,8 @@ class AdminController {
                 <th>Email</th>
                 <?php if ($tipe === 'kelas'): ?>
                 <th>Kelas</th>
+                <th>Mata Pelajaran</th>
+                <th>Guru</th>
                 <?php endif; ?>
                 <th>Tanggal</th>
                 <th>Waktu</th>
@@ -1218,7 +1504,9 @@ class AdminController {
                 <td><?php echo htmlspecialchars($p->nama ?? ''); ?></td>
                 <td><?php echo htmlspecialchars($p->email ?? ''); ?></td>
                 <?php if ($tipe === 'kelas'): ?>
+                <td><?php echo htmlspecialchars($p->nama_kelas ?? ''); ?></td>
                 <td><?php echo htmlspecialchars($p->nama_mata_pelajaran ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($p->guru_nama ?? '-'); ?></td>
                 <?php endif; ?>
                 <td><?php echo $waktuTs ? date('d M Y', $waktuTs) : '-'; ?></td>
                 <td><?php echo $waktuTs ? date('H:i', $waktuTs) : '-'; ?></td>
@@ -1230,6 +1518,8 @@ class AdminController {
                         } else {
                             echo 'Tidak Valid';
                         }
+                    } elseif ($tipe === 'kelas' && empty($p->jenis)) {
+                        echo 'Alpha';
                     } else {
                         echo 'Belum Presensi';
                     }

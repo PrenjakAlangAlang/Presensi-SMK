@@ -19,7 +19,7 @@ $protectedRoutes = [
     'admin_update_user', 'admin_delete_user', 'admin_export_excel', 'admin_export_pdf',
     'admin_presensi_sekolah', 'admin_create_presensi_sekolah', 'admin_extend_presensi_sekolah', 'admin_close_presensi_sekolah',
     'admin_delete_presensi_sekolah', 'admin_delete_multiple_presensi_sekolah',
-    'admin_create_kelas', 'admin_update_kelas', 'admin_delete_kelas',
+    'admin_create_kelas', 'admin_update_kelas', 'admin_delete_kelas', 'admin_toggle_kelas_status',
     'admin_mata_pelajaran', 'admin_create_mata_pelajaran', 'admin_update_mata_pelajaran', 'admin_delete_mata_pelajaran',
     'admin_get_siswa_mapel', 'admin_get_siswa_tersedia_mapel', 'admin_add_siswa_mapel', 'admin_add_multiple_siswa_mapel', 'admin_remove_siswa_mapel',
     'admin_get_mapel_kelas', 'admin_get_mapel_tersedia_kelas', 'admin_add_mapel_kelas', 'admin_remove_mapel_kelas',
@@ -29,9 +29,10 @@ $protectedRoutes = [
     'admin_kesiswaan_delete_presensi_sekolah', 'admin_kesiswaan_delete_multiple_presensi_sekolah',
     'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk',
     'admin_kesiswaan_laporan', 'admin_kesiswaan_export_excel', 'admin_kesiswaan_export_pdf',
-    'guru_dashboard', 'guru_kelas', 'guru_laporan', 'guru_export_pdf', 'guru_export_excel',
-    'siswa_dashboard', 'siswa_presensi', 'siswa_riwayat',
-    'siswa_buku_induk', 'siswa_save_buku_induk', 'siswa_change_password'
+    'guru_dashboard', 'guru_kelas', 'guru_presensi_mapel', 'guru_laporan', 'guru_export_pdf', 'guru_export_excel',
+    'buka_presensi_mapel', 'tutup_presensi_mapel', 'hapus_presensi_mapel_sesi', 'simpan_laporan_kemajuan_mapel', 'get_presensi_mapel', 'guru_ubah_status_presensi',
+    'siswa_dashboard', 'siswa_presensi', 'siswa_presensi_mapel', 'siswa_riwayat',
+    'siswa_buku_induk', 'siswa_save_buku_induk', 'siswa_change_password', 'submit_presensi_sekolah', 'submit_presensi_mapel'
 ];
 
 if (in_array($action, $protectedRoutes) && !isset($_SESSION['user_id'])) {
@@ -186,6 +187,12 @@ switch($action) {
         require_once __DIR__ . '/app/controllers/AdminController.php';
         $admin = new AdminController();
         $admin->deleteKelas();
+        break;
+
+    case 'admin_toggle_kelas_status':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->toggleKelasStatus();
         break;
 
     // NOTE: Siswa dikelola PER MATA PELAJARAN, bukan per kelas
@@ -379,6 +386,12 @@ switch($action) {
         $siswa = new SiswaController();
         $siswa->presensi();
         break;
+
+    case 'siswa_presensi_mapel':
+        require_once __DIR__ . '/app/controllers/SiswaController.php';
+        $siswa = new SiswaController();
+        $siswa->presensiMapel();
+        break;
         
     case 'siswa_riwayat':
         require_once __DIR__ . '/app/controllers/SiswaController.php';
@@ -428,6 +441,12 @@ switch($action) {
         $guru = new GuruController();
         $guru->kelas();
         break;
+
+    case 'guru_presensi_mapel':
+        require_once __DIR__ . '/app/controllers/GuruController.php';
+        $guru = new GuruController();
+        $guru->presensiMapel();
+        break;
         
     case 'guru_laporan':
         require_once __DIR__ . '/app/controllers/GuruController.php';
@@ -445,6 +464,18 @@ switch($action) {
         require_once __DIR__ . '/app/controllers/GuruController.php';
         $guru = new GuruController();
         $guru->tutupPresensiKelas();
+        break;
+
+    case 'hapus_presensi_mapel_sesi':
+        require_once __DIR__ . '/app/controllers/GuruController.php';
+        $guru = new GuruController();
+        $guru->hapusPresensiMapelSesi();
+        break;
+
+    case 'simpan_laporan_kemajuan_mapel':
+        require_once __DIR__ . '/app/controllers/GuruController.php';
+        $guru = new GuruController();
+        $guru->simpanLaporanKemajuanMapel();
         break;
         
     case 'get_presensi_mapel':

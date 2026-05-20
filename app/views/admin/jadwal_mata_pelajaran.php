@@ -3,12 +3,21 @@ $page_title = "Jadwal Mata Pelajaran";
 require_once __DIR__ . '/../layouts/header.php';
 
 $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+$selectedKelasArchived = $selectedKelas && (($selectedKelas->status ?? 'active') === 'archived');
 ?>
 
 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800"><?php echo $selectedKelas ? 'Jadwal ' . htmlspecialchars($selectedKelas->nama_kelas) : 'Daftar Kelas'; ?></h2>
-        <p class="text-gray-600"><?php echo $selectedKelas ? 'Kelola mata pelajaran, guru pengampu, ruang, dan siswa peserta.' : 'Pilih kelas untuk mengelola jadwal mata pelajaran.'; ?></p>
+        <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-2xl font-bold text-gray-800"><?php echo $selectedKelas ? 'Jadwal ' . htmlspecialchars($selectedKelas->nama_kelas) : 'Daftar Kelas'; ?></h2>
+            <?php if($selectedKelas): ?>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold <?php echo $selectedKelasArchived ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'; ?>">
+                    <i class="fas <?php echo $selectedKelasArchived ? 'fa-archive' : 'fa-check-circle'; ?> mr-1"></i>
+                    <?php echo $selectedKelasArchived ? 'Arsip / Nonaktif' : 'Aktif'; ?>
+                </span>
+            <?php endif; ?>
+        </div>
+        <p class="text-gray-600"><?php echo $selectedKelas ? ($selectedKelasArchived ? 'Data arsip tetap dapat dilihat untuk riwayat dan laporan.' : 'Kelola mata pelajaran, guru pengampu, ruang, dan siswa peserta.') : 'Pilih kelas untuk mengelola jadwal mata pelajaran.'; ?></p>
     </div>
     <div class="flex flex-col sm:flex-row gap-2">
         <?php if($selectedKelas): ?>
@@ -16,10 +25,12 @@ $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
                 <i class="fas fa-arrow-left"></i>
                 <span>Kembali</span>
             </a>
-            <button onclick="openAddJadwalModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
-                <i class="fas fa-plus"></i>
-                <span>Tambah Mapel</span>
-            </button>
+            <?php if(!$selectedKelasArchived): ?>
+                <button onclick="openAddJadwalModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                    <i class="fas fa-plus"></i>
+                    <span>Tambah Mapel</span>
+                </button>
+            <?php endif; ?>
         <?php else: ?>
             <button onclick="openAddKelasModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
                 <i class="fas fa-plus"></i>
@@ -44,11 +55,18 @@ $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
 <?php if(!$selectedKelas): ?>
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
     <?php foreach($kelasList as $kelas): ?>
+    <?php $isArchived = (($kelas->status ?? 'active') === 'archived'); ?>
     <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
         <a href="index.php?action=admin_jadwal_mata_pelajaran&kelas_id=<?php echo $kelas->id; ?>" class="block">
             <div class="flex items-start justify-between gap-3 mb-4">
                 <div>
-                    <h3 class="text-xl font-bold text-gray-800"><?php echo htmlspecialchars($kelas->nama_kelas); ?></h3>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="text-xl font-bold text-gray-800"><?php echo htmlspecialchars($kelas->nama_kelas); ?></h3>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold <?php echo $isArchived ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'; ?>">
+                            <i class="fas <?php echo $isArchived ? 'fa-archive' : 'fa-check-circle'; ?> mr-1"></i>
+                            <?php echo $isArchived ? 'Arsip' : 'Aktif'; ?>
+                        </span>
+                    </div>
                     <p class="text-sm text-gray-500">
                         <?php echo htmlspecialchars($kelas->tahun_ajaran ?? '-'); ?>
                         <?php if(!empty($kelas->semester)): ?>
@@ -72,6 +90,11 @@ $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
             </div>
         </a>
         <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
+            <button onclick="toggleKelasStatus(<?php echo $kelas->id; ?>, '<?php echo $isArchived ? 'active' : 'archived'; ?>')"
+                    class="<?php echo $isArchived ? 'text-green-600 hover:text-green-700' : 'text-amber-600 hover:text-amber-700'; ?>"
+                    title="<?php echo $isArchived ? 'Aktifkan Kelas' : 'Nonaktifkan / Arsipkan Kelas'; ?>">
+                <i class="fas <?php echo $isArchived ? 'fa-check-circle' : 'fa-archive'; ?>"></i>
+            </button>
             <button onclick="openEditKelasModal(this)"
                     data-id="<?php echo $kelas->id; ?>"
                     data-nama-kelas="<?php echo htmlspecialchars($kelas->nama_kelas, ENT_QUOTES); ?>"
@@ -140,25 +163,31 @@ $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
                         </span>
                     </td>
                     <td class="px-5 py-4 text-right whitespace-nowrap">
-                        <button onclick="kelolaSiswaJadwal(<?php echo $mp->id; ?>, '<?php echo htmlspecialchars(addslashes($mp->nama_kelas . ' - ' . $mp->nama_mata_pelajaran)); ?>')" class="text-purple-600 hover:text-purple-700 mr-3" title="Kelola Siswa">
-                            <i class="fas fa-users"></i>
-                        </button>
-                        <button onclick="openEditJadwalModal(this)"
-                                data-id="<?php echo $mp->id; ?>"
-                                data-kelas-jadwal-id="<?php echo (int) $mp->kelas_jadwal_id; ?>"
-                                data-nama-kelas="<?php echo htmlspecialchars($mp->nama_kelas, ENT_QUOTES); ?>"
-                                data-nama-mapel="<?php echo htmlspecialchars($mp->nama_mata_pelajaran, ENT_QUOTES); ?>"
-                                data-guru="<?php echo htmlspecialchars($mp->guru_pengampu ?? '', ENT_QUOTES); ?>"
-                                data-hari="<?php echo htmlspecialchars($mp->hari, ENT_QUOTES); ?>"
-                                data-jam-mulai="<?php echo substr($mp->jam_mulai, 0, 5); ?>"
-                                data-jam-selesai="<?php echo substr($mp->jam_selesai, 0, 5); ?>"
-                                data-ruang="<?php echo htmlspecialchars($mp->ruang ?? '', ENT_QUOTES); ?>"
-                                class="text-blue-600 hover:text-blue-700 mr-3" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button onclick="deleteJadwal(<?php echo $mp->id; ?>)" class="text-red-600 hover:text-red-700" title="Hapus">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <?php if($selectedKelasArchived): ?>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                <i class="fas fa-lock mr-1"></i>Arsip
+                            </span>
+                        <?php else: ?>
+                            <button onclick="kelolaSiswaJadwal(<?php echo $mp->id; ?>, '<?php echo htmlspecialchars(addslashes($mp->nama_kelas . ' - ' . $mp->nama_mata_pelajaran)); ?>')" class="text-purple-600 hover:text-purple-700 mr-3" title="Kelola Siswa">
+                                <i class="fas fa-users"></i>
+                            </button>
+                            <button onclick="openEditJadwalModal(this)"
+                                    data-id="<?php echo $mp->id; ?>"
+                                    data-kelas-jadwal-id="<?php echo (int) $mp->kelas_jadwal_id; ?>"
+                                    data-nama-kelas="<?php echo htmlspecialchars($mp->nama_kelas, ENT_QUOTES); ?>"
+                                    data-nama-mapel="<?php echo htmlspecialchars($mp->nama_mata_pelajaran, ENT_QUOTES); ?>"
+                                    data-guru="<?php echo htmlspecialchars($mp->guru_pengampu ?? '', ENT_QUOTES); ?>"
+                                    data-hari="<?php echo htmlspecialchars($mp->hari, ENT_QUOTES); ?>"
+                                    data-jam-mulai="<?php echo substr($mp->jam_mulai, 0, 5); ?>"
+                                    data-jam-selesai="<?php echo substr($mp->jam_selesai, 0, 5); ?>"
+                                    data-ruang="<?php echo htmlspecialchars($mp->ruang ?? '', ENT_QUOTES); ?>"
+                                    class="text-blue-600 hover:text-blue-700 mr-3" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteJadwal(<?php echo $mp->id; ?>)" class="text-red-600 hover:text-red-700" title="Hapus">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -664,6 +693,32 @@ function deleteKelas(id) {
     input.name = 'id';
     input.value = id;
     form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function toggleKelasStatus(id, status) {
+    const message = status === 'archived'
+        ? 'Nonaktifkan kelas ini? Jadwal tidak bisa diubah, tetapi riwayat dan laporan tetap dapat dilihat.'
+        : 'Aktifkan kembali kelas ini untuk semester berjalan?';
+    if (!confirm(message)) return;
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'index.php?action=admin_toggle_kelas_status';
+
+    const idInput = document.createElement('input');
+    idInput.type = 'hidden';
+    idInput.name = 'id';
+    idInput.value = id;
+    form.appendChild(idInput);
+
+    const statusInput = document.createElement('input');
+    statusInput.type = 'hidden';
+    statusInput.name = 'status';
+    statusInput.value = status;
+    form.appendChild(statusInput);
+
     document.body.appendChild(form);
     form.submit();
 }

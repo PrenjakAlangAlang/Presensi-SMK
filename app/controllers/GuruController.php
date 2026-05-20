@@ -57,22 +57,415 @@ class GuruController {
         
     require_once __DIR__ . '/../views/guru/kelas.php';
     }
+
+    public function presensiMapel() {
+        $this->presensiSesiModel->closeExpiredSessions();
+        $guru_id = $_SESSION['user_id'];
+        $mapelSaya = $this->presensiSesiModel->getManageForGuru($guru_id);
+        $selectedJadwalId = (int) ($_GET['kelas_id'] ?? 0);
+        $selectedSesiId = (int) ($_GET['sesi_id'] ?? 0);
+        $sesiMapel = [];
+        $detailPresensi = [];
+        $selectedJadwal = null;
+        $selectedSesi = null;
+
+        if ($selectedJadwalId) {
+            foreach ($mapelSaya as $jadwal) {
+                if ((int) $jadwal->id === $selectedJadwalId) {
+                    $selectedJadwal = $jadwal;
+                    break;
+                }
+            }
+            if ($selectedJadwal) {
+                $sesiMapel = $this->presensiSesiModel->getSessionsWithStatsByKelas($selectedJadwalId, $guru_id);
+            }
+            if ($selectedJadwal && $selectedSesiId) {
+                $selectedSesi = $this->presensiSesiModel->getSessionForGuru($selectedSesiId, $guru_id);
+                $belongsToSelectedGroup = false;
+                if ($selectedSesi) {
+                    foreach ($sesiMapel as $sesi) {
+                        if ((int) $sesi->id === (int) $selectedSesi->id) {
+                            $belongsToSelectedGroup = true;
+                            break;
+                        }
+                    }
+                }
+                if (!$selectedSesi || !$belongsToSelectedGroup) {
+                    $selectedSesi = null;
+                    $selectedSesiId = 0;
+                }
+            }
+            if ($selectedJadwal && $selectedSesi) {
+                $detailPresensi = $this->presensiModel->getLaporanPresensiKelas($selectedJadwalId, null, $selectedSesiId);
+            }
+        }
+
+        require_once __DIR__ . '/../views/guru/presensi_mapel.php';
+    }
     
     public function laporan() {
-        $_SESSION['info'] = 'Laporan presensi mata pelajaran telah dinonaktifkan.';
-        header('Location: ' . BASE_URL . '/index.php?action=guru_kelas');
-        exit();
+        $this->presensiSesiModel->closeExpiredSessions();
+        $guru_id = $_SESSION['user_id'];
+        $kelasSaya = $this->presensiSesiModel->getManageForGuru($guru_id);
+        $kelas_id = (int) ($_GET['kelas_id'] ?? 0);
+        $selected_sesi_id = (int) ($_GET['sesi_id'] ?? 0);
+        $laporan = [];
+
+        foreach ($kelasSaya as $kelas) {
+            $kelas->siswa = $this->mataPelajaranModel->getSiswaInMataPelajaran($kelas->id);
+        }
+
+        if ($kelas_id) {
+            $report = $this->buildGuruMapelReport($guru_id, $kelas_id, $selected_sesi_id);
+            if (!$report) {
+                $_SESSION['error'] = 'Mata pelajaran atau sesi tidak ditemukan.';
+                header('Location: ' . BASE_URL . '/index.php?action=guru_laporan');
+                exit();
+            }
+
+            $laporan[$report['selected_jadwal']->id] = [
+                'sessions' => $report['sessions'],
+                'selected_sesi' => $report['selected_sesi'],
+                'presensi' => $report['presensi'],
+                'laporan_kemajuan' => $this->getLaporanKemajuanSesiRows($report['selected_sesi'])
+            ];
+        }
+
+        require_once __DIR__ . '/../views/guru/laporan.php';
+    }
+
+    private function buildGuruMapelReport($guru_id, $jadwal_id, $sesi_id = 0) {
+        $selectedJadwal = null;
+        foreach ($this->presensiSesiModel->getManageForGuru($guru_id) as $jadwal) {
+            if ((int) $jadwal->id === (int) $jadwal_id) {
+                $selectedJadwal = $jadwal;
+                break;
+            }
+        }
+
+        if (!$selectedJadwal) {
+            return null;
+        }
+
+        $sessions = $this->presensiSesiModel->getSessionsWithStatsByKelas($selectedJadwal->id, $guru_id);
+        $selectedSesi = null;
+        if ($sesi_id) {
+            foreach ($sessions as $session) {
+                if ((int) $session->id === (int) $sesi_id) {
+                    $selectedSesi = $this->presensiSesiModel->getSessionForGuru($sesi_id, $guru_id);
+                    break;
+                }
+            }
+            if (!$selectedSesi) {
+                return null;
+            }
+        } elseif (!empty($sessions)) {
+            $selectedSesi = $sessions[0];
+        }
+
+        $reportJadwalId = $selectedSesi ? (int) $selectedSesi->jadwal_mata_pelajaran_id : (int) $selectedJadwal->id;
+        $presensi = $selectedSesi
+            ? $this->presensiModel->getLaporanPresensiKelas($reportJadwalId, null, $selectedSesi->id)
+            : $this->presensiModel->getLaporanPresensiKelas($reportJadwalId, date('Y-m-d'));
+
+        return [
+            'selected_jadwal' => $selectedJadwal,
+            'sessions' => $sessions,
+            'selected_sesi' => $selectedSesi,
+            'presensi' => $presensi,
+            'summary' => $this->summarizePresensiMapel($presensi),
+            'periode_text' => $this->formatReportPeriode($selectedSesi),
+            'report_jadwal_id' => $reportJadwalId
+        ];
+    }
+
+    private function summarizePresensiMapel($presensi) {
+        $summary = [
+            'total_siswa' => count($presensi),
+            'hadir' => 0,
+            'izin' => 0,
+            'sakit' => 0,
+            'alpha' => 0
+        ];
+
+        foreach ($presensi as $row) {
+            $jenis = $row->jenis ?? null;
+            if (!$row->status || !$jenis) {
+                $summary['alpha']++;
+            } elseif ($jenis === 'hadir' && $row->status === 'valid') {
+                $summary['hadir']++;
+            } elseif (isset($summary[$jenis])) {
+                $summary[$jenis]++;
+            }
+        }
+
+        return $summary;
+    }
+
+    private function formatReportPeriode($session) {
+        if (!$session) {
+            return date('d/m/Y');
+        }
+
+        return date('d/m/Y H:i', strtotime($session->waktu_buka)) . ' - ' . date('H:i', strtotime($session->waktu_tutup));
+    }
+
+    private function getPresensiMapelStatusText($row) {
+        if (!$row->status || !$row->jenis) {
+            return 'Belum Presensi';
+        }
+
+        $jenisMap = [
+            'hadir' => 'Hadir',
+            'izin' => 'Izin',
+            'sakit' => 'Sakit',
+            'alpha' => 'Alpha'
+        ];
+
+        return $jenisMap[$row->jenis] ?? ucfirst($row->jenis);
+    }
+
+    private function getPresensiMapelLokasiText($row) {
+        if (($row->jenis ?? '') !== 'hadir') {
+            return '-';
+        }
+
+        if ($row->status === 'valid') {
+            return 'Valid';
+        }
+
+        if ($row->status === 'invalid') {
+            return 'Invalid';
+        }
+
+        return '-';
+    }
+
+    private function getPresensiMapelKeteranganText($row) {
+        if (!empty($row->alasan)) {
+            return $row->alasan;
+        }
+
+        if (($row->jenis ?? '') === 'hadir') {
+            return 'Presensi Normal';
+        }
+
+        return '-';
+    }
+
+    private function getLaporanKemajuanSesiRows($session) {
+        if (!$session || empty($session->laporan_kemajuan)) {
+            return [];
+        }
+
+        return [(object) [
+            'tanggal' => $session->waktu_buka,
+            'created_at' => $session->waktu_buka,
+            'guru_nama' => $_SESSION['user_nama'] ?? '-',
+            'catatan' => $session->laporan_kemajuan
+        ]];
+    }
+
+    private function getGuruMonthlyMapelRows($guru_id, $selectedJadwal, $startDate, $endDate) {
+        $db = new Database();
+        $sql = 'SELECT COALESCE(pm.id, 0) as id,
+                       bi.id as user_id,
+                       bi.nis,
+                       bi.nama,
+                       pm.status,
+                       COALESCE(pm.waktu, s.waktu_buka) as waktu,
+                       pm.jenis,
+                       pm.alasan,
+                       s.id as sesi_id,
+                       j.nama_mata_pelajaran,
+                       k.nama_kelas,
+                       u.nama as guru_nama
+                FROM presensi_mapel_sesi s
+                INNER JOIN jadwal_mata_pelajaran j ON s.jadwal_mata_pelajaran_id = j.id
+                INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                LEFT JOIN users u ON j.guru_pengampu = u.id
+                INNER JOIN jadwal_mata_pelajaran_siswa js ON js.jadwal_mata_pelajaran_id = j.id
+                INNER JOIN buku_induk bi ON js.siswa_id = bi.id
+                LEFT JOIN presensi_mapel pm ON pm.presensi_sesi_id = s.id AND pm.user_id = bi.id
+                WHERE DATE(s.waktu_buka) BETWEEN :start_date AND :end_date
+                  AND j.kelas_jadwal_id = :kelas_jadwal_id
+                  AND j.nama_mata_pelajaran = :nama_mata_pelajaran
+                  AND j.guru_pengampu = :guru_id
+                ORDER BY bi.nama ASC, s.waktu_buka ASC';
+        $db->query($sql);
+        $db->bind(':start_date', $startDate);
+        $db->bind(':end_date', $endDate);
+        $db->bind(':kelas_jadwal_id', (int) $selectedJadwal->kelas_jadwal_id);
+        $db->bind(':nama_mata_pelajaran', $selectedJadwal->nama_mata_pelajaran);
+        $db->bind(':guru_id', (int) $guru_id);
+        return $db->resultSet();
+    }
+
+    private function renderMonthlyAttendanceExport($presensi, $report_title, $bulan, $tahun, $asPdf = false) {
+        $bulan_names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $bulan_name = $bulan_names[(int) $bulan - 1] ?? $bulan;
+        $daysInMonth = (int) date('t', strtotime($tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01'));
+        $rows = $this->buildMonthlyAttendanceRows($presensi, $daysInMonth);
+
+        if ($asPdf) {
+            ?><!DOCTYPE html>
+<html><head><meta charset="utf-8"><title><?php echo htmlspecialchars($report_title); ?></title>
+<style>body{font-family:Arial,sans-serif;font-size:11px;margin:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:4px;text-align:center}.name{text-align:left;min-width:180px}.kop{text-align:center;border-bottom:3px solid #000;margin-bottom:12px;padding-bottom:8px}@media print{.no-print{display:none}body{margin:0}}</style>
+</head><body><button class="no-print" onclick="window.print()">Cetak / Simpan PDF</button>
+<div class="kop"><h2>SMK NEGERI 7 Yogyakarta</h2><p>Jalan Gowongan Kidul Blok JT3 No.416, Gowongan, Kec. Jetis, Kota Yogyakarta, DIY 55232</p></div>
+<h3><?php echo htmlspecialchars($report_title); ?></h3><p>Bulan: <?php echo htmlspecialchars($bulan_name . ' ' . $tahun); ?></p>
+<?php $this->echoMonthlyAttendanceTable($rows, $daysInMonth); ?></body></html><?php
+            exit;
+        }
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment; filename="Laporan_Bulanan_' . $bulan_name . '_' . $tahun . '.xls"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        echo '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><style>table{border-collapse:collapse}th,td{border:1px solid #333;padding:4px;text-align:center}.name{text-align:left;min-width:180px}</style></head><body>';
+        echo '<h2>SMK NEGERI 7 Yogyakarta</h2><h3>' . htmlspecialchars($report_title) . '</h3><p>Bulan: ' . htmlspecialchars($bulan_name . ' ' . $tahun) . '</p>';
+        $this->echoMonthlyAttendanceTable($rows, $daysInMonth);
+        echo '</body></html>';
+        exit;
+    }
+
+    private function buildMonthlyAttendanceRows($presensi, $daysInMonth) {
+        $students = [];
+        foreach ($presensi as $row) {
+            $studentId = $row->user_id ?? $row->siswa_id ?? $row->id ?? $row->nama;
+            if (!isset($students[$studentId])) {
+                $students[$studentId] = [
+                    'nis' => $row->nis ?? $studentId,
+                    'nama' => $row->nama ?? '-',
+                    'days' => array_fill(1, $daysInMonth, ''),
+                    'hadir' => 0,
+                    'izin' => 0,
+                    'sakit' => 0,
+                    'alpha' => 0
+                ];
+            }
+            if (empty($row->waktu)) continue;
+            $day = (int) date('j', strtotime($row->waktu));
+            if ($day < 1 || $day > $daysInMonth) continue;
+            $code = $this->getAttendanceExportCode($row);
+            if ($code === '') continue;
+            $existing = $students[$studentId]['days'][$day];
+            $students[$studentId]['days'][$day] = ($existing === '' || strpos($existing, $code) !== false) ? ($existing ?: $code) : $existing . '/' . $code;
+        }
+        foreach ($students as &$student) {
+            foreach ($student['days'] as $code) {
+                if (strpos($code, 'H') !== false) $student['hadir']++;
+                elseif (strpos($code, 'I') !== false) $student['izin']++;
+                elseif (strpos($code, 'S') !== false) $student['sakit']++;
+                elseif (strpos($code, 'A') !== false) $student['alpha']++;
+            }
+        }
+        return array_values($students);
+    }
+
+    private function getAttendanceExportCode($row) {
+        $jenis = $row->jenis ?? null;
+        if (!$jenis && empty($row->status)) return 'A';
+        if ($jenis === 'hadir') return 'H';
+        if ($jenis === 'izin') return 'I';
+        if ($jenis === 'sakit') return 'S';
+        if ($jenis === 'alpha') return 'A';
+        return '';
+    }
+
+    private function echoMonthlyAttendanceTable($rows, $daysInMonth) {
+        echo '<table><tr><th rowspan="2">Urut</th><th rowspan="2">NIPD/NIS</th><th rowspan="2" class="name">Nama Lengkap</th><th rowspan="2">L/P</th><th colspan="' . $daysInMonth . '">Tanggal</th><th colspan="4">Jumlah</th></tr><tr>';
+        for ($day = 1; $day <= $daysInMonth; $day++) echo '<th>' . $day . '</th>';
+        echo '<th>H</th><th>I</th><th>S</th><th>A</th></tr>';
+        $no = 1;
+        foreach ($rows as $row) {
+            echo '<tr><td>' . $no++ . '</td><td>' . htmlspecialchars($row['nis']) . '</td><td class="name">' . htmlspecialchars($row['nama']) . '</td><td></td>';
+            for ($day = 1; $day <= $daysInMonth; $day++) echo '<td>' . htmlspecialchars($row['days'][$day]) . '</td>';
+            echo '<td>' . $row['hadir'] . '</td><td>' . $row['izin'] . '</td><td>' . $row['sakit'] . '</td><td>' . $row['alpha'] . '</td></tr>';
+        }
+        echo '</table><p>Ket: H = Hadir, I = Izin, S = Sakit, A = Alpha</p>';
     }
     
     public function bukaPresensiKelas() {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Sesi presensi mata pelajaran telah dinonaktifkan.']);
+        $guru_id = $_SESSION['user_id'];
+        $mapel_id = (int) ($_POST['kelas_id'] ?? 0);
+        $tanggal = $_POST['tanggal'] ?? date('Y-m-d');
+        $multiple = isset($_POST['repeat_enabled']) && $_POST['repeat_enabled'] === '1';
+        if (!$mapel_id) {
+            echo json_encode(['success' => false, 'message' => 'Mata pelajaran tidak dipilih.']);
+            exit;
+        }
+
+        if ($multiple) {
+            $tanggalSelesai = $_POST['repeat_until'] ?? null;
+            $repeatEveryWeeks = $_POST['repeat_every_weeks'] ?? 1;
+            if (!$tanggal || !$tanggalSelesai) {
+                echo json_encode(['success' => false, 'message' => 'Tanggal mulai dan selesai wajib diisi.']);
+                exit;
+            }
+            $created = $this->presensiSesiModel->createMultipleSessions($mapel_id, $guru_id, $tanggal, $tanggalSelesai, $repeatEveryWeeks);
+            echo json_encode([
+                'success' => $created !== false && $created > 0,
+                'count' => (int) $created,
+                'message' => $created ? $created . ' sesi presensi berhasil dibuat sesuai jadwal.' : 'Tidak ada sesi dibuat. Pastikan rentang tanggal memuat hari jadwal mapel.'
+            ]);
+            exit;
+        }
+
+        $ok = $this->presensiSesiModel->createSession($mapel_id, $guru_id, $tanggal);
+        echo json_encode(['success' => (bool) $ok, 'message' => $ok ? 'Sesi presensi dibuat sesuai jadwal.' : 'Sesi gagal dibuat. Pastikan tanggal sesuai hari jadwal mapel dan Anda guru pengampu.']);
         exit;
     }
     
     public function tutupPresensiKelas() {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Sesi presensi mata pelajaran telah dinonaktifkan.']);
+        $guru_id = $_SESSION['user_id'];
+        $sesi_id = (int) ($_POST['sesi_id'] ?? 0);
+        $mapel_id = (int) ($_POST['kelas_id'] ?? 0);
+        if ($sesi_id) {
+            $ok = $this->presensiSesiModel->closeSessionByIdForGuru($sesi_id, $guru_id);
+            echo json_encode(['success' => (bool) $ok, 'message' => $ok ? 'Sesi presensi ditutup.' : 'Sesi tidak ditemukan atau sudah ditutup.']);
+            exit;
+        }
+
+        if (!$mapel_id) {
+            echo json_encode(['success' => false, 'message' => 'Sesi tidak dipilih.']);
+            exit;
+        }
+        $ok = $this->presensiSesiModel->closeSession($mapel_id, $guru_id);
+        echo json_encode(['success' => (bool) $ok, 'message' => $ok ? 'Sesi presensi ditutup.' : 'Tidak ada sesi aktif yang bisa ditutup.']);
+        exit;
+    }
+
+    public function hapusPresensiMapelSesi() {
+        header('Content-Type: application/json');
+        $guru_id = $_SESSION['user_id'];
+        $sesi_id = (int) ($_POST['sesi_id'] ?? 0);
+
+        if (!$sesi_id) {
+            echo json_encode(['success' => false, 'message' => 'Sesi tidak dipilih.']);
+            exit;
+        }
+
+        $ok = $this->presensiSesiModel->deleteSessionForGuru($sesi_id, $guru_id);
+        echo json_encode(['success' => (bool) $ok, 'message' => $ok ? 'Sesi presensi berhasil dihapus.' : 'Sesi tidak ditemukan atau bukan milik Anda.']);
+        exit;
+    }
+
+    public function simpanLaporanKemajuanMapel() {
+        header('Content-Type: application/json');
+        $guru_id = $_SESSION['user_id'];
+        $sesi_id = (int) ($_POST['sesi_id'] ?? 0);
+        $laporan_kemajuan = $_POST['laporan_kemajuan'] ?? '';
+
+        if (!$sesi_id) {
+            echo json_encode(['success' => false, 'message' => 'Sesi tidak dipilih.']);
+            exit;
+        }
+
+        $ok = $this->presensiSesiModel->updateLaporanKemajuanForGuru($sesi_id, $guru_id, $laporan_kemajuan);
+        echo json_encode(['success' => (bool) $ok, 'message' => $ok ? 'Laporan kemajuan berhasil disimpan.' : 'Sesi tidak ditemukan atau bukan milik Anda.']);
         exit;
     }
     
@@ -96,7 +489,8 @@ class GuruController {
     
     public function getPresensiKelas($mata_pelajaran_id) {
         header('Content-Type: application/json');
-        echo json_encode([]);
+        $sesi_id = $_GET['sesi_id'] ?? null;
+        echo json_encode($this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, null, $sesi_id));
         exit;
     }
     
@@ -121,76 +515,41 @@ class GuruController {
     }
     
     public function exportExcel() {
-        die('Laporan presensi mata pelajaran telah dinonaktifkan.');
         $guru_id = $_SESSION['user_id'];
         $mata_pelajaran_id = $_GET['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id
         $sesi_id = $_GET['sesi_id'] ?? null;
+        $periode = $_GET['periode'] ?? 'sesi';
+        $bulan = $_GET['bulan'] ?? date('m');
+        $tahun = $_GET['tahun'] ?? date('Y');
         
         if (!$mata_pelajaran_id) {
             die('Mata pelajaran tidak dipilih');
         }
-        
-        // Validasi guru mengajar mata pelajaran ini
-        $kelasSaya = $this->mataPelajaranModel->getMataPelajaranByGuru($guru_id);
-        $isMyClass = false;
-        $selectedKelas = null;
-        foreach($kelasSaya as $kelas) {
-            if ($kelas->id == $mata_pelajaran_id) {
-                $isMyClass = true;
-                $selectedKelas = $kelas;
-                break;
-            }
+
+        $report = $this->buildGuruMapelReport($guru_id, (int) $mata_pelajaran_id, (int) $sesi_id);
+        if (!$report) {
+            die('Anda tidak mengajar mata pelajaran atau sesi ini tidak ditemukan');
         }
-        
-        if (!$isMyClass) {
-            die('Anda tidak mengajar mata pelajaran ini');
+
+        $selectedKelas = $report['selected_jadwal'];
+        if ($periode === 'bulanan') {
+            $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
+            $endDate = date('Y-m-t', strtotime($startDate));
+            $presensiBulanan = $this->getGuruMonthlyMapelRows($guru_id, $selectedKelas, $startDate, $endDate);
+            $this->renderMonthlyAttendanceExport($presensiBulanan, 'Laporan Presensi Mata Pelajaran - ' . $selectedKelas->nama_mata_pelajaran, $bulan, $tahun, false);
         }
+
+        $presensi = $report['presensi'];
+        $periode_text = $report['periode_text'];
+        $session = $report['selected_sesi'];
+        $summary = $report['summary'];
+        $totalSiswa = $summary['total_siswa'];
+        $hadir = $summary['hadir'];
+        $izin = $summary['izin'];
+        $sakit = $summary['sakit'];
+        $alpha = $summary['alpha'];
         
-        // Get presensi data
-        if ($sesi_id) {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, null, $sesi_id);
-            $session = $this->presensiSesiModel->getSessionById($sesi_id);
-            $periode_text = $session ? date('d/m/Y H:i', strtotime($session->waktu_buka)) : 'Sesi Dipilih';
-        } else {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, date('Y-m-d'));
-            $periode_text = date('d F Y');
-        }
-        
-        // Get laporan kemajuan
-        $laporan_kemajuan = [];
-        if ($sesi_id) {
-            $allLaporan = $this->laporanModel->getLaporanByMataPelajaran($mata_pelajaran_id);
-            $session = $this->presensiSesiModel->getSessionById($sesi_id);
-            if ($session) {
-                $start = $session->waktu_buka;
-                $end = $session->waktu_tutup ?: date('Y-m-d H:i:s');
-                foreach($allLaporan as $l) {
-                    if ($l->tanggal >= $start && $l->tanggal <= $end) {
-                        $laporan_kemajuan[] = $l;
-                    }
-                }
-            }
-        }
-        
-        // Calculate statistics
-        $hadir = 0;
-        $izin = 0;
-        $sakit = 0;
-        $alpha = 0;
-        
-        foreach($presensi as $p) {
-            if ($p->status == 'valid') {
-                if ($p->jenis == 'hadir') $hadir++;
-                elseif ($p->jenis == 'izin') $izin++;
-                elseif ($p->jenis == 'sakit') $sakit++;
-            } elseif ($p->status == null) {
-                $alpha++;
-            }
-        }
-        
-        $totalSiswa = $this->mataPelajaranModel->getTotalSiswaByMataPelajaran($mata_pelajaran_id);
-        $belumPresensi = $totalSiswa - ($hadir + $izin + $sakit + $alpha);
-        $alpha += $belumPresensi;
+        $laporan_kemajuan = $this->getLaporanKemajuanSesiRows($session);
         
         // Set headers for Excel download
         header('Content-Type: application/vnd.ms-excel');
@@ -293,76 +652,41 @@ class GuruController {
     }
     
     public function exportPDF() {
-        die('Laporan presensi mata pelajaran telah dinonaktifkan.');
         $guru_id = $_SESSION['user_id'];
         $mata_pelajaran_id = $_GET['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id
         $sesi_id = $_GET['sesi_id'] ?? null;
+        $periode = $_GET['periode'] ?? 'sesi';
+        $bulan = $_GET['bulan'] ?? date('m');
+        $tahun = $_GET['tahun'] ?? date('Y');
         
         if (!$mata_pelajaran_id) {
             die('Mata pelajaran tidak dipilih');
         }
-        
-        // Validasi guru mengajar mata pelajaran ini
-        $kelasSaya = $this->mataPelajaranModel->getMataPelajaranByGuru($guru_id);
-        $isMyClass = false;
-        $selectedKelas = null;
-        foreach($kelasSaya as $kelas) {
-            if ($kelas->id == $mata_pelajaran_id) {
-                $isMyClass = true;
-                $selectedKelas = $kelas;
-                break;
-            }
+
+        $report = $this->buildGuruMapelReport($guru_id, (int) $mata_pelajaran_id, (int) $sesi_id);
+        if (!$report) {
+            die('Anda tidak mengajar mata pelajaran atau sesi ini tidak ditemukan');
         }
-        
-        if (!$isMyClass) {
-            die('Anda tidak mengajar mata pelajaran ini');
+
+        $selectedKelas = $report['selected_jadwal'];
+        if ($periode === 'bulanan') {
+            $startDate = $tahun . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-01';
+            $endDate = date('Y-m-t', strtotime($startDate));
+            $presensiBulanan = $this->getGuruMonthlyMapelRows($guru_id, $selectedKelas, $startDate, $endDate);
+            $this->renderMonthlyAttendanceExport($presensiBulanan, 'Laporan Presensi Mata Pelajaran - ' . $selectedKelas->nama_mata_pelajaran, $bulan, $tahun, true);
         }
+
+        $presensi = $report['presensi'];
+        $periode_text = $report['periode_text'];
+        $session = $report['selected_sesi'];
+        $summary = $report['summary'];
+        $totalSiswa = $summary['total_siswa'];
+        $hadir = $summary['hadir'];
+        $izin = $summary['izin'];
+        $sakit = $summary['sakit'];
+        $alpha = $summary['alpha'];
         
-        // Get presensi data
-        if ($sesi_id) {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, null, $sesi_id);
-            $session = $this->presensiSesiModel->getSessionById($sesi_id);
-            $periode_text = $session ? date('d/m/Y H:i', strtotime($session->waktu_buka)) : 'Sesi Dipilih';
-        } else {
-            $presensi = $this->presensiModel->getLaporanPresensiKelas($mata_pelajaran_id, date('Y-m-d'));
-            $periode_text = date('d F Y');
-        }
-        
-        // Get laporan kemajuan
-        $laporan_kemajuan = [];
-        if ($sesi_id) {
-            $allLaporan = $this->laporanModel->getLaporanByMataPelajaran($mata_pelajaran_id);
-            $session = $this->presensiSesiModel->getSessionById($sesi_id);
-            if ($session) {
-                $start = $session->waktu_buka;
-                $end = $session->waktu_tutup ?: date('Y-m-d H:i:s');
-                foreach($allLaporan as $l) {
-                    if ($l->tanggal >= $start && $l->tanggal <= $end) {
-                        $laporan_kemajuan[] = $l;
-                    }
-                }
-            }
-        }
-        
-        // Calculate statistics
-        $hadir = 0;
-        $izin = 0;
-        $sakit = 0;
-        $alpha = 0;
-        
-        foreach($presensi as $p) {
-            if ($p->status == 'valid') {
-                if ($p->jenis == 'hadir') $hadir++;
-                elseif ($p->jenis == 'izin') $izin++;
-                elseif ($p->jenis == 'sakit') $sakit++;
-            } elseif ($p->status == null) {
-                $alpha++;
-            }
-        }
-        
-        $totalSiswa = $this->mataPelajaranModel->getTotalSiswaByMataPelajaran($mata_pelajaran_id);
-        $belumPresensi = $totalSiswa - ($hadir + $izin + $sakit + $alpha);
-        $alpha += $belumPresensi;
+        $laporan_kemajuan = $this->getLaporanKemajuanSesiRows($session);
         
         ?><!DOCTYPE html>
 <html>
@@ -510,7 +834,9 @@ class GuruController {
     </table>
     
     <script>
-        // Auto print dialog on load for PDF export
+        window.addEventListener('load', function() {
+            window.print();
+        });
     </script>
 </body>
 </html>
@@ -520,8 +846,6 @@ class GuruController {
     
     public function ubahStatusPresensi() {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Presensi mata pelajaran telah dinonaktifkan.']);
-        exit;
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $siswa_id = $_POST['siswa_id'] ?? null;
             $mata_pelajaran_id = $_POST['kelas_id'] ?? null; // frontend sends kelas_id but it's actually mata_pelajaran_id
@@ -549,12 +873,6 @@ class GuruController {
             
             if (!$isMyClass) {
                 echo json_encode(['success' => false, 'message' => 'Anda tidak memiliki akses ke mata pelajaran ini']);
-                return;
-            }
-            
-            // Validasi alasan untuk izin/sakit
-            if (($jenis === 'izin' || $jenis === 'sakit') && empty($alasan)) {
-                echo json_encode(['success' => false, 'message' => 'Alasan harus diisi untuk status izin/sakit']);
                 return;
             }
             
