@@ -59,6 +59,7 @@ class AdminKesiswaanController {
             'user_id' => !empty($_POST['user_id']) ? $_POST['user_id'] : null,
             'nama' => trim($_POST['nama'] ?? ''),
             'nis' => trim($_POST['nis'] ?? ''),
+            'email' => isset($_POST['email']) && trim($_POST['email']) !== '' ? trim($_POST['email']) : null,
             'nisn' => isset($_POST['nisn']) && trim($_POST['nisn']) !== '' ? trim($_POST['nisn']) : null,
             'kelas' => isset($_POST['kelas']) ? trim($_POST['kelas']) : null,
             'jurusan' => isset($_POST['jurusan']) ? trim($_POST['jurusan']) : null,
@@ -80,6 +81,14 @@ class AdminKesiswaanController {
 
         if ($data['nama'] === '' || $data['nis'] === '') {
             $_SESSION['error'] = 'Nama dan NIS wajib diisi.';
+            header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
+            exit();
+        }
+
+        if ($data['email'] === null) {
+            $data['email'] = $this->generateStudentEmail($data['nis']);
+        } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['error'] = 'Email siswa tidak valid.';
             header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
             exit();
         }
@@ -288,6 +297,14 @@ class AdminKesiswaanController {
             return ['success' => true, 'path' => $relative];
         }
         return ['success' => false, 'message' => 'Gagal mengunggah dokumen.'];
+    }
+
+    private function generateStudentEmail($nis) {
+        $safeNis = preg_replace('/[^a-zA-Z0-9._-]/', '', trim((string) $nis));
+        if ($safeNis === '') {
+            $safeNis = uniqid('siswa');
+        }
+        return strtolower($safeNis) . '@smk7.sch.id';
     }
 
     public function laporan() {

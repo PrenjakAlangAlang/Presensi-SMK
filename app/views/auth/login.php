@@ -80,7 +80,7 @@
                     </label>
                     <input type="text" id="email" name="email" required autocomplete="username"
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-300"
-                           placeholder="admin/guru: email, siswa: NIS"
+                           placeholder="admin/guru: email, siswa: email atau NIS"
                            value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
                 </div>
                 
@@ -148,7 +148,7 @@
                     </div>
                     <div class="bg-white p-3 rounded border">
                         <div class="font-semibold text-purple-700">🎓 Siswa</div>
-                        <div class="text-purple-600">siswa@smk7.sch.id</div>
+                        <div class="text-purple-600">NIS atau nis@smk7.sch.id</div>
                         <div class="text-gray-600">Password: siswa123</div>
                     </div>
                     <div class="bg-white p-3 rounded border">

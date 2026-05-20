@@ -41,6 +41,10 @@ $dokumenFields = [
             <input type="text" name="nis" required class="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email Siswa</label>
+            <input type="email" name="email" class="w-full border rounded-lg px-4 py-2" placeholder="nis@smk7.sch.id" />
+        </div>
+        <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Induk Siswa Nasional</label>
             <input type="text" name="nisn" class="w-full border rounded-lg px-4 py-2" />
         </div>
@@ -132,7 +136,7 @@ $dokumenFields = [
             </div>
             <div class="relative w-full md:w-80">
                 <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input id="searchBukuInduk" type="search" placeholder="Cari nama, NIS, NISN, kelas, jurusan, alamat..." class="w-full border rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                <input id="searchBukuInduk" type="search" placeholder="Cari nama, NIS, email, kelas, jurusan, alamat..." class="w-full border rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
         </div>
     </div>
@@ -142,6 +146,7 @@ $dokumenFields = [
                 <tr class="bg-gray-50 text-left text-gray-600">
                     <th class="px-4 py-3">Nama</th>
                     <th class="px-4 py-3">Nomor Induk Siswa</th>
+                    <th class="px-4 py-3">Email Siswa</th>
                     <th class="px-4 py-3">Nomor Induk Siswa Nasional</th>
                     <th class="px-4 py-3">Kelas/Jurusan</th>
                     <th class="px-4 py-3">Tempat, Tanggal Lahir</th>
@@ -162,6 +167,7 @@ $dokumenFields = [
                         $searchText = implode(' ', [
                             $r->nama ?? '',
                             $r->nis ?? '',
+                            $r->email ?? '',
                             $r->nisn ?? '',
                             $r->kelas ?? '',
                             $r->jurusan ?? '',
@@ -180,6 +186,7 @@ $dokumenFields = [
                     <tr class="buku-row" data-search="<?php echo htmlspecialchars(strtolower($searchText), ENT_QUOTES); ?>">
                         <td class="px-4 py-3"><?php echo htmlspecialchars($r->nama ?? '-'); ?></td>
                         <td class="px-4 py-3"><?php echo htmlspecialchars($r->nis ?? '-'); ?></td>
+                        <td class="px-4 py-3"><?php echo !empty($r->email) ? htmlspecialchars($r->email) : '-'; ?></td>
                         <td class="px-4 py-3"><?php echo !empty($r->nisn) ? htmlspecialchars($r->nisn) : '-'; ?></td>
                         <td class="px-4 py-3">
                             <div class="font-medium text-gray-800"><?php echo !empty($r->kelas) ? htmlspecialchars($r->kelas) : '-'; ?></div>
@@ -210,6 +217,7 @@ $dokumenFields = [
                                     data-user-id="<?php echo $r->id; ?>"
                                     data-nama="<?php echo htmlspecialchars($r->nama ?? '', ENT_QUOTES); ?>"
                                     data-nis="<?php echo htmlspecialchars($r->nis ?? '', ENT_QUOTES); ?>"
+                                    data-email="<?php echo htmlspecialchars($r->email ?? '', ENT_QUOTES); ?>"
                                     data-nisn="<?php echo htmlspecialchars($r->nisn ?? '', ENT_QUOTES); ?>"
                                     data-kelas="<?php echo htmlspecialchars($r->kelas ?? '', ENT_QUOTES); ?>"
                                     data-jurusan="<?php echo htmlspecialchars($r->jurusan ?? '', ENT_QUOTES); ?>"
@@ -222,7 +230,7 @@ $dokumenFields = [
                                     data-nama-ibu="<?php echo htmlspecialchars($r->nama_ibu ?? '', ENT_QUOTES); ?>"
                                     data-nama-wali="<?php echo htmlspecialchars($r->nama_wali ?? '', ENT_QUOTES); ?>"
                                     data-no-telp="<?php echo htmlspecialchars($r->no_telp_ortu ?? '', ENT_QUOTES); ?>"
-                                    data-email="<?php echo htmlspecialchars($r->email_ortu ?? '', ENT_QUOTES); ?>"
+                                    data-email-ortu="<?php echo htmlspecialchars($r->email_ortu ?? '', ENT_QUOTES); ?>"
                                     data-ijasah="<?php echo htmlspecialchars($r->dokumen_ijasah ?? '', ENT_QUOTES); ?>"
                                     data-pas-foto="<?php echo htmlspecialchars($r->dokumen_pas_foto ?? '', ENT_QUOTES); ?>"
                                     data-akta-kelahiran="<?php echo htmlspecialchars($r->dokumen_akta_kelahiran ?? '', ENT_QUOTES); ?>"
@@ -232,10 +240,10 @@ $dokumenFields = [
                         </td>
                     </tr>
                 <?php endforeach; else: ?>
-                    <tr><td colspan="10" class="px-4 py-4 text-center text-gray-500">Belum ada data.</td></tr>
+                    <tr><td colspan="11" class="px-4 py-4 text-center text-gray-500">Belum ada data.</td></tr>
                 <?php endif; ?>
                 <tr id="emptySearchRow" class="hidden">
-                    <td colspan="10" class="px-4 py-4 text-center text-gray-500">Data tidak ditemukan.</td>
+                    <td colspan="11" class="px-4 py-4 text-center text-gray-500">Data tidak ditemukan.</td>
                 </tr>
             </tbody>
         </table>
@@ -290,6 +298,7 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
         form.user_id.value = btn.dataset.userId;
         form.nama.value = btn.dataset.nama;
         form.nis.value = btn.dataset.nis;
+        form.email.value = btn.dataset.email || '';
         form.nisn.value = btn.dataset.nisn;
         form.kelas.value = btn.dataset.kelas || '';
         form.jurusan.value = btn.dataset.jurusan || '';
@@ -302,7 +311,7 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
         form.nama_ibu.value = btn.dataset.namaIbu || '';
         form.nama_wali.value = btn.dataset.namaWali || '';
         form.no_telp_ortu.value = btn.dataset.noTelp || '';
-        form.email_ortu.value = btn.dataset.email || '';
+        form.email_ortu.value = btn.dataset.emailOrtu || '';
 
         setCurrentDocument('ijasah', btn.dataset.ijasah, dokumenFields.dokumen_ijasah);
         setCurrentDocument('pas_foto', btn.dataset.pasFoto, dokumenFields.dokumen_pas_foto);

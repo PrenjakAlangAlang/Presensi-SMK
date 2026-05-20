@@ -11,13 +11,13 @@ class UserModel {
     
     public function login($identifier, $password) {
         $identifier = trim($identifier);
-        $isNisLogin = !filter_var($identifier, FILTER_VALIDATE_EMAIL);
+        $isEmailLogin = (bool) filter_var($identifier, FILTER_VALIDATE_EMAIL);
 
-        if (!$isNisLogin) {
+        if ($isEmailLogin) {
             $this->db->query('SELECT * FROM users WHERE email = :email LIMIT 1');
             $this->db->bind(':email', $identifier);
         } else {
-            $this->db->query('SELECT bi.id, bi.nama, bi.email_ortu AS email, bi.password, "siswa" AS role
+            $this->db->query('SELECT bi.id, bi.nama, bi.email, bi.password, "siswa" AS role
                               FROM buku_induk bi
                               WHERE TRIM(bi.nis) = :nis
                               ORDER BY bi.id DESC
@@ -26,11 +26,22 @@ class UserModel {
         }
         
         $user = $this->db->single();
+
+        if (!$user && $isEmailLogin) {
+            $this->db->query('SELECT bi.id, bi.nama, bi.email, bi.password, "siswa" AS role
+                              FROM buku_induk bi
+                              WHERE bi.email = :email
+                              ORDER BY bi.id DESC
+                              LIMIT 1');
+            $this->db->bind(':email', $identifier);
+            $user = $this->db->single();
+        }
         
         $passwordHash = $user->password ?? null;
+        $isSiswaLogin = $user && ($user->role ?? '') === 'siswa';
 
         $passwordValid = $user && $passwordHash && password_verify($password, $passwordHash);
-        if (!$passwordValid && $user && $isNisLogin && $passwordHash && hash_equals((string) $passwordHash, (string) $password)) {
+        if (!$passwordValid && $isSiswaLogin && $passwordHash && hash_equals((string) $passwordHash, (string) $password)) {
             $passwordValid = $this->updateBukuIndukPasswordHash($user->id, password_hash($password, PASSWORD_DEFAULT));
         }
 
@@ -111,7 +122,7 @@ class UserModel {
     
     public function getUsersByRole($role) {
         if ($role === 'siswa') {
-            $this->db->query('SELECT id, nama, COALESCE(email_ortu, "") AS email, "siswa" AS role FROM buku_induk ORDER BY nama');
+            $this->db->query('SELECT id, nama, COALESCE(email, "") AS email, "siswa" AS role FROM buku_induk ORDER BY nama');
             return $this->db->resultSet();
         }
 
@@ -132,7 +143,7 @@ class UserModel {
 
 
     public function getAllSiswa() {
-        $this->db->query('SELECT id, nama, COALESCE(email_ortu, "") AS email, "siswa" AS role FROM buku_induk ORDER BY nama');
+        $this->db->query('SELECT id, nama, COALESCE(email, "") AS email, "siswa" AS role FROM buku_induk ORDER BY nama');
         return $this->db->resultSet();
     }
 

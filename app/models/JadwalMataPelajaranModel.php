@@ -290,7 +290,7 @@ class JadwalMataPelajaranModel {
         $placeholders = $this->buildInPlaceholders($jadwalIds, 'jadwal_id');
 
         $this->db->query('SELECT DISTINCT bi.id, bi.nama, bi.nis, bi.nisn, bi.kelas, bi.jurusan, bi.tanggal_diterima, bi.agama,
-                         COALESCE(bi.email_ortu, "") AS email, "siswa" AS role
+                         COALESCE(bi.email, "") AS email, "siswa" AS role
                          FROM buku_induk bi
                          INNER JOIN jadwal_mata_pelajaran_siswa js ON bi.id = js.siswa_id
                          WHERE js.jadwal_mata_pelajaran_id IN (' . $placeholders . ')
@@ -319,13 +319,13 @@ class JadwalMataPelajaranModel {
             $conditions[] = 'agama = :filter_agama';
         }
         if (!empty($filters['search'])) {
-            $conditions[] = '(nama LIKE :filter_search OR nis LIKE :filter_search OR nisn LIKE :filter_search OR kelas LIKE :filter_search OR jurusan LIKE :filter_search OR agama LIKE :filter_search)';
+            $conditions[] = '(nama LIKE :filter_search OR nis LIKE :filter_search OR email LIKE :filter_search OR nisn LIKE :filter_search OR kelas LIKE :filter_search OR jurusan LIKE :filter_search OR agama LIKE :filter_search)';
         }
 
         $where = $conditions ? ' WHERE ' . implode(' AND ', $conditions) : '';
 
         $this->db->query('SELECT id, nama, nis, nisn, kelas, jurusan, tanggal_diterima, agama,
-                         COALESCE(email_ortu, "") AS email, "siswa" AS role
+                         COALESCE(email, "") AS email, "siswa" AS role
                          FROM buku_induk' . $where . '
                          ORDER BY kelas IS NULL, kelas, jurusan IS NULL, jurusan, agama IS NULL, agama, nama');
 

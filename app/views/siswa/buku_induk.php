@@ -38,6 +38,10 @@ $dokumenFields = [
                 <input type="text" name="nis" required class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nis ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" disabled class="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-600" value="<?php echo htmlspecialchars($record->email ?? '', ENT_QUOTES); ?>" />
+            </div>
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">NISN</label>
                 <input type="text" name="nisn" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nisn ?? '', ENT_QUOTES); ?>" />
             </div>

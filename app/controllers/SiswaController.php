@@ -376,6 +376,7 @@ class SiswaController {
             'user_id'       => $user_id,
             'nama'          => trim($_POST['nama'] ?? ''),
             'nis'           => trim($_POST['nis'] ?? ''),
+            'email'         => $existingRecord->email ?? $this->generateStudentEmail($_POST['nis'] ?? ''),
             'nisn'          => isset($_POST['nisn']) && trim($_POST['nisn']) !== '' ? trim($_POST['nisn']) : null,
             'kelas'         => $existingRecord->kelas ?? null,
             'jurusan'       => $existingRecord->jurusan ?? null,
@@ -449,6 +450,14 @@ class SiswaController {
 
         header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
         exit();
+    }
+
+    private function generateStudentEmail($nis) {
+        $safeNis = preg_replace('/[^a-zA-Z0-9._-]/', '', trim((string) $nis));
+        if ($safeNis === '') {
+            $safeNis = uniqid('siswa');
+        }
+        return strtolower($safeNis) . '@smk7.sch.id';
     }
 
     public function deleteDokumen() {
