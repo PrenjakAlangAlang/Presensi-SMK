@@ -34,15 +34,15 @@ $dokumenFields = [
 
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-            <input type="text" name="nama" required class="w-full border rounded-lg px-4 py-2" />
+            <input type="text" name="nama" required maxlength="50" class="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Induk Siswa</label>
-            <input type="text" name="nis" required class="w-full border rounded-lg px-4 py-2" />
+            <label class="block text-sm font-medium text-gray-700 mb-1">NIPD</label>
+            <input type="text" name="nipd" required class="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email Siswa</label>
-            <input type="email" name="email" class="w-full border rounded-lg px-4 py-2" placeholder="nis@smk7.sch.id" />
+            <input type="email" name="email" maxlength="50" class="w-full border rounded-lg px-4 py-2" placeholder="nipd@smk7.sch.id" />
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Induk Siswa Nasional</label>
@@ -86,15 +86,15 @@ $dokumenFields = [
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Ayah</label>
-            <input type="text" name="nama_ayah" class="w-full border rounded-lg px-4 py-2" />
+            <input type="text" name="nama_ayah" maxlength="50" class="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Ibu</label>
-            <input type="text" name="nama_ibu" class="w-full border rounded-lg px-4 py-2" />
+            <input type="text" name="nama_ibu" maxlength="50" class="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Wali</label>
-            <input type="text" name="nama_wali" class="w-full border rounded-lg px-4 py-2" />
+            <input type="text" name="nama_wali" maxlength="50" class="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon Orang Tua/Wali</label>
@@ -102,7 +102,7 @@ $dokumenFields = [
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email Orang Tua/Wali</label>
-            <input type="email" name="email_ortu" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" />
+            <input type="email" name="email_ortu" maxlength="50" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" />
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Password Siswa</label>
@@ -136,7 +136,7 @@ $dokumenFields = [
             </div>
             <div class="relative w-full md:w-80">
                 <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input id="searchBukuInduk" type="search" placeholder="Cari nama, NIS, email, kelas, jurusan, alamat..." class="w-full border rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                <input id="searchBukuInduk" type="search" placeholder="Cari nama, NIPD, email, kelas, jurusan, alamat..." class="w-full border rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
         </div>
     </div>
@@ -145,7 +145,7 @@ $dokumenFields = [
             <thead>
                 <tr class="bg-gray-50 text-left text-gray-600">
                     <th class="px-4 py-3">Nama</th>
-                    <th class="px-4 py-3">Nomor Induk Siswa</th>
+                    <th class="px-4 py-3">NIPD</th>
                     <th class="px-4 py-3">Email Siswa</th>
                     <th class="px-4 py-3">Nomor Induk Siswa Nasional</th>
                     <th class="px-4 py-3">Kelas/Jurusan</th>
@@ -166,7 +166,7 @@ $dokumenFields = [
                         }
                         $searchText = implode(' ', [
                             $r->nama ?? '',
-                            $r->nis ?? '',
+                            $r->nipd ?? '',
                             $r->email ?? '',
                             $r->nisn ?? '',
                             $r->kelas ?? '',
@@ -188,7 +188,7 @@ $dokumenFields = [
                         data-kelas="<?php echo htmlspecialchars($r->kelas ?? '', ENT_QUOTES); ?>"
                         data-jurusan="<?php echo htmlspecialchars($r->jurusan ?? '', ENT_QUOTES); ?>">
                         <td class="px-4 py-3"><?php echo htmlspecialchars($r->nama ?? '-'); ?></td>
-                        <td class="px-4 py-3"><?php echo htmlspecialchars($r->nis ?? '-'); ?></td>
+                        <td class="px-4 py-3"><?php echo htmlspecialchars($r->nipd ?? '-'); ?></td>
                         <td class="px-4 py-3"><?php echo !empty($r->email) ? htmlspecialchars($r->email) : '-'; ?></td>
                         <td class="px-4 py-3"><?php echo !empty($r->nisn) ? htmlspecialchars($r->nisn) : '-'; ?></td>
                         <td class="px-4 py-3">
@@ -219,7 +219,7 @@ $dokumenFields = [
                             <button class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 edit-btn"
                                     data-user-id="<?php echo $r->id; ?>"
                                     data-nama="<?php echo htmlspecialchars($r->nama ?? '', ENT_QUOTES); ?>"
-                                    data-nis="<?php echo htmlspecialchars($r->nis ?? '', ENT_QUOTES); ?>"
+                                    data-nipd="<?php echo htmlspecialchars($r->nipd ?? '', ENT_QUOTES); ?>"
                                     data-email="<?php echo htmlspecialchars($r->email ?? '', ENT_QUOTES); ?>"
                                     data-nisn="<?php echo htmlspecialchars($r->nisn ?? '', ENT_QUOTES); ?>"
                                     data-kelas="<?php echo htmlspecialchars($r->kelas ?? '', ENT_QUOTES); ?>"
@@ -300,7 +300,7 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
         form.reset();
         form.user_id.value = btn.dataset.userId;
         form.nama.value = btn.dataset.nama;
-        form.nis.value = btn.dataset.nis;
+        form.nipd.value = btn.dataset.nipd;
         form.email.value = btn.dataset.email || '';
         form.nisn.value = btn.dataset.nisn;
         form.kelas.value = btn.dataset.kelas || '';
@@ -321,7 +321,7 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
         setCurrentDocument('akta_kelahiran', btn.dataset.aktaKelahiran, dokumenFields.dokumen_akta_kelahiran);
         setCurrentDocument('kk', btn.dataset.kk, dokumenFields.dokumen_kk);
 
-        selectedStudentLabel.textContent = `${btn.dataset.nama} - Nomor Induk Siswa ${btn.dataset.nis}`;
+        selectedStudentLabel.textContent = `${btn.dataset.nama} - NIPD ${btn.dataset.nipd}`;
         editPanel.classList.remove('hidden');
         editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });

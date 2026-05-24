@@ -375,8 +375,8 @@ class SiswaController {
         $data = [
             'user_id'       => $user_id,
             'nama'          => trim($_POST['nama'] ?? ''),
-            'nis'           => trim($_POST['nis'] ?? ''),
-            'email'         => $existingRecord->email ?? $this->generateStudentEmail($_POST['nis'] ?? ''),
+            'nipd'           => trim($_POST['nipd'] ?? ''),
+            'email'         => $existingRecord->email ?? $this->generateStudentEmail($_POST['nipd'] ?? ''),
             'nisn'          => isset($_POST['nisn']) && trim($_POST['nisn']) !== '' ? trim($_POST['nisn']) : null,
             'kelas'         => $existingRecord->kelas ?? null,
             'jurusan'       => $existingRecord->jurusan ?? null,
@@ -396,8 +396,14 @@ class SiswaController {
             'dokumen_kk' => $_POST['existing_kk'] ?? null
         ];
 
-        if ($data['nama'] === '' || $data['nis'] === '') {
-            $_SESSION['error'] = 'Nama dan NIS wajib diisi.';
+        if ($data['nama'] === '' || $data['nipd'] === '') {
+            $_SESSION['error'] = 'Nama dan NIPD wajib diisi.';
+            header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
+            exit();
+        }
+
+        if ($this->hasValueLongerThan($data, ['nama', 'email', 'nama_ayah', 'nama_ibu', 'nama_wali', 'email_ortu'], 50)) {
+            $_SESSION['error'] = 'Kolom nama dan email maksimal 50 karakter.';
             header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
             exit();
         }
@@ -452,12 +458,12 @@ class SiswaController {
         exit();
     }
 
-    private function generateStudentEmail($nis) {
-        $safeNis = preg_replace('/[^a-zA-Z0-9._-]/', '', trim((string) $nis));
-        if ($safeNis === '') {
-            $safeNis = uniqid('siswa');
+    private function generateStudentEmail($nipd) {
+        $safeNipd = preg_replace('/[^a-zA-Z0-9._-]/', '', trim((string) $nipd));
+        if ($safeNipd === '') {
+            $safeNipd = uniqid('siswa');
         }
-        return strtolower($safeNis) . '@smk7.sch.id';
+        return strtolower($safeNipd) . '@smk7.sch.id';
     }
 
     public function deleteDokumen() {
@@ -725,6 +731,15 @@ class SiswaController {
         if (!empty($filters['tahun_ajaran'])) {
             $db->bind(':filter_tahun_ajaran', $filters['tahun_ajaran']);
         }
+    }
+
+    private function hasValueLongerThan($data, $fields, $limit) {
+        foreach ($fields as $field) {
+            if (isset($data[$field]) && $data[$field] !== null && strlen((string) $data[$field]) > $limit) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 ?>

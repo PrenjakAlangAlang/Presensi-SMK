@@ -76,11 +76,11 @@
             <form method="POST" action="<?php echo BASE_URL; ?>/index.php?action=login" id="loginForm" autocomplete="on" class="<?php echo !empty($showRegister) ? 'hidden' : ''; ?>">
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-medium mb-2" for="email">
-                        <i class="fas fa-user mr-2 text-blue-500"></i>Email / NIS
+                        <i class="fas fa-user mr-2 text-blue-500"></i>Email / NIPD
                     </label>
                     <input type="text" id="email" name="email" required autocomplete="username"
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-300"
-                           placeholder="admin/guru: email, siswa: email atau NIS"
+                           placeholder="admin/guru: email, siswa: email atau NIPD"
                            value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
                 </div>
                 
@@ -103,7 +103,7 @@
                 <div class="grid grid-cols-1 gap-4">
                     <input type="text" name="nama" required autocomplete="off" placeholder="Nama lengkap" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value="<?php echo htmlspecialchars($_POST['nama'] ?? '', ENT_QUOTES); ?>">
                     <div class="grid grid-cols-2 gap-3">
-                        <input type="text" name="nis" required inputmode="numeric" autocomplete="off" placeholder="NIS" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value="<?php echo htmlspecialchars($_POST['nis'] ?? '', ENT_QUOTES); ?>">
+                        <input type="text" name="nipd" required inputmode="numeric" autocomplete="off" placeholder="NIPD" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value="<?php echo htmlspecialchars($_POST['nipd'] ?? '', ENT_QUOTES); ?>">
                         <input type="text" name="nisn" required inputmode="numeric" autocomplete="off" placeholder="NISN" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value="<?php echo htmlspecialchars($_POST['nisn'] ?? '', ENT_QUOTES); ?>">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
@@ -148,7 +148,7 @@
                     </div>
                     <div class="bg-white p-3 rounded border">
                         <div class="font-semibold text-purple-700">🎓 Siswa</div>
-                        <div class="text-purple-600">NIS atau nis@smk7.sch.id</div>
+                        <div class="text-purple-600">NIPD atau nipd@smk7.sch.id</div>
                         <div class="text-gray-600">Password: siswa123</div>
                     </div>
                     <div class="bg-white p-3 rounded border">

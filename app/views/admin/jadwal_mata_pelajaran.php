@@ -73,6 +73,9 @@ $selectedKelasArchived = $selectedKelas && (($selectedKelas->status ?? 'active')
                             <span class="mx-1">-</span><?php echo htmlspecialchars($kelas->semester); ?>
                         <?php endif; ?>
                     </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Dibuat oleh <?php echo htmlspecialchars($kelas->created_by_nama ?? '-'); ?>
+                    </p>
                 </div>
                 <div class="w-11 h-11 bg-blue-100 rounded-lg flex items-center justify-center">
                     <i class="fas fa-school text-blue-600"></i>
@@ -345,7 +348,7 @@ function renderJadwalFormFields($guru, $hariList, $prefix = '', $multiple = fals
             <div class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Nama Kelas *</label>
-                    <input type="text" name="nama_kelas" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Contoh: X AK 1">
+                    <input type="text" name="nama_kelas" required maxlength="50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Contoh: X AK 1">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Ajaran</label>
@@ -378,7 +381,7 @@ function renderJadwalFormFields($guru, $hariList, $prefix = '', $multiple = fals
             <div class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Nama Kelas *</label>
-                    <input type="text" name="nama_kelas" id="edit_kelas_nama" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <input type="text" name="nama_kelas" id="edit_kelas_nama" required maxlength="50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Ajaran</label>
@@ -419,7 +422,7 @@ function renderJadwalFormFields($guru, $hariList, $prefix = '', $multiple = fals
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div class="md:col-span-3">
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Cari Siswa</label>
-                                <input type="search" id="filterSiswaKeyword" placeholder="Nama, NIS, NISN, kelas, jurusan, agama" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <input type="search" id="filterSiswaKeyword" placeholder="Nama, NIPD, NISN, kelas, jurusan, agama" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Kelas</label>
@@ -774,7 +777,7 @@ function loadSiswaDalamJadwal() {
                         </div>
                         <div>
                             <p class="font-medium text-gray-800">${escapeHtml(siswa.nama)}</p>
-                            <p class="text-xs text-gray-500">${escapeHtml([siswa.nis ? `NIS ${siswa.nis}` : '', siswa.kelas || '', siswa.jurusan || '', siswa.agama || ''].filter(Boolean).join(' - ') || 'Data kelas belum diisi')}</p>
+                            <p class="text-xs text-gray-500">${escapeHtml([siswa.nipd ? `NIPD ${siswa.nipd}` : '', siswa.kelas || '', siswa.jurusan || '', siswa.agama || ''].filter(Boolean).join(' - ') || 'Data kelas belum diisi')}</p>
                         </div>
                     </div>
                     <button onclick="hapusSiswaDariJadwal(${siswa.id})" class="text-red-600 hover:text-red-700">
@@ -856,7 +859,7 @@ function renderSiswaTersediaOptions() {
         const matchesAgama = !agama || siswa.agama === agama;
         const searchText = [
             siswa.nama || '',
-            siswa.nis || '',
+            siswa.nipd || '',
             siswa.nisn || '',
             siswa.kelas || '',
             siswa.jurusan || '',
@@ -873,8 +876,8 @@ function renderSiswaTersediaOptions() {
             const kelasText = siswa.kelas ? ` - ${siswa.kelas}` : '';
             const jurusanText = siswa.jurusan ? ` (${siswa.jurusan})` : '';
             const agamaText = siswa.agama ? ` - ${siswa.agama}` : '';
-            const nisText = siswa.nis ? `NIS ${siswa.nis} - ` : '';
-            select.innerHTML += `<option value="${siswa.id}">${nisText}${escapeHtml(siswa.nama || 'Nama tidak tersedia')}${escapeHtml(kelasText + jurusanText + agamaText)}</option>`;
+            const nipdText = siswa.nipd ? `NIPD ${siswa.nipd} - ` : '';
+            select.innerHTML += `<option value="${siswa.id}">${nipdText}${escapeHtml(siswa.nama || 'Nama tidak tersedia')}${escapeHtml(kelasText + jurusanText + agamaText)}</option>`;
         });
     }
 

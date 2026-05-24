@@ -40,6 +40,41 @@ if (in_array($action, $protectedRoutes) && !isset($_SESSION['user_id'])) {
     exit();
 }
 
+$roleProtectedRoutes = [
+    'admin_presensi_sekolah' => ['admin'],
+    'admin_create_presensi_sekolah' => ['admin'],
+    'admin_extend_presensi_sekolah' => ['admin'],
+    'admin_close_presensi_sekolah' => ['admin'],
+    'admin_delete_presensi_sekolah' => ['admin'],
+    'admin_delete_multiple_presensi_sekolah' => ['admin'],
+    'admin_create_kelas' => ['admin'],
+    'admin_update_kelas' => ['admin'],
+    'admin_delete_kelas' => ['admin'],
+    'admin_toggle_kelas_status' => ['admin'],
+    'admin_kesiswaan_presensi_sekolah' => ['admin_kesiswaan'],
+    'admin_kesiswaan_create_presensi_sekolah' => ['admin_kesiswaan'],
+    'admin_kesiswaan_extend_presensi_sekolah' => ['admin_kesiswaan'],
+    'admin_kesiswaan_close_presensi_sekolah' => ['admin_kesiswaan'],
+    'admin_kesiswaan_delete_presensi_sekolah' => ['admin_kesiswaan'],
+    'admin_kesiswaan_delete_multiple_presensi_sekolah' => ['admin_kesiswaan'],
+    'admin_kesiswaan_get_presensi_sekolah_status' => ['admin_kesiswaan'],
+];
+
+if (isset($roleProtectedRoutes[$action])) {
+    $currentRole = $_SESSION['user_role'] ?? null;
+    if (!in_array($currentRole, $roleProtectedRoutes[$action], true)) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            header('Content-Type: application/json');
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Akses ditolak.']);
+            exit();
+        }
+
+        header('Location: ' . BASE_URL . '/index.php?action=login');
+        exit();
+    }
+}
+
 // Routing utama: panggil controller dan method sesuai action
 switch($action) {
     case 'login':

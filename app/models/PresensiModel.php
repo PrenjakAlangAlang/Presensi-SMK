@@ -89,10 +89,10 @@ class PresensiModel {
     
     public function getPresensiKelasByUser($user_id, $limit = null, $filters = []) {
         $filters = is_array($filters) ? $filters : ['kelas_jadwal_id' => $filters];
-        $sql = 'SELECT pm.*, j.nama_mata_pelajaran, COALESCE(k.nama_kelas, j.nama_kelas) as nama_kelas, j.kelas_jadwal_id, k.tahun_ajaran, k.semester, j.hari, j.jam_mulai, j.jam_selesai
+        $sql = 'SELECT pm.*, j.nama_mata_pelajaran, k.nama_kelas, j.kelas_jadwal_id, k.tahun_ajaran, k.semester, j.hari, j.jam_mulai, j.jam_selesai
                 FROM presensi_mapel pm
                 INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
-                LEFT JOIN kelas k ON j.kelas_jadwal_id = k.id
+                INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
                 WHERE pm.user_id = :user_id';
         $sql .= $this->buildMapelFilterSql($filters);
         $sql .= ' ORDER BY pm.waktu DESC';
@@ -106,10 +106,10 @@ class PresensiModel {
     public function getPresensiKelasByUserPeriode($user_id, $startDate, $endDate = null, $filters = []) {
         $filters = is_array($filters) ? $filters : ['kelas_jadwal_id' => $filters];
         if ($endDate) {
-            $sql = 'SELECT pm.*, j.nama_mata_pelajaran, COALESCE(k.nama_kelas, j.nama_kelas) as nama_kelas, j.kelas_jadwal_id, k.tahun_ajaran, k.semester
+            $sql = 'SELECT pm.*, j.nama_mata_pelajaran, k.nama_kelas, j.kelas_jadwal_id, k.tahun_ajaran, k.semester
                     FROM presensi_mapel pm
                     INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
-                    LEFT JOIN kelas k ON j.kelas_jadwal_id = k.id
+                    INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
                     WHERE pm.user_id = :user_id AND DATE(pm.waktu) BETWEEN :start_date AND :end_date';
             $sql .= $this->buildMapelFilterSql($filters);
             $sql .= ' ORDER BY pm.waktu DESC';
@@ -117,10 +117,10 @@ class PresensiModel {
             $this->db->bind(':start_date', $startDate);
             $this->db->bind(':end_date', $endDate);
         } else {
-            $sql = 'SELECT pm.*, j.nama_mata_pelajaran, COALESCE(k.nama_kelas, j.nama_kelas) as nama_kelas, j.kelas_jadwal_id, k.tahun_ajaran, k.semester
+            $sql = 'SELECT pm.*, j.nama_mata_pelajaran, k.nama_kelas, j.kelas_jadwal_id, k.tahun_ajaran, k.semester
                     FROM presensi_mapel pm
                     INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
-                    LEFT JOIN kelas k ON j.kelas_jadwal_id = k.id
+                    INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
                     WHERE pm.user_id = :user_id AND DATE(pm.waktu) = :tanggal';
             $sql .= $this->buildMapelFilterSql($filters);
             $sql .= ' ORDER BY pm.waktu DESC';
@@ -160,7 +160,7 @@ class PresensiModel {
 
         // Base select — list all siswa in mata pelajaran and join any matching presensi_mapel
         if ($sesi_id) {
-            $sql = 'SELECT bi.id as siswa_id, bi.nis, bi.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
+            $sql = 'SELECT bi.id as siswa_id, bi.nipd, bi.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
                     FROM buku_induk bi
                     INNER JOIN jadwal_mata_pelajaran_siswa js ON bi.id = js.siswa_id
                     LEFT JOIN presensi_mapel pk ON bi.id = pk.user_id AND pk.presensi_sesi_id = :sesi_id
@@ -174,7 +174,7 @@ class PresensiModel {
 
         // fallback: use date filter on presensi_mapel (today by default)
         $tanggal = $tanggal ?: date('Y-m-d');
-        $sql = 'SELECT bi.id as siswa_id, bi.nis, bi.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
+        $sql = 'SELECT bi.id as siswa_id, bi.nipd, bi.nama, pk.status, pk.waktu, pk.jarak, pk.latitude, pk.longitude, pk.presensi_sesi_id, pk.jenis, pk.alasan, pk.foto_bukti, "kelas" as sumber
                 FROM buku_induk bi
                 INNER JOIN jadwal_mata_pelajaran_siswa js ON bi.id = js.siswa_id
                 LEFT JOIN presensi_mapel pk ON bi.id = pk.user_id AND DATE(pk.waktu) = :tanggal AND pk.jadwal_mata_pelajaran_id = :mata_pelajaran_id

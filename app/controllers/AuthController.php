@@ -24,7 +24,7 @@ class AuthController {
                 $this->redirectBasedOnRole($_SESSION['user_role']);
             } else {
                 // jika gagal tampilkan pesan error di view login
-                $error = "Email/NIS atau password salah!";
+                $error = "Email/NIPD atau password salah!";
                 require_once __DIR__ . '/../views/auth/login.php';
             }
         } else {
@@ -41,8 +41,8 @@ class AuthController {
         $data = [
             'user_id' => null,
             'nama' => trim($_POST['nama'] ?? ''),
-            'nis' => trim($_POST['nis'] ?? ''),
-            'email' => $this->generateStudentEmail($_POST['nis'] ?? ''),
+            'nipd' => trim($_POST['nipd'] ?? ''),
+            'email' => $this->generateStudentEmail($_POST['nipd'] ?? ''),
             'nisn' => trim($_POST['nisn'] ?? ''),
             'tempat_lahir' => trim($_POST['tempat_lahir'] ?? ''),
             'tanggal_lahir' => $_POST['tanggal_lahir'] ?? '',
@@ -60,7 +60,7 @@ class AuthController {
         ];
         $passwordConfirm = $_POST['password_confirm'] ?? '';
 
-        if ($data['nama'] === '' || $data['nis'] === '' || $data['nisn'] === '' || $data['tempat_lahir'] === '' || $data['tanggal_lahir'] === '' || $data['alamat'] === '') {
+        if ($data['nama'] === '' || $data['nipd'] === '' || $data['nisn'] === '' || $data['tempat_lahir'] === '' || $data['tanggal_lahir'] === '' || $data['alamat'] === '') {
             $error = 'Lengkapi data wajib untuk daftar sebagai siswa.';
             $showRegister = true;
             require_once __DIR__ . '/../views/auth/login.php';
@@ -81,17 +81,17 @@ class AuthController {
             return;
         }
 
-        if ($this->bukuIndukModel->getByNis($data['nis'])) {
-            $error = 'NIS sudah terdaftar. Silakan login menggunakan NIS tersebut atau hubungi admin.';
+        if ($this->bukuIndukModel->getByNipd($data['nipd'])) {
+            $error = 'NIPD sudah terdaftar. Silakan login menggunakan NIPD tersebut atau hubungi admin.';
             $showRegister = true;
             require_once __DIR__ . '/../views/auth/login.php';
             return;
         }
 
         if ($this->bukuIndukModel->upsert($data)) {
-            $success = 'Pendaftaran siswa berhasil. Silakan login menggunakan NIS/email dan password yang Anda buat.';
+            $success = 'Pendaftaran siswa berhasil. Silakan login menggunakan NIPD/email dan password yang Anda buat.';
         } else {
-            $error = 'Gagal mendaftarkan siswa. Periksa kembali NIS atau hubungi admin.';
+            $error = 'Gagal mendaftarkan siswa. Periksa kembali NIPD atau hubungi admin.';
             $showRegister = true;
         }
 
@@ -129,12 +129,12 @@ class AuthController {
         exit();
     }
 
-    private function generateStudentEmail($nis) {
-        $safeNis = preg_replace('/[^a-zA-Z0-9._-]/', '', trim((string) $nis));
-        if ($safeNis === '') {
-            $safeNis = uniqid('siswa');
+    private function generateStudentEmail($nipd) {
+        $safeNipd = preg_replace('/[^a-zA-Z0-9._-]/', '', trim((string) $nipd));
+        if ($safeNipd === '') {
+            $safeNipd = uniqid('siswa');
         }
-        return strtolower($safeNis) . '@smk7.sch.id';
+        return strtolower($safeNipd) . '@smk7.sch.id';
     }
 }
 ?>

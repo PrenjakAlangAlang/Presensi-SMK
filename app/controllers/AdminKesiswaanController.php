@@ -58,7 +58,7 @@ class AdminKesiswaanController {
         $data = [
             'user_id' => !empty($_POST['user_id']) ? $_POST['user_id'] : null,
             'nama' => trim($_POST['nama'] ?? ''),
-            'nis' => trim($_POST['nis'] ?? ''),
+            'nipd' => trim($_POST['nipd'] ?? ''),
             'email' => isset($_POST['email']) && trim($_POST['email']) !== '' ? trim($_POST['email']) : null,
             'nisn' => isset($_POST['nisn']) && trim($_POST['nisn']) !== '' ? trim($_POST['nisn']) : null,
             'kelas' => isset($_POST['kelas']) ? trim($_POST['kelas']) : null,
@@ -79,14 +79,20 @@ class AdminKesiswaanController {
             'dokumen_kk' => $_POST['existing_kk'] ?? null
         ];
 
-        if ($data['nama'] === '' || $data['nis'] === '') {
-            $_SESSION['error'] = 'Nama dan NIS wajib diisi.';
+        if ($data['nama'] === '' || $data['nipd'] === '') {
+            $_SESSION['error'] = 'Nama dan NIPD wajib diisi.';
+            header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
+            exit();
+        }
+
+        if ($this->hasValueLongerThan($data, ['nama', 'email', 'nama_ayah', 'nama_ibu', 'nama_wali', 'email_ortu'], 50)) {
+            $_SESSION['error'] = 'Kolom nama dan email maksimal 50 karakter.';
             header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
             exit();
         }
 
         if ($data['email'] === null) {
-            $data['email'] = $this->generateStudentEmail($data['nis']);
+            $data['email'] = $this->generateStudentEmail($data['nipd']);
         } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             $_SESSION['error'] = 'Email siswa tidak valid.';
             header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
@@ -299,12 +305,12 @@ class AdminKesiswaanController {
         return ['success' => false, 'message' => 'Gagal mengunggah dokumen.'];
     }
 
-    private function generateStudentEmail($nis) {
-        $safeNis = preg_replace('/[^a-zA-Z0-9._-]/', '', trim((string) $nis));
-        if ($safeNis === '') {
-            $safeNis = uniqid('siswa');
+    private function generateStudentEmail($nipd) {
+        $safeNipd = preg_replace('/[^a-zA-Z0-9._-]/', '', trim((string) $nipd));
+        if ($safeNipd === '') {
+            $safeNipd = uniqid('siswa');
         }
-        return strtolower($safeNis) . '@smk7.sch.id';
+        return strtolower($safeNipd) . '@smk7.sch.id';
     }
 
     public function laporan() {
@@ -361,7 +367,7 @@ class AdminKesiswaanController {
             // Laporan presensi sekolah (default)
             // Get all presensi sekolah for the period
             $db = new Database();
-            $db->query('SELECT ps.*, bi.nis, bi.nama, COALESCE(bi.email_ortu, "") AS email 
+            $db->query('SELECT ps.*, bi.nipd, bi.nama, COALESCE(bi.email_ortu, "") AS email 
                         FROM presensi_sekolah ps 
                         JOIN buku_induk bi ON ps.user_id = bi.id 
                         WHERE DATE(ps.waktu) BETWEEN :start_date AND :end_date
@@ -492,7 +498,7 @@ class AdminKesiswaanController {
         $db = new Database();
         $sql = 'SELECT COALESCE(pm.id, 0) as id,
                        bi.id as user_id,
-                       bi.nis,
+                       bi.nipd,
                        bi.nama,
                        COALESCE(bi.email_ortu, "") as email,
                        pm.status,
@@ -636,7 +642,7 @@ class AdminKesiswaanController {
             $studentId = $row->user_id ?? $row->siswa_id ?? $row->id ?? $row->nama;
             if (!isset($students[$studentId])) {
                 $students[$studentId] = [
-                    'nis' => $row->nis ?? $studentId,
+                    'nipd' => $row->nipd ?? $studentId,
                     'nama' => $row->nama ?? '-',
                     'days' => array_fill(1, $daysInMonth, ''),
                     'hadir' => 0,
@@ -683,7 +689,7 @@ class AdminKesiswaanController {
 
     private function echoMonthlyAttendanceTable($rows, $daysInMonth) {
         echo '<table>';
-        echo '<tr><th rowspan="2">Urut</th><th rowspan="2">NIPD/NIS</th><th rowspan="2" class="name">Nama Lengkap</th><th rowspan="2">L/P</th><th colspan="' . $daysInMonth . '">Tanggal</th><th colspan="4">Jumlah</th></tr>';
+        echo '<tr><th rowspan="2">Urut</th><th rowspan="2">NIPD</th><th rowspan="2" class="name">Nama Lengkap</th><th rowspan="2">L/P</th><th colspan="' . $daysInMonth . '">Tanggal</th><th colspan="4">Jumlah</th></tr>';
         echo '<tr>';
         for ($day = 1; $day <= $daysInMonth; $day++) echo '<th>' . $day . '</th>';
         echo '<th>H</th><th>I</th><th>S</th><th>A</th></tr>';
@@ -691,7 +697,7 @@ class AdminKesiswaanController {
         foreach ($rows as $row) {
             echo '<tr>';
             echo '<td>' . $no++ . '</td>';
-            echo '<td>' . htmlspecialchars($row['nis']) . '</td>';
+            echo '<td>' . htmlspecialchars($row['nipd']) . '</td>';
             echo '<td class="name">' . htmlspecialchars($row['nama']) . '</td>';
             echo '<td></td>';
             for ($day = 1; $day <= $daysInMonth; $day++) echo '<td>' . htmlspecialchars($row['days'][$day]) . '</td>';
@@ -964,7 +970,7 @@ class AdminKesiswaanController {
             $report_title = 'Laporan Presensi Mata Pelajaran';
         } else {
             $db = new Database();
-            $db->query('SELECT ps.*, bi.nis, bi.nama, COALESCE(bi.email_ortu, "") AS email 
+            $db->query('SELECT ps.*, bi.nipd, bi.nama, COALESCE(bi.email_ortu, "") AS email 
                         FROM presensi_sekolah ps 
                         JOIN buku_induk bi ON ps.user_id = bi.id 
                         WHERE DATE(ps.waktu) BETWEEN :start_date AND :end_date' . 
@@ -1326,6 +1332,15 @@ class AdminKesiswaanController {
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'ID tidak valid']);
         exit;
+    }
+
+    private function hasValueLongerThan($data, $fields, $limit) {
+        foreach ($fields as $field) {
+            if (isset($data[$field]) && $data[$field] !== null && strlen((string) $data[$field]) > $limit) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

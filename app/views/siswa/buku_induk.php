@@ -31,15 +31,15 @@ $dokumenFields = [
         <form method="POST" action="<?php echo BASE_URL; ?>/index.php?action=siswa_save_buku_induk" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                <input type="text" name="nama" required class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nama ?? ($_SESSION['user_nama'] ?? ''), ENT_QUOTES); ?>" />
+                <input type="text" name="nama" required maxlength="50" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nama ?? ($_SESSION['user_nama'] ?? ''), ENT_QUOTES); ?>" />
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">NIS</label>
-                <input type="text" name="nis" required class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nis ?? '', ENT_QUOTES); ?>" />
+                <label class="block text-sm font-medium text-gray-700 mb-1">NIPD</label>
+                <input type="text" name="nipd" required class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nipd ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" disabled class="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-600" value="<?php echo htmlspecialchars($record->email ?? '', ENT_QUOTES); ?>" />
+                <input type="email" disabled maxlength="50" class="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-600" value="<?php echo htmlspecialchars($record->email ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">NISN</label>
@@ -75,15 +75,15 @@ $dokumenFields = [
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Ayah</label>
-                <input type="text" name="nama_ayah" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nama_ayah ?? '', ENT_QUOTES); ?>" />
+                <input type="text" name="nama_ayah" maxlength="50" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nama_ayah ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Ibu</label>
-                <input type="text" name="nama_ibu" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nama_ibu ?? '', ENT_QUOTES); ?>" />
+                <input type="text" name="nama_ibu" maxlength="50" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nama_ibu ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Wali</label>
-                <input type="text" name="nama_wali" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nama_wali ?? '', ENT_QUOTES); ?>" />
+                <input type="text" name="nama_wali" maxlength="50" class="w-full border rounded-lg px-4 py-2" value="<?php echo htmlspecialchars($record->nama_wali ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon Orang Tua</label>
@@ -91,7 +91,7 @@ $dokumenFields = [
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email Orang Tua</label>
-                <input type="email" name="email_ortu" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" value="<?php echo htmlspecialchars($record->email_ortu ?? '', ENT_QUOTES); ?>" />
+                <input type="email" name="email_ortu" maxlength="50" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" value="<?php echo htmlspecialchars($record->email_ortu ?? '', ENT_QUOTES); ?>" />
             </div>
             <div></div>
 

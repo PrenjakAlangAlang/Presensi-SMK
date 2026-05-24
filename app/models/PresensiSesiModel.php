@@ -138,18 +138,20 @@ class PresensiSesiModel {
 
    
     public function getSessionById($id) {
-        $this->db->query('SELECT ps.*, j.nama_mata_pelajaran, j.nama_kelas
+        $this->db->query('SELECT ps.*, j.nama_mata_pelajaran, k.nama_kelas
                          FROM presensi_mapel_sesi ps
                          INNER JOIN jadwal_mata_pelajaran j ON ps.jadwal_mata_pelajaran_id = j.id
+                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
                          WHERE ps.id = :id');
         $this->db->bind(':id', (int) $id);
         return $this->db->single();
     }
 
     public function getSessionForGuru($sesi_id, $guru_id) {
-        $this->db->query('SELECT ps.*, j.nama_mata_pelajaran, j.nama_kelas, j.guru_pengampu
+        $this->db->query('SELECT ps.*, j.nama_mata_pelajaran, k.nama_kelas, j.guru_pengampu
                          FROM presensi_mapel_sesi ps
                          INNER JOIN jadwal_mata_pelajaran j ON ps.jadwal_mata_pelajaran_id = j.id
+                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
                          WHERE ps.id = :id AND j.guru_pengampu = :guru_id
                          LIMIT 1');
         $this->db->bind(':id', (int) $sesi_id);

@@ -19,10 +19,10 @@ class UserModel {
         } else {
             $this->db->query('SELECT bi.id, bi.nama, bi.email, bi.password, "siswa" AS role
                               FROM buku_induk bi
-                              WHERE TRIM(bi.nis) = :nis
+                              WHERE TRIM(bi.nipd) = :nipd
                               ORDER BY bi.id DESC
                               LIMIT 1');
-            $this->db->bind(':nis', $identifier);
+            $this->db->bind(':nipd', $identifier);
         }
         
         $user = $this->db->single();
@@ -147,7 +147,7 @@ class UserModel {
         return $this->db->resultSet();
     }
 
-    public function createSiswaFromBukuInduk($nama, $nis, $passwordHash) {
+    public function createSiswaFromBukuInduk($nama, $nipd, $passwordHash) {
         return false;
     }
 
@@ -177,12 +177,12 @@ class UserModel {
         return $this->db->execute();
     }
 
-    private function generateSiswaEmail($nis) {
-        $safeNis = preg_replace('/[^a-zA-Z0-9._-]/', '', (string) $nis);
-        if ($safeNis === '') {
-            $safeNis = uniqid('siswa');
+    private function generateSiswaEmail($nipd) {
+        $safeNipd = preg_replace('/[^a-zA-Z0-9._-]/', '', (string) $nipd);
+        if ($safeNipd === '') {
+            $safeNipd = uniqid('siswa');
         }
-        return 'siswa_' . $safeNis . '@buku-induk.local';
+        return 'siswa_' . $safeNipd . '@buku-induk.local';
     }
 }
 ?>

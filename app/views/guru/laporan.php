@@ -362,7 +362,7 @@ $presentase = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
         <form id="formEditPresensi" onsubmit="return submitEditPresensi(event)">
             <input type="hidden" id="edit_siswa_id" name="siswa_id">
             <input type="hidden" id="edit_kelas_id" name="kelas_id" value="<?php echo $selected_kelas ? $selected_kelas->id : ''; ?>">
-            <input type="hidden" id="edit_sesi_id" name="sesi_id" value="<?php echo isset($laporan[$selected_kelas->id]['selected_sesi']) ? $laporan[$selected_kelas->id]['selected_sesi']->id : ''; ?>">
+            <input type="hidden" id="edit_sesi_id" name="sesi_id" value="<?php echo ($selected_kelas && isset($laporan[$selected_kelas->id]['selected_sesi'])) ? $laporan[$selected_kelas->id]['selected_sesi']->id : ''; ?>">
             
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2">

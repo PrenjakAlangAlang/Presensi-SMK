@@ -270,7 +270,7 @@ class GuruController {
         $db = new Database();
         $sql = 'SELECT COALESCE(pm.id, 0) as id,
                        bi.id as user_id,
-                       bi.nis,
+                       bi.nipd,
                        bi.nama,
                        pm.status,
                        COALESCE(pm.waktu, s.waktu_buka) as waktu,
@@ -335,7 +335,7 @@ class GuruController {
             $studentId = $row->user_id ?? $row->siswa_id ?? $row->id ?? $row->nama;
             if (!isset($students[$studentId])) {
                 $students[$studentId] = [
-                    'nis' => $row->nis ?? $studentId,
+                    'nipd' => $row->nipd ?? $studentId,
                     'nama' => $row->nama ?? '-',
                     'days' => array_fill(1, $daysInMonth, ''),
                     'hadir' => 0,
@@ -374,12 +374,12 @@ class GuruController {
     }
 
     private function echoMonthlyAttendanceTable($rows, $daysInMonth) {
-        echo '<table><tr><th rowspan="2">Urut</th><th rowspan="2">NIPD/NIS</th><th rowspan="2" class="name">Nama Lengkap</th><th rowspan="2">L/P</th><th colspan="' . $daysInMonth . '">Tanggal</th><th colspan="4">Jumlah</th></tr><tr>';
+        echo '<table><tr><th rowspan="2">Urut</th><th rowspan="2">NIPD</th><th rowspan="2" class="name">Nama Lengkap</th><th rowspan="2">L/P</th><th colspan="' . $daysInMonth . '">Tanggal</th><th colspan="4">Jumlah</th></tr><tr>';
         for ($day = 1; $day <= $daysInMonth; $day++) echo '<th>' . $day . '</th>';
         echo '<th>H</th><th>I</th><th>S</th><th>A</th></tr>';
         $no = 1;
         foreach ($rows as $row) {
-            echo '<tr><td>' . $no++ . '</td><td>' . htmlspecialchars($row['nis']) . '</td><td class="name">' . htmlspecialchars($row['nama']) . '</td><td></td>';
+            echo '<tr><td>' . $no++ . '</td><td>' . htmlspecialchars($row['nipd']) . '</td><td class="name">' . htmlspecialchars($row['nama']) . '</td><td></td>';
             for ($day = 1; $day <= $daysInMonth; $day++) echo '<td>' . htmlspecialchars($row['days'][$day]) . '</td>';
             echo '<td>' . $row['hadir'] . '</td><td>' . $row['izin'] . '</td><td>' . $row['sakit'] . '</td><td>' . $row['alpha'] . '</td></tr>';
         }
