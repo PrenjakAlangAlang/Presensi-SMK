@@ -32,9 +32,13 @@ $selectedKelasArchived = $selectedKelas && (($selectedKelas->status ?? 'active')
                 </button>
             <?php endif; ?>
         <?php else: ?>
+            <button onclick="openAddMasterKelasModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                <i class="fas fa-layer-group"></i>
+                <span>Tambah Master Kelas</span>
+            </button>
             <button onclick="openAddKelasModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
                 <i class="fas fa-plus"></i>
-                <span>Tambah Kelas</span>
+                <span>Aktifkan Kelas Semester</span>
             </button>
         <?php endif; ?>
     </div>
@@ -53,6 +57,10 @@ $selectedKelasArchived = $selectedKelas && (($selectedKelas->status ?? 'active')
 <?php endif; ?>
 
 <?php if(!$selectedKelas): ?>
+<div class="mb-4">
+    <h3 class="font-semibold text-gray-800">Kelas Semester</h3>
+    <p class="text-sm text-gray-500">Periode kelas untuk jadwal, presensi, dan status arsip.</p>
+</div>
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
     <?php foreach($kelasList as $kelas): ?>
     <?php $isArchived = (($kelas->status ?? 'active') === 'archived'); ?>
@@ -100,6 +108,7 @@ $selectedKelasArchived = $selectedKelas && (($selectedKelas->status ?? 'active')
             </button>
             <button onclick="openEditKelasModal(this)"
                     data-id="<?php echo $kelas->id; ?>"
+                    data-master-kelas-id="<?php echo htmlspecialchars($kelas->master_kelas_id ?? '', ENT_QUOTES); ?>"
                     data-nama-kelas="<?php echo htmlspecialchars($kelas->nama_kelas, ENT_QUOTES); ?>"
                     data-tahun-ajaran="<?php echo htmlspecialchars($kelas->tahun_ajaran ?? '', ENT_QUOTES); ?>"
                     data-semester="<?php echo htmlspecialchars($kelas->semester ?? '', ENT_QUOTES); ?>"
@@ -342,13 +351,18 @@ function renderJadwalFormFields($guru, $hariList, $prefix = '', $multiple = fals
 <div id="addKelasModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <div class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4">
         <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Tambah Kelas</h3>
+            <h3 class="text-xl font-semibold text-gray-800">Aktifkan Kelas Semester</h3>
         </div>
         <form method="POST" action="index.php?action=admin_create_kelas">
             <div class="p-6 space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Kelas *</label>
-                    <input type="text" name="nama_kelas" required maxlength="50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Contoh: X AK 1">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Master Kelas *</label>
+                    <select name="kelas_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">Pilih Master Kelas</option>
+                        <?php foreach(($kelasMasterList ?? []) as $master): ?>
+                            <option value="<?php echo (int) $master->id; ?>"><?php echo htmlspecialchars($master->label ?? trim(($master->nama_kelas ?? '') . ' ' . ($master->jurusan ?? ''))); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Ajaran</label>
@@ -374,14 +388,19 @@ function renderJadwalFormFields($guru, $hariList, $prefix = '', $multiple = fals
 <div id="editKelasModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <div class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4">
         <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Edit Kelas</h3>
+            <h3 class="text-xl font-semibold text-gray-800">Edit Kelas Semester</h3>
         </div>
         <form method="POST" action="index.php?action=admin_update_kelas">
             <input type="hidden" name="id" id="edit_kelas_id">
             <div class="p-6 space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Kelas *</label>
-                    <input type="text" name="nama_kelas" id="edit_kelas_nama" required maxlength="50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Master Kelas *</label>
+                    <select name="kelas_id" id="edit_kelas_master_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">Pilih Master Kelas</option>
+                        <?php foreach(($kelasMasterList ?? []) as $master): ?>
+                            <option value="<?php echo (int) $master->id; ?>"><?php echo htmlspecialchars($master->label ?? trim(($master->nama_kelas ?? '') . ' ' . ($master->jurusan ?? ''))); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Ajaran</label>
@@ -398,6 +417,92 @@ function renderJadwalFormFields($guru, $hariList, $prefix = '', $multiple = fals
             </div>
             <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
                 <button type="button" onclick="closeEditKelasModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Batal</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="addMasterKelasModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Tambah Master Kelas</h3>
+        </div>
+        <form method="POST" action="index.php?action=admin_create_kelas_master">
+            <div class="p-6 space-y-4">
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <button type="button" onclick="toggleExistingMasterKelas()" class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-left text-sm font-medium text-gray-700 hover:bg-gray-100">
+                        <span>Master kelas yang sudah ada</span>
+                        <i id="existingMasterKelasIcon" class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+                    <div id="existingMasterKelasList" class="hidden max-h-48 overflow-y-auto divide-y divide-gray-100">
+                        <?php if(!empty($kelasMasterList)): ?>
+                            <?php foreach($kelasMasterList as $master): ?>
+                                <div class="px-4 py-2 text-sm flex items-center justify-between gap-3">
+                                    <div>
+                                        <div class="font-medium text-gray-800"><?php echo htmlspecialchars($master->nama_kelas ?? '-'); ?></div>
+                                        <div class="text-xs text-gray-500">
+                                            <?php echo !empty($master->jurusan) ? htmlspecialchars($master->jurusan) : 'Jurusan belum diisi'; ?>
+                                            <span class="mx-1">&bull;</span><?php echo (int)($master->jumlah_periode ?? 0); ?> periode
+                                            <span class="mx-1">&bull;</span><?php echo (int)($master->jumlah_siswa ?? 0); ?> siswa
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <button type="button"
+                                                onclick="openEditMasterKelasModal(this)"
+                                                data-id="<?php echo (int) $master->id; ?>"
+                                                data-nama-kelas="<?php echo htmlspecialchars($master->nama_kelas ?? '', ENT_QUOTES); ?>"
+                                                data-jurusan="<?php echo htmlspecialchars($master->jurusan ?? '', ENT_QUOTES); ?>"
+                                                class="text-blue-600 hover:text-blue-700" title="Edit Master Kelas">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" onclick="deleteMasterKelas(<?php echo (int) $master->id; ?>)" class="text-red-600 hover:text-red-700" title="Hapus Master Kelas">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="px-4 py-3 text-sm text-gray-500">Belum ada master kelas.</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Kelas/Tingkat *</label>
+                    <input type="text" name="nama_kelas" required maxlength="50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Contoh: X">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jurusan</label>
+                    <input type="text" name="jurusan" maxlength="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Contoh: MANAJEMEN PERKANTORAN 2">
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
+                <button type="button" onclick="closeAddMasterKelasModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Batal</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="editMasterKelasModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Edit Master Kelas</h3>
+        </div>
+        <form method="POST" action="index.php?action=admin_update_kelas_master">
+            <input type="hidden" name="id" id="edit_master_kelas_id">
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Kelas/Tingkat *</label>
+                    <input type="text" name="nama_kelas" id="edit_master_kelas_nama" required maxlength="50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jurusan</label>
+                    <input type="text" name="jurusan" id="edit_master_kelas_jurusan" maxlength="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
+                <button type="button" onclick="closeEditMasterKelasModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Batal</button>
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Update</button>
             </div>
         </form>
@@ -676,7 +781,7 @@ function closeAddKelasModal() {
 
 function openEditKelasModal(button) {
     document.getElementById('edit_kelas_id').value = button.dataset.id || '';
-    document.getElementById('edit_kelas_nama').value = button.dataset.namaKelas || '';
+    document.getElementById('edit_kelas_master_id').value = button.dataset.masterKelasId || '';
     document.getElementById('edit_kelas_tahun_ajaran').value = button.dataset.tahunAjaran || '';
     document.getElementById('edit_kelas_semester').value = button.dataset.semester || '';
     document.getElementById('editKelasModal').classList.remove('hidden');
@@ -684,6 +789,49 @@ function openEditKelasModal(button) {
 
 function closeEditKelasModal() {
     document.getElementById('editKelasModal').classList.add('hidden');
+}
+
+function openAddMasterKelasModal() {
+    document.getElementById('addMasterKelasModal').classList.remove('hidden');
+}
+
+function closeAddMasterKelasModal() {
+    const modal = document.getElementById('addMasterKelasModal');
+    modal.classList.add('hidden');
+    const form = modal.querySelector('form');
+    if (form) form.reset();
+}
+
+function toggleExistingMasterKelas() {
+    const list = document.getElementById('existingMasterKelasList');
+    const icon = document.getElementById('existingMasterKelasIcon');
+    const isHidden = list.classList.toggle('hidden');
+    icon.className = isHidden ? 'fas fa-chevron-down text-gray-400' : 'fas fa-chevron-up text-gray-500';
+}
+
+function openEditMasterKelasModal(button) {
+    document.getElementById('edit_master_kelas_id').value = button.dataset.id || '';
+    document.getElementById('edit_master_kelas_nama').value = button.dataset.namaKelas || '';
+    document.getElementById('edit_master_kelas_jurusan').value = button.dataset.jurusan || '';
+    document.getElementById('editMasterKelasModal').classList.remove('hidden');
+}
+
+function closeEditMasterKelasModal() {
+    document.getElementById('editMasterKelasModal').classList.add('hidden');
+}
+
+function deleteMasterKelas(id) {
+    if (!confirm('Hapus master kelas ini? Hanya bisa dihapus jika belum dipakai.')) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'index.php?action=admin_delete_kelas_master';
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'id';
+    input.value = id;
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
 }
 
 function deleteKelas(id) {
@@ -986,13 +1134,15 @@ function escapeHtml(value) {
     el.addEventListener('change', renderSiswaTersediaOptions);
 });
 
-['addJadwalModal', 'editJadwalModal', 'kelolaSiswaModal', 'addKelasModal', 'editKelasModal'].forEach(id => {
+['addJadwalModal', 'editJadwalModal', 'kelolaSiswaModal', 'addKelasModal', 'editKelasModal', 'addMasterKelasModal', 'editMasterKelasModal'].forEach(id => {
     document.getElementById(id).addEventListener('click', function(e) {
         if (e.target !== this) return;
         if (id === 'addJadwalModal') closeAddJadwalModal();
         else if (id === 'editJadwalModal') closeEditJadwalModal();
         else if (id === 'addKelasModal') closeAddKelasModal();
         else if (id === 'editKelasModal') closeEditKelasModal();
+        else if (id === 'addMasterKelasModal') closeAddMasterKelasModal();
+        else if (id === 'editMasterKelasModal') closeEditMasterKelasModal();
         else this.classList.add('hidden');
     });
 });

@@ -28,7 +28,7 @@ class LocationModel {
     }
     
     public function getLokasiSekolah() {
-        // Ambil record lokasi sekolah terbaru (dipakai sebagai pusat validasi)
+        // Ambil record lokasi sekolah aktif.
         $this->db->query('SELECT ls.*, u.nama as updated_by_nama 
                          FROM lokasi_sekolah ls 
                          LEFT JOIN users u ON ls.updated_by = u.id 
@@ -37,9 +37,22 @@ class LocationModel {
     }
     
     public function updateLokasiSekolah($data) {
-        // Simpan lokasi baru (disimpan sebagai insert sehingga menjaga riwayat perubahan)
-        $this->db->query('INSERT INTO lokasi_sekolah (nama_sekolah, latitude, longitude, radius_presensi, updated_by) 
-                         VALUES (:nama_sekolah, :latitude, :longitude, :radius_presensi, :updated_by)');
+        $lokasi = $this->getLokasiSekolah();
+
+        if ($lokasi) {
+            $this->db->query('UPDATE lokasi_sekolah
+                             SET nama_sekolah = :nama_sekolah,
+                                 latitude = :latitude,
+                                 longitude = :longitude,
+                                 radius_presensi = :radius_presensi,
+                                 updated_by = :updated_by
+                             WHERE id = :id');
+            $this->db->bind(':id', (int) $lokasi->id);
+        } else {
+            $this->db->query('INSERT INTO lokasi_sekolah (nama_sekolah, latitude, longitude, radius_presensi, updated_by)
+                             VALUES (:nama_sekolah, :latitude, :longitude, :radius_presensi, :updated_by)');
+        }
+
         $this->db->bind(':nama_sekolah', $data['nama_sekolah']);
         $this->db->bind(':latitude', $data['latitude']);
         $this->db->bind(':longitude', $data['longitude']);

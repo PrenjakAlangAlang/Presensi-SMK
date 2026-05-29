@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: May 24, 2026 at 07:10 AM
+-- Generation Time: May 29, 2026 at 10:25 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -33,10 +33,11 @@ CREATE TABLE `buku_induk` (
   `nipd` varchar(10) NOT NULL,
   `email` varchar(50) DEFAULT NULL,
   `nisn` varchar(10) DEFAULT NULL,
+  `kelas_id` int DEFAULT NULL,
   `kelas` varchar(50) DEFAULT NULL,
   `jurusan` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `tanggal_diterima` date DEFAULT NULL,
-  `agama` varchar(30) DEFAULT NULL,
+  `agama` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `tempat_lahir` varchar(25) DEFAULT NULL,
   `tanggal_lahir` date DEFAULT NULL,
   `alamat` text,
@@ -56,182 +57,182 @@ CREATE TABLE `buku_induk` (
 -- Dumping data for table `buku_induk`
 --
 
-INSERT INTO `buku_induk` (`id`, `nama`, `nipd`, `email`, `nisn`, `kelas`, `jurusan`, `tanggal_diterima`, `agama`, `tempat_lahir`, `tanggal_lahir`, `alamat`, `nama_ayah`, `nama_ibu`, `nama_wali`, `no_telp_ortu`, `email_ortu`, `dokumen_ijasah`, `dokumen_pas_foto`, `dokumen_akta_kelahiran`, `dokumen_kk`, `password`) VALUES
-(6, 'ALIFIAN SATRIA NAUFAL', '2410911', '2410911@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-02-12', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(7, 'ANINDA ANGGI PUTRI WIBOWO', '2410912', '2410912@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-12-10', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(8, 'AQILAH RAYYA MUTHMAINAH', '2410913', '2410913@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-10-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(9, 'ASHA ALI FATUNNISA', '2410914', '2410914@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-08-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(10, 'BALQIS DENNAFIZA KRISNA PUTRIA', '2410915', '2410915@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-06-03', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(11, 'BENEDICTUS ARYA WISANGGENI RESWARA', '2410916', '2410916@smk7.sch.id', NULL, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Katolik', NULL, '2008-04-01', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(12, 'CAESKY ALYAH', '2410917', '2410917@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-01-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(13, 'CARRISSA ARKANI HILMI ARAMINTA', '2410918', '2410918@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-11-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(14, 'CORNELIUS TAJAM ABHINAYA MAHENDRA UTAMA', '2410919', '2410919@smk7.sch.id', NULL, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Katolik', NULL, '2008-09-23', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(15, 'FAVIAN ZAKI PRATAMA', '2410920', '2410920@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-07-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(16, 'FILIO HELGA YOGA PRATAMA', '2410921', '2410921@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-05-20', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(17, 'JESHICHA DANIAN NAULI', '2410922', '2410922@smk7.sch.id', NULL, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Kristen', NULL, '2009-03-18', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(18, 'JESICA VENITA ANAYA KEZYA', '2410923', '2410923@smk7.sch.id', NULL, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Katolik', NULL, '2009-01-14', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(19, 'KANDITA DYAH PITALOKA RIZGUNAYAN', '2410924', '2410924@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-11-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(20, 'LARASATI TAQWILLA', '2410925', '2410925@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-09-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(21, 'MUHAMMAD ATAYA NUGROHO LAKSONO', '2410926', '2410926@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-07-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(22, 'MUHAMMAD RAFA ATAYA RAMADHAN', '2410927', '2410927@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-05-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(23, 'MUHAMMAD RAUF FIRJATULLAH', '2410928', '2410928@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-03-03', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(24, 'MUHAMMAD RIESSOFIAN PUJA TAUFIQURRAHMAN', '2410929', '2410929@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-12-30', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(25, 'MUTIARA TRI DUWANTI', '2410930', '2410930@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-10-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(26, 'NAJWAN AZMI WIDIYANTO', '2410931', '2410931@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-08-25', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(27, 'NATALIA KAIA ALANA NAFIRI', '2410932', '2410932@smk7.sch.id', NULL, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Katolik', NULL, '2009-06-24', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(28, 'NUR ZAHIRAH JULIATI', '2410933', '2410933@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-04-21', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(29, 'PARSA FAIRUZ RAFIF', '2410934', '2410934@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-02-17', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(30, 'RACHJIB MALIK AL FAREL', '2410935', '2410935@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-12-16', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(31, 'RAHMAT FAIZ SYAFI\'I', '2410936', '2410936@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-10-13', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(32, 'RAMA PANJI PUTRA PRATAMA', '2410937', '2410937@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-08-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(33, 'RIDHO ARDIANTO', '2410938', '2410938@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-06-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(34, 'RIFAN RAGEL SATRIA', '2410939', '2410939@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-04-07', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(35, 'RR. FITRI SYARAFINA KEN KUSUMA', '2410940', '2410940@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-02-03', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(36, 'SHAFIRA AZ ZAHRA', '2410941', '2410941@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-12-01', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(37, 'STIVEN HANUM FIRMANSYAH', '2410942', '2410942@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-09-29', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(38, 'TANIA CINTA SALSABILA', '2410943', '2410943@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-07-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(39, 'WISNU BINTANG ARDIANSYAH', '2410944', '2410944@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-05-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(40, 'YUDHISTIRA AJI PAMBAREP', '2410945', '2410945@smk7.sch.id', NULL, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Kristen', NULL, '2008-03-23', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(41, 'ZAHRA ANINDYA PUTRI', '2410946', '2410946@smk7.sch.id', '', 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-01-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(69, 'AGATHA CAROLINE LEIFEBRITA', '2410947', '2410947@smk7.sch.id', NULL, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Katolik', NULL, '2009-03-14', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(70, 'AGNEZ PUTRI RIYANTI', '2410948', '2410948@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-01-10', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(71, 'AGNI EKA NINGSIH', '2410949', '2410949@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-11-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(72, 'ANANDA CAESAR RIO FERDINAND', '2410950', '2410950@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-09-05', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(73, 'ANEZKA SAFFA BAHTIAR', '2410951', '2410951@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-07-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(74, 'ANISA ZIDNEY ILMIYA', '2410952', '2410952@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-05-02', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(75, 'ATHIFA DELYZIA KEY', '2410953', '2410953@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-02-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(76, 'BRIANDIKA ALVIANO SAPUTRA', '2410955', '2410955@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-12-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(77, 'DZAKI HAIDAR JATI ANEVA', '2410956', '2410956@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-10-24', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(78, 'EMBUN DELA YOTA', '2410957', '2410957@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-08-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(79, 'ERFILIA SALSABILALA', '2410958', '2410958@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-06-20', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(80, 'FAQIH ULUMUDIN', '2410959', '2410959@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-04-17', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(81, 'GERRY LANDES LAIRLANANG', '2410960', '2410960@smk7.sch.id', NULL, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Katolik', NULL, '2008-02-13', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(82, 'KESYA DARLISA PUTRI', '2410961', '2410961@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-12-12', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(83, 'KHAASYA NAJWA PUTRI', '2410962', '2410962@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-10-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(84, 'KHARISMAHARANI CHERRY AYUNDA TITIANASA', '2410963', '2410963@smk7.sch.id', NULL, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Kristen', NULL, '2009-08-07', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(85, 'KHEIRA SHABRINA RIDWANA', '2410964', '2410964@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-06-05', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(86, 'KIRANA ISNA CANDRADEWI', '2410965', '2410965@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-04-02', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(87, 'LILO MUKTI WIBOWO', '2410966', '2410966@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-01-30', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(88, 'MARCELINO GERARD PRATAMA .W', '2410967', '2410967@smk7.sch.id', NULL, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Katolik', NULL, '2008-11-27', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(89, 'MIFTAHUL JANAH', '2410968', '2410968@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-09-25', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(90, 'MUHAMAD FAREL FARDANA', '2410969', '2410969@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-07-24', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(91, 'NAKITA SYAHWA AQILLA RAMADHANI', '2410970', '2410970@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-05-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(92, 'NARESWARA CLAYDIANTO', '2410971', '2410971@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-03-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(93, 'NATHANEL EBA SINDUTARA', '2410972', '2410972@smk7.sch.id', NULL, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Katolik', NULL, '2008-01-15', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(94, 'RIFKY BAGUS PRATAMA', '2410973', '2410973@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-11-13', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(95, 'RIZKY ADITYA BUSTAMI', '2410974', '2410974@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-09-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(96, 'RM. HARBANI RAKHA PRAHAMDANI', '2410975', '2410975@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-07-10', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(97, 'ROSALIDA ANGEL GRACIA TABUNI', '2410976', '2410976@smk7.sch.id', NULL, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Kristen', NULL, '2008-05-07', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(98, 'SYIFA DWI FAUZIAH', '2410977', '2410977@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-03-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(99, 'THOMAS GOWI HERA', '2410978', '2410978@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-01-01', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(100, 'VERNANDITO PASHA MARTJUANSYAH', '2410979', '2410979@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-10-30', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(101, 'YASMIN MALIKA SEKAR DEWI', '2410980', '2410980@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-08-27', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(102, 'YERICA NASHAKA DILLA', '2410981', '2410981@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-06-25', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(103, 'YUDHISTIRA DANADYAKSA ANDRA DARMAWAN', '2410982', '2410982@smk7.sch.id', '', 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-04-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(132, 'ABIGAIL CHRISANTIKA IVORY LUVENYA AMORE', '2511233', '2511233@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Kristen', NULL, '2010-04-04', NULL, '', '', '', '', '', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-6a1034d380225.pdf', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(133, 'AGUSTINA PRAMESTI NUGRAHENI', '2511234', '2511234@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2010-01-16', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(134, 'ANASTASIA KARIN ARIYANTO', '2511235', '2511235@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2009-10-31', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(135, 'ANNISA PUTRI AGUSTINA', '2511236', '2511236@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-08-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(136, 'ASKIYA NUMALA TIRTA', '2511237', '2511237@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-05-30', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(137, 'BIRGITTA NATALIA SRI SULISTYONINGSIH', '2511238', '2511238@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2010-03-14', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(138, 'CARISSA AMELIA PUTRI', '2511239', '2511239@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-12-27', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(139, 'CHERRY ANANDYTA HUTAGALUNG', '2511240', '2511240@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Kristen', NULL, '2009-10-11', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(140, 'DILA NAFISA RAHMAYANI', '2511241', '2511241@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-07-25', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(141, 'DYAH SEKAR LANGIT', '2511242', '2511242@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-05-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(142, 'ELMIRA MAHRIN', '2511243', '2511243@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-02-21', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(143, 'FARREL RAMA ADITYA', '2511244', '2511244@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-12-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(144, 'FATIHA KARUNIA RONINDYA', '2511245', '2511245@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-09-20', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(145, 'GIACINTA DELIMA', '2511246', '2511246@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2009-07-05', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(146, 'HERJATINDRA LURUN NISMARA', '2511247', '2511247@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-04-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(147, 'HOKULEA RANGGA KRISYADI', '2511248', '2511248@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Kristen', NULL, '2010-01-31', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(148, 'IFFAH NAURAH HANAA', '2511249', '2511249@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-11-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(149, 'KIRANA RAHAYU RIZKIANA', '2511250', '2511250@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2009-08-30', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(150, 'LUNETA AZ ZAHRA', '2511251', '2511251@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-06-14', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(151, 'MEISYA LANA EFFENDI', '2511252', '2511252@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-03-29', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(152, 'NABILLA ANFRIDA SELMA', '2511253', '2511253@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-01-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(153, 'NOVIA DWI NUGRAHENI PUTRI', '2511254', '2511254@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2009-10-26', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(154, 'NURAINI MARIA SYAFA NASUTION', '2511255', '2511255@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-08-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(155, 'OKTAVIA NUR ANGGRAINI', '2511256', '2511256@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-05-24', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(156, 'PRIMA RISTA RIYAN QURNIA', '2511257', '2511257@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-03-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(157, 'QOTHRUNNADA KIFA ERBANANDA', '2511258', '2511258@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-12-21', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(158, 'QUIRRINE FASQUEZA SOELISTIYONO', '2511259', '2511259@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-10-05', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(159, 'RAHMAT TRIWIJAYANTO', '2511260', '2511260@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-07-20', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(160, 'RANIA RAHMAWATI', '2511261', '2511261@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-05-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(161, 'SALWA AL FARZANA', '2511262', '2511262@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-02-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(162, 'SAMUEL WISTARA ADHI', '2511263', '2511263@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2010-11-30', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(163, 'SHOFIA QURROTU AINI', '2511264', '2511264@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-09-14', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(164, 'SILVIA BUNGA DENYANTI', '2511265', '2511265@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2009-06-29', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(165, 'SYIEFA SITTI ALYSSA KIRANA CAPULET', '2511266', '2511266@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-04-13', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(166, 'TALITHA MORIA PRADITA', '2511267', '2511267@smk7.sch.id', '', 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-01-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(167, 'ZANNUBA ARIFAH CHAFSOH', '2511268', '2511268@smk7.sch.id', NULL, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', NULL, '2010-11-09', NULL, '', '', '', '089644755532', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(195, 'ADITYA BAGAS FIRDIANSYAH', '2511162', '2511162@smk7.sch.id', NULL, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Kristen', NULL, '2010-12-09', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(196, 'AHMAD ZEVANNO EKAJATI', '2511163', '2511163@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-09-23', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(197, 'ALANA PUTRI KAMACHIKO', '2511164', '2511164@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-07-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(198, 'ALIFA PUTRI NEVA ADARA', '2511165', '2511165@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-04-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(199, 'ALYA KANZA SALSABILA PUTRI', '2511166', '2511166@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-02-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(200, 'ARTHANIA INDAH KURNIASARI', '2511167', '2511167@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-11-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(201, 'ATMA DWI PRASETYO', '2511168', '2511168@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-09-02', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(202, 'BRIAN PACIFIO', '2511169', '2511169@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-06-17', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(203, 'DEVIAS DEVAS CARYSSA PUTRI', '2511170', '2511170@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-04-01', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(204, 'ELIZABETH HESTYA', '2511171', '2511171@smk7.sch.id', NULL, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Katolik', NULL, '2010-01-14', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(205, 'FADHIL MAULANA PUTRA', '2511172', '2511172@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-10-29', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(206, 'FARAH KHAIRUNISA AZKA', '2511173', '2511173@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-08-13', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(207, 'HIDEYOSHI KENZO STEFANO PRAKOSO', '2511174', '2511174@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-05-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(208, 'IRAYA AMANDA FATIMAH', '2511175', '2511175@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-03-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(209, 'JESSA NAN MAHANARA', '2511176', '2511176@smk7.sch.id', NULL, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Kristen', NULL, '2009-12-24', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(210, 'JOANNA MARISKHA HOVA', '2511177', '2511177@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-10-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(211, 'KARNIA ARBAATUN SHOLIKHAH', '2511178', '2511178@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-07-23', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(212, 'KEYLA NAZWA ALHABSYI', '2511179', '2511179@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-05-07', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(213, 'KHANZA AULIA FIRDAUS', '2511180', '2511180@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-02-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(214, 'MOHAMMAD ALWI ALKHAF', '2511181', '2511181@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-12-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(215, 'MUHAMAD AIMAN', '2511377', '2511377@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-09-17', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(216, 'MUHAMMAD FAIZ ARFAN', '2511182', '2511182@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-07-02', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(217, 'MUHAMMAD FARKHAN WAFID', '2511183', '2511183@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-04-16', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(218, 'MUHAMMAD RASYID WIRATAMA', '2511184', '2511184@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-01-29', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(219, 'MUHAMMAD REVAN NAWADWIPA', '2511185', '2511185@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-11-13', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(220, 'MYIESHA IFFATY ZHAAFIRA', '2511186', '2511186@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-08-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(221, 'NAURA ANEIRA', '2511187', '2511187@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-06-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(222, 'NUR WASKITHA KANA ADOYA', '2511188', '2511188@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-03-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(223, 'RAFI NUR RAHMAT', '2511189', '2511189@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-01-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(224, 'RASYID ATHAYA RAMADHAN', '2511190', '2511190@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-10-23', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(225, 'RAYSHA RAMANIAGHASANI PRATISDILATIFA', '2511191', '2511191@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-08-07', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(226, 'RIFQI NARARYA KUSUMAS RESTHA', '2511192', '2511192@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-05-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(227, 'SAFIRA MAHARANI', '2511193', '2511193@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-03-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(228, 'SEKAR WANGI LUHUR PAMBUDI', '2511194', '2511194@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-12-18', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(229, 'SETYO URIP WICAKSONO', '2511195', '2511195@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-10-02', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(230, 'YUMNA ALFIYAH NASYWA', '2511196', '2511196@smk7.sch.id', '', 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-07-17', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(258, 'AHMAD DANI RIZKYA GHIFARI', '2511305', '2511305@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-08-16', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(259, 'ALBIANSYAH ARYA RAMADHAN', '2511306', '2511306@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-05-31', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(260, 'ANINDYA PUTRI TIFANI', '2511308', '2511308@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-03-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(261, 'ANNISA AURA AL-GHIFARI', '2511310', '2511310@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-12-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(262, 'ANNURYAH EMBUN KUSUMADEWI', '2511311', '2511311@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-10-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(263, 'ARCELIN NAYLA NAFLAH', '2511312', '2511312@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-07-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(264, 'AUREL LARASATI PUTRI RAHMADANI', '2511313', '2511313@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-05-10', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(265, 'AURELIA TRIHAPSARI AWINA', '2511314', '2511314@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-02-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(266, 'BERNARDINUS GABRIEL WISHNU MAHESWARA', '2511316', '2511316@smk7.sch.id', NULL, 'X', 'PRODUKSI FILM', '2025-07-14', 'Katolik', NULL, '2010-12-07', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(267, 'BRIANT PRADIPTYA DWIASA', '2511317', '2511317@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-09-21', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(268, 'CAMELIA MARITZA ADICAHYA', '2511318', '2511318@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-07-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(269, 'DEVITA SUCI SILVIANI', '2511319', '2511319@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-04-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(270, 'ERLITA AMANDARI', '2511320', '2511320@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-02-01', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(271, 'HERJUNO PANJI PRABOWO', '2511321', '2511321@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-11-16', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(272, 'JOSES SALVADOR DALLY', '2511322', '2511322@smk7.sch.id', NULL, 'X', 'PRODUKSI FILM', '2025-07-14', 'Katolik', NULL, '2009-08-31', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(273, 'KAIRANI AYU CHINTYA', '2511323', '2511323@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-06-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(274, 'MAERLINA PUTRI WIDIYARAHMA', '2511325', '2511325@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-03-30', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(275, 'MATHEUS ELWOOD CAEL', '2511326', '2511326@smk7.sch.id', NULL, 'X', 'PRODUKSI FILM', '2025-07-14', 'Katolik', NULL, '2010-01-11', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(276, 'MUHAMMAD ANTARES KUMARA PUTRA', '2511327', '2511327@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-10-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(277, 'MUZHIDA ZAHRA DIRGAHAYU', '2511328', '2511328@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-08-10', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(278, 'NADIFA SALSABILA', '2511329', '2511329@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-05-25', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(279, 'NATASYA MIFTAH NUR AULIA', '2511330', '2511330@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-03-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(280, 'NAURALITA ADINDA NARESWARI', '2511331', '2511331@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-12-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(281, 'PRIZKA NOOR MAHARANI', '2511332', '2511332@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-10-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(282, 'PUTRIA ALMIRA DAMAYANTI', '2511333', '2511333@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-07-20', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(283, 'RISANG SASADARA', '2511334', '2511334@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-05-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(284, 'SABRINA FITRI NORMAYANA', '2511335', '2511335@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-02-16', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(285, 'SAKURA CAHYA ROSIVA', '2511336', '2511336@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-12-01', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(286, 'SYAHRINA ZUNIYARTI', '2511337', '2511337@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-09-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(287, 'TOBIAS LEON WICAKSONO', '2511338', '2511338@smk7.sch.id', NULL, 'X', 'PRODUKSI FILM', '2025-07-14', 'Kristen', NULL, '2009-06-30', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(288, 'VALENCIA ALMAIRA KIRANI', '2511339', '2511339@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-04-14', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
-(289, 'WILIANSYAH PAMUNGKAS', '2511340', '2511340@smk7.sch.id', '', 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-01-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm');
+INSERT INTO `buku_induk` (`id`, `nama`, `nipd`, `email`, `nisn`, `kelas_id`, `kelas`, `jurusan`, `tanggal_diterima`, `agama`, `tempat_lahir`, `tanggal_lahir`, `alamat`, `nama_ayah`, `nama_ibu`, `nama_wali`, `no_telp_ortu`, `email_ortu`, `dokumen_ijasah`, `dokumen_pas_foto`, `dokumen_akta_kelahiran`, `dokumen_kk`, `password`) VALUES
+(6, 'ALIFIAN SATRIA NAUFAL', '2410911', '2410911@smk7.sch.id', '2026241091', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-02-12', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(7, 'ANINDA ANGGI PUTRI WIBOWO', '2410912', '2410912@smk7.sch.id', '5748801185', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-12-10', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(8, 'AQILAH RAYYA MUTHMAINAH', '2410913', '2410913@smk7.sch.id', '3161923593', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-10-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(9, 'ASHA ALI FATUNNISA', '2410914', '2410914@smk7.sch.id', '7497201365', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-08-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(10, 'BALQIS DENNAFIZA KRISNA PUTRIA', '2410915', '2410915@smk7.sch.id', '5470776306', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-06-03', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(11, 'BENEDICTUS ARYA WISANGGENI RESWARA', '2410916', '2410916@smk7.sch.id', '1094526883', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Katolik', NULL, '2008-04-01', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(12, 'CAESKY ALYAH', '2410917', '2410917@smk7.sch.id', '1443158281', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-01-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(13, 'CARRISSA ARKANI HILMI ARAMINTA', '2410918', '2410918@smk7.sch.id', '9849324713', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-11-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(14, 'CORNELIUS TAJAM ABHINAYA MAHENDRA UTAMA', '2410919', '2410919@smk7.sch.id', '2738129129', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Katolik', NULL, '2008-09-23', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(15, 'FAVIAN ZAKI PRATAMA', '2410920', '2410920@smk7.sch.id', '2026241092', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-07-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(16, 'FILIO HELGA YOGA PRATAMA', '2410921', '2410921@smk7.sch.id', '1459278292', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-05-20', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(17, 'JESHICHA DANIAN NAULI', '2410922', '2410922@smk7.sch.id', '3102511809', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Kristen', NULL, '2009-03-18', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(18, 'JESICA VENITA ANAYA KEZYA', '2410923', '2410923@smk7.sch.id', '8856446192', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Katolik', NULL, '2009-01-14', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(19, 'KANDITA DYAH PITALOKA RIZGUNAYAN', '2410924', '2410924@smk7.sch.id', '3010401581', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-11-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(20, 'LARASATI TAQWILLA', '2410925', '2410925@smk7.sch.id', '2425993515', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-09-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(21, 'MUHAMMAD ATAYA NUGROHO LAKSONO', '2410926', '2410926@smk7.sch.id', '7849284884', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-07-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(22, 'MUHAMMAD RAFA ATAYA RAMADHAN', '2410927', '2410927@smk7.sch.id', '8945017042', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-05-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(23, 'MUHAMMAD RAUF FIRJATULLAH', '2410928', '2410928@smk7.sch.id', '9260697956', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-03-03', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(24, 'MUHAMMAD RIESSOFIAN PUJA TAUFIQURRAHMAN', '2410929', '2410929@smk7.sch.id', '7418765498', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-12-30', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(25, 'MUTIARA TRI DUWANTI', '2410930', '2410930@smk7.sch.id', '2026241093', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-10-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(26, 'NAJWAN AZMI WIDIYANTO', '2410931', '2410931@smk7.sch.id', '9214858572', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-08-25', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(27, 'NATALIA KAIA ALANA NAFIRI', '2410932', '2410932@smk7.sch.id', '4538954774', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Katolik', NULL, '2009-06-24', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(28, 'NUR ZAHIRAH JULIATI', '2410933', '2410933@smk7.sch.id', '6484006227', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-04-21', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(29, 'PARSA FAIRUZ RAFIF', '2410934', '2410934@smk7.sch.id', '7918804687', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-02-17', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(30, 'RACHJIB MALIK AL FAREL', '2410935', '2410935@smk7.sch.id', '8226205804', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-12-16', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(31, 'RAHMAT FAIZ SYAFI\'I', '2410936', '2410936@smk7.sch.id', '8673255070', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-10-13', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(32, 'RAMA PANJI PUTRA PRATAMA', '2410937', '2410937@smk7.sch.id', '5574833455', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-08-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(33, 'RIDHO ARDIANTO', '2410938', '2410938@smk7.sch.id', '5495766644', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-06-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(34, 'RIFAN RAGEL SATRIA', '2410939', '2410939@smk7.sch.id', '6202323661', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-04-07', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(35, 'RR. FITRI SYARAFINA KEN KUSUMA', '2410940', '2410940@smk7.sch.id', '2026241094', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-02-03', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(36, 'SHAFIRA AZ ZAHRA', '2410941', '2410941@smk7.sch.id', '2271006133', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-12-01', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(37, 'STIVEN HANUM FIRMANSYAH', '2410942', '2410942@smk7.sch.id', '3434007210', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-09-29', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(38, 'TANIA CINTA SALSABILA', '2410943', '2410943@smk7.sch.id', '8253517186', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-07-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(39, 'WISNU BINTANG ARDIANSYAH', '2410944', '2410944@smk7.sch.id', '1559610527', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2009-05-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(40, 'YUDHISTIRA AJI PAMBAREP', '2410945', '2410945@smk7.sch.id', '1402592782', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Kristen', NULL, '2008-03-23', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(41, 'ZAHRA ANINDYA PUTRI', '2410946', '2410946@smk7.sch.id', '2270310072', 14, 'XI', 'DESAIN KOMUNIKASI VISUAL', '2024-07-15', 'Islam', '', '2008-01-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(69, 'AGATHA CAROLINE LEIFEBRITA', '2410947', '2410947@smk7.sch.id', '1659789643', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Katolik', NULL, '2009-03-14', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(70, 'AGNEZ PUTRI RIYANTI', '2410948', '2410948@smk7.sch.id', '6787203812', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-01-10', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(71, 'AGNI EKA NINGSIH', '2410949', '2410949@smk7.sch.id', '9971658293', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-11-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(72, 'ANANDA CAESAR RIO FERDINAND', '2410950', '2410950@smk7.sch.id', '2026241095', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-09-05', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(73, 'ANEZKA SAFFA BAHTIAR', '2410951', '2410951@smk7.sch.id', '3539468589', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-07-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(74, 'ANISA ZIDNEY ILMIYA', '2410952', '2410952@smk7.sch.id', '4137924488', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-05-02', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(75, 'ATHIFA DELYZIA KEY', '2410953', '2410953@smk7.sch.id', '2663426511', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-02-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(76, 'BRIANDIKA ALVIANO SAPUTRA', '2410955', '2410955@smk7.sch.id', '1704739470', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-12-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(77, 'DZAKI HAIDAR JATI ANEVA', '2410956', '2410956@smk7.sch.id', '7341863942', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-10-24', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(78, 'EMBUN DELA YOTA', '2410957', '2410957@smk7.sch.id', '1222615597', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-08-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(79, 'ERFILIA SALSABILALA', '2410958', '2410958@smk7.sch.id', '1571119453', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-06-20', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(80, 'FAQIH ULUMUDIN', '2410959', '2410959@smk7.sch.id', '5789655009', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-04-17', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(81, 'GERRY LANDES LAIRLANANG', '2410960', '2410960@smk7.sch.id', '2026241096', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Katolik', NULL, '2008-02-13', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(82, 'KESYA DARLISA PUTRI', '2410961', '2410961@smk7.sch.id', '1380044375', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-12-12', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(83, 'KHAASYA NAJWA PUTRI', '2410962', '2410962@smk7.sch.id', '6111603774', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-10-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(84, 'KHARISMAHARANI CHERRY AYUNDA TITIANASA', '2410963', '2410963@smk7.sch.id', '1858495410', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Kristen', NULL, '2009-08-07', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(85, 'KHEIRA SHABRINA RIDWANA', '2410964', '2410964@smk7.sch.id', '2192683239', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-06-05', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(86, 'KIRANA ISNA CANDRADEWI', '2410965', '2410965@smk7.sch.id', '3825219946', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-04-02', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(87, 'LILO MUKTI WIBOWO', '2410966', '2410966@smk7.sch.id', '9653711612', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-01-30', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(88, 'MARCELINO GERARD PRATAMA .W', '2410967', '2410967@smk7.sch.id', '2739334720', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Katolik', NULL, '2008-11-27', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(89, 'MIFTAHUL JANAH', '2410968', '2410968@smk7.sch.id', '2031492649', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-09-25', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(90, 'MUHAMAD FAREL FARDANA', '2410969', '2410969@smk7.sch.id', '8704127093', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-07-24', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(91, 'NAKITA SYAHWA AQILLA RAMADHANI', '2410970', '2410970@smk7.sch.id', '2026241097', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-05-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(92, 'NARESWARA CLAYDIANTO', '2410971', '2410971@smk7.sch.id', '9425100173', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-03-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(93, 'NATHANEL EBA SINDUTARA', '2410972', '2410972@smk7.sch.id', '5234044670', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Katolik', NULL, '2008-01-15', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(94, 'RIFKY BAGUS PRATAMA', '2410973', '2410973@smk7.sch.id', '9204077917', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-11-13', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(95, 'RIZKY ADITYA BUSTAMI', '2410974', '2410974@smk7.sch.id', '9874741906', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-09-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(96, 'RM. HARBANI RAKHA PRAHAMDANI', '2410975', '2410975@smk7.sch.id', '6055357836', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-07-10', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(97, 'ROSALIDA ANGEL GRACIA TABUNI', '2410976', '2410976@smk7.sch.id', '3812329714', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Kristen', NULL, '2008-05-07', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(98, 'SYIFA DWI FAUZIAH', '2410977', '2410977@smk7.sch.id', '2285837302', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-03-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(99, 'THOMAS GOWI HERA', '2410978', '2410978@smk7.sch.id', '8356761820', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-01-01', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(100, 'VERNANDITO PASHA MARTJUANSYAH', '2410979', '2410979@smk7.sch.id', '8501377105', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-10-30', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(101, 'YASMIN MALIKA SEKAR DEWI', '2410980', '2410980@smk7.sch.id', '2026241098', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2009-08-27', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(102, 'YERICA NASHAKA DILLA', '2410981', '2410981@smk7.sch.id', '5503901734', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-06-25', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(103, 'YUDHISTIRA DANADYAKSA ANDRA DARMAWAN', '2410982', '2410982@smk7.sch.id', '9267381076', 17, 'XI', 'PRODUKSI FILM', '2024-07-15', 'Islam', '', '2008-04-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(132, 'ABIGAIL CHRISANTIKA IVORY LUVENYA AMORE', '2511233', '2511233@smk7.sch.id', '2026251123', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Kristen', NULL, '2010-04-04', NULL, '', '', '', '', '', 'http://localhost/Presensi-SMK/public/uploads/buku_induk/buku-induk-6a1034d380225.pdf', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(133, 'AGUSTINA PRAMESTI NUGRAHENI', '2511234', '2511234@smk7.sch.id', '3300526679', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2010-01-16', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(134, 'ANASTASIA KARIN ARIYANTO', '2511235', '2511235@smk7.sch.id', '9841427756', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2009-10-31', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(135, 'ANNISA PUTRI AGUSTINA', '2511236', '2511236@smk7.sch.id', '1023538552', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-08-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(136, 'ASKIYA NUMALA TIRTA', '2511237', '2511237@smk7.sch.id', '7833033075', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-05-30', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(137, 'BIRGITTA NATALIA SRI SULISTYONINGSIH', '2511238', '2511238@smk7.sch.id', '9723010220', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2010-03-14', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(138, 'CARISSA AMELIA PUTRI', '2511239', '2511239@smk7.sch.id', '8227177728', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-12-27', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(139, 'CHERRY ANANDYTA HUTAGALUNG', '2511240', '2511240@smk7.sch.id', '2026251124', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Kristen', NULL, '2009-10-11', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(140, 'DILA NAFISA RAHMAYANI', '2511241', '2511241@smk7.sch.id', '9575473311', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-07-25', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(141, 'DYAH SEKAR LANGIT', '2511242', '2511242@smk7.sch.id', '7372396662', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-05-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(142, 'ELMIRA MAHRIN', '2511243', '2511243@smk7.sch.id', '1982874726', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-02-21', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(143, 'FARREL RAMA ADITYA', '2511244', '2511244@smk7.sch.id', '1007208439', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-12-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(144, 'FATIHA KARUNIA RONINDYA', '2511245', '2511245@smk7.sch.id', '5347080518', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-09-20', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(145, 'GIACINTA DELIMA', '2511246', '2511246@smk7.sch.id', '4607720848', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2009-07-05', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(146, 'HERJATINDRA LURUN NISMARA', '2511247', '2511247@smk7.sch.id', '7851662985', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-04-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(147, 'HOKULEA RANGGA KRISYADI', '2511248', '2511248@smk7.sch.id', '7963610273', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Kristen', NULL, '2010-01-31', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(148, 'IFFAH NAURAH HANAA', '2511249', '2511249@smk7.sch.id', '7387524931', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-11-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(149, 'KIRANA RAHAYU RIZKIANA', '2511250', '2511250@smk7.sch.id', '2026251125', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2009-08-30', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(150, 'LUNETA AZ ZAHRA', '2511251', '2511251@smk7.sch.id', '8510235629', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-06-14', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(151, 'MEISYA LANA EFFENDI', '2511252', '2511252@smk7.sch.id', '6693400710', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-03-29', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(152, 'NABILLA ANFRIDA SELMA', '2511253', '2511253@smk7.sch.id', '5938153352', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-01-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(153, 'NOVIA DWI NUGRAHENI PUTRI', '2511254', '2511254@smk7.sch.id', '7881408957', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2009-10-26', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(154, 'NURAINI MARIA SYAFA NASUTION', '2511255', '2511255@smk7.sch.id', '3560234966', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-08-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(155, 'OKTAVIA NUR ANGGRAINI', '2511256', '2511256@smk7.sch.id', '9649874301', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-05-24', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(156, 'PRIMA RISTA RIYAN QURNIA', '2511257', '2511257@smk7.sch.id', '9494266978', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-03-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(157, 'QOTHRUNNADA KIFA ERBANANDA', '2511258', '2511258@smk7.sch.id', '5941056474', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-12-21', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(158, 'QUIRRINE FASQUEZA SOELISTIYONO', '2511259', '2511259@smk7.sch.id', '3323246512', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-10-05', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(159, 'RAHMAT TRIWIJAYANTO', '2511260', '2511260@smk7.sch.id', '2026251126', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-07-20', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(160, 'RANIA RAHMAWATI', '2511261', '2511261@smk7.sch.id', '1605862340', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-05-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(161, 'SALWA AL FARZANA', '2511262', '2511262@smk7.sch.id', '6234649693', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-02-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(162, 'SAMUEL WISTARA ADHI', '2511263', '2511263@smk7.sch.id', '3667199908', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2010-11-30', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(163, 'SHOFIA QURROTU AINI', '2511264', '2511264@smk7.sch.id', '8251479125', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-09-14', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(164, 'SILVIA BUNGA DENYANTI', '2511265', '2511265@smk7.sch.id', '6809879864', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Katolik', NULL, '2009-06-29', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(165, 'SYIEFA SITTI ALYSSA KIRANA CAPULET', '2511266', '2511266@smk7.sch.id', '2687480939', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2009-04-13', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(166, 'TALITHA MORIA PRADITA', '2511267', '2511267@smk7.sch.id', '2693005700', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', '', '2010-01-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(167, 'ZANNUBA ARIFAH CHAFSOH', '2511268', '2511268@smk7.sch.id', '6702033367', 7, 'X', 'MANAJEMEN PERKANTORAN 2', '2025-07-14', 'Islam', NULL, '2010-11-09', NULL, '', '', '', '089644755532', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(195, 'ADITYA BAGAS FIRDIANSYAH', '2511162', '2511162@smk7.sch.id', '2026251116', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Kristen', NULL, '2010-12-09', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(196, 'AHMAD ZEVANNO EKAJATI', '2511163', '2511163@smk7.sch.id', '7573333305', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-09-23', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(197, 'ALANA PUTRI KAMACHIKO', '2511164', '2511164@smk7.sch.id', '9897029753', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-07-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(198, 'ALIFA PUTRI NEVA ADARA', '2511165', '2511165@smk7.sch.id', '6949956861', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-04-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(199, 'ALYA KANZA SALSABILA PUTRI', '2511166', '2511166@smk7.sch.id', '3262782042', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-02-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(200, 'ARTHANIA INDAH KURNIASARI', '2511167', '2511167@smk7.sch.id', '1321124824', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-11-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(201, 'ATMA DWI PRASETYO', '2511168', '2511168@smk7.sch.id', '2564888574', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-09-02', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(202, 'BRIAN PACIFIO', '2511169', '2511169@smk7.sch.id', '8612870723', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-06-17', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(203, 'DEVIAS DEVAS CARYSSA PUTRI', '2511170', '2511170@smk7.sch.id', '2026251117', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-04-01', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(204, 'ELIZABETH HESTYA', '2511171', '2511171@smk7.sch.id', '5504199167', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Katolik', NULL, '2010-01-14', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(205, 'FADHIL MAULANA PUTRA', '2511172', '2511172@smk7.sch.id', '7437206016', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-10-29', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(206, 'FARAH KHAIRUNISA AZKA', '2511173', '2511173@smk7.sch.id', '3003007098', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-08-13', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(207, 'HIDEYOSHI KENZO STEFANO PRAKOSO', '2511174', '2511174@smk7.sch.id', '8734008905', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-05-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(208, 'IRAYA AMANDA FATIMAH', '2511175', '2511175@smk7.sch.id', '3522691617', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-03-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(209, 'JESSA NAN MAHANARA', '2511176', '2511176@smk7.sch.id', '1309551748', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Kristen', NULL, '2009-12-24', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(210, 'JOANNA MARISKHA HOVA', '2511177', '2511177@smk7.sch.id', '6621229427', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-10-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(211, 'KARNIA ARBAATUN SHOLIKHAH', '2511178', '2511178@smk7.sch.id', '7672857127', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-07-23', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(212, 'KEYLA NAZWA ALHABSYI', '2511179', '2511179@smk7.sch.id', '1967077871', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-05-07', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(213, 'KHANZA AULIA FIRDAUS', '2511180', '2511180@smk7.sch.id', '2026251118', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-02-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(214, 'MOHAMMAD ALWI ALKHAF', '2511181', '2511181@smk7.sch.id', '7225960206', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-12-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(215, 'MUHAMAD AIMAN', '2511377', '2511377@smk7.sch.id', '2026251137', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-09-17', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(216, 'MUHAMMAD FAIZ ARFAN', '2511182', '2511182@smk7.sch.id', '8312538241', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-07-02', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(217, 'MUHAMMAD FARKHAN WAFID', '2511183', '2511183@smk7.sch.id', '9447744457', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-04-16', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(218, 'MUHAMMAD RASYID WIRATAMA', '2511184', '2511184@smk7.sch.id', '6873541793', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-01-29', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(219, 'MUHAMMAD REVAN NAWADWIPA', '2511185', '2511185@smk7.sch.id', '3834599326', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-11-13', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(220, 'MYIESHA IFFATY ZHAAFIRA', '2511186', '2511186@smk7.sch.id', '3683194778', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-08-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(221, 'NAURA ANEIRA', '2511187', '2511187@smk7.sch.id', '1793544200', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-06-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(222, 'NUR WASKITHA KANA ADOYA', '2511188', '2511188@smk7.sch.id', '7423610149', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-03-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(223, 'RAFI NUR RAHMAT', '2511189', '2511189@smk7.sch.id', '5138985952', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-01-08', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(224, 'RASYID ATHAYA RAMADHAN', '2511190', '2511190@smk7.sch.id', '2026251119', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-10-23', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(225, 'RAYSHA RAMANIAGHASANI PRATISDILATIFA', '2511191', '2511191@smk7.sch.id', '5847218672', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-08-07', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(226, 'RIFQI NARARYA KUSUMAS RESTHA', '2511192', '2511192@smk7.sch.id', '2777516404', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-05-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(227, 'SAFIRA MAHARANI', '2511193', '2511193@smk7.sch.id', '2124781665', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-03-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(228, 'SEKAR WANGI LUHUR PAMBUDI', '2511194', '2511194@smk7.sch.id', '3956147626', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2009-12-18', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(229, 'SETYO URIP WICAKSONO', '2511195', '2511195@smk7.sch.id', '7816934641', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-10-02', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(230, 'YUMNA ALFIYAH NASYWA', '2511196', '2511196@smk7.sch.id', '3030335607', 5, 'X', 'DESAIN KOMUNIKASI VISUAL', '2025-07-14', 'Islam', '', '2010-07-17', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(258, 'AHMAD DANI RIZKYA GHIFARI', '2511305', '2511305@smk7.sch.id', '2026251130', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-08-16', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(259, 'ALBIANSYAH ARYA RAMADHAN', '2511306', '2511306@smk7.sch.id', '1418194055', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-05-31', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(260, 'ANINDYA PUTRI TIFANI', '2511308', '2511308@smk7.sch.id', '2050033403', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-03-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(261, 'ANNISA AURA AL-GHIFARI', '2511310', '2511310@smk7.sch.id', '2026251131', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-12-28', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(262, 'ANNURYAH EMBUN KUSUMADEWI', '2511311', '2511311@smk7.sch.id', '7554015755', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-10-11', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(263, 'ARCELIN NAYLA NAFLAH', '2511312', '2511312@smk7.sch.id', '3371669585', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-07-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(264, 'AUREL LARASATI PUTRI RAHMADANI', '2511313', '2511313@smk7.sch.id', '9984128112', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-05-10', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(265, 'AURELIA TRIHAPSARI AWINA', '2511314', '2511314@smk7.sch.id', '4354692163', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-02-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(266, 'BERNARDINUS GABRIEL WISHNU MAHESWARA', '2511316', '2511316@smk7.sch.id', '1807518098', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Katolik', NULL, '2010-12-07', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(267, 'BRIANT PRADIPTYA DWIASA', '2511317', '2511317@smk7.sch.id', '6203371629', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-09-21', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(268, 'CAMELIA MARITZA ADICAHYA', '2511318', '2511318@smk7.sch.id', '4491769618', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-07-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(269, 'DEVITA SUCI SILVIANI', '2511319', '2511319@smk7.sch.id', '9585533098', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-04-19', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(270, 'ERLITA AMANDARI', '2511320', '2511320@smk7.sch.id', '2026251132', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-02-01', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(271, 'HERJUNO PANJI PRABOWO', '2511321', '2511321@smk7.sch.id', '8490139514', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-11-16', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(272, 'JOSES SALVADOR DALLY', '2511322', '2511322@smk7.sch.id', '3529685952', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Katolik', NULL, '2009-08-31', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(273, 'KAIRANI AYU CHINTYA', '2511323', '2511323@smk7.sch.id', '4921500224', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-06-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(274, 'MAERLINA PUTRI WIDIYARAHMA', '2511325', '2511325@smk7.sch.id', '8769476933', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-03-30', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(275, 'MATHEUS ELWOOD CAEL', '2511326', '2511326@smk7.sch.id', '8814596655', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Katolik', NULL, '2010-01-11', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(276, 'MUHAMMAD ANTARES KUMARA PUTRA', '2511327', '2511327@smk7.sch.id', '9038099623', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-10-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(277, 'MUZHIDA ZAHRA DIRGAHAYU', '2511328', '2511328@smk7.sch.id', '4622826476', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-08-10', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(278, 'NADIFA SALSABILA', '2511329', '2511329@smk7.sch.id', '8613214688', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-05-25', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(279, 'NATASYA MIFTAH NUR AULIA', '2511330', '2511330@smk7.sch.id', '2026251133', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-03-09', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(280, 'NAURALITA ADINDA NARESWARI', '2511331', '2511331@smk7.sch.id', '3278292824', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-12-22', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(281, 'PRIZKA NOOR MAHARANI', '2511332', '2511332@smk7.sch.id', '2225780781', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-10-06', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(282, 'PUTRIA ALMIRA DAMAYANTI', '2511333', '2511333@smk7.sch.id', '8416797426', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-07-20', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(283, 'RISANG SASADARA', '2511334', '2511334@smk7.sch.id', '4046189311', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-05-04', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(284, 'SABRINA FITRI NORMAYANA', '2511335', '2511335@smk7.sch.id', '8926923745', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-02-16', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(285, 'SAKURA CAHYA ROSIVA', '2511336', '2511336@smk7.sch.id', '1149011553', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-12-01', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(286, 'SYAHRINA ZUNIYARTI', '2511337', '2511337@smk7.sch.id', '3294119886', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-09-15', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(287, 'TOBIAS LEON WICAKSONO', '2511338', '2511338@smk7.sch.id', '5814065729', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Kristen', NULL, '2009-06-30', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(288, 'VALENCIA ALMAIRA KIRANI', '2511339', '2511339@smk7.sch.id', '7273729673', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-04-14', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
+(289, 'WILIANSYAH PAMUNGKAS', '2511340', '2511340@smk7.sch.id', '2026251134', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-01-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm');
 
 -- --------------------------------------------------------
 
@@ -562,7 +563,6 @@ INSERT INTO `jadwal_mata_pelajaran` (`id`, `kelas_jadwal_id`, `nama_mata_pelajar
 (663, 8, 'Pend. Agama Kristen', 19, 'Selasa', '07:00:00', '09:00:00', 'RF.202/R. Agama Kristen'),
 (664, 14, 'Pend. Agama Kristen', 19, 'Rabu', '09:55:00', '11:55:00', 'RF.202/R. Agama Kristen'),
 (665, 14, 'Pend. Agama Katolik', 18, 'Rabu', '09:55:00', '11:55:00', 'RB. 107/R. Agama Katolik'),
-(666, 14, 'Pend. Agama Katolik', 18, 'Rabu', '09:55:00', '11:55:00', 'RB. 107/R. Agama Katolik'),
 (667, 22, 'Pend. Agama Katolik', 18, 'Jumat', '09:55:00', '11:55:00', 'RB. 107/R. Agama Katolik'),
 (668, 22, 'Pend. Agama Kristen', 19, 'Jumat', '09:55:00', '11:55:00', 'RF.202/R. Agama Kristen'),
 (669, 21, 'Pend. Agama Kristen', 19, 'Senin', '09:55:00', '11:55:00', 'RF.202/R. Agama Kristen'),
@@ -3875,36 +3875,34 @@ INSERT INTO `jadwal_mata_pelajaran_siswa` (`id`, `jadwal_mata_pelajaran_id`, `si
 CREATE TABLE `kelas` (
   `id` int NOT NULL,
   `nama_kelas` varchar(50) NOT NULL,
-  `tahun_ajaran` varchar(20) DEFAULT NULL,
-  `semester` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `status` enum('active','archived') NOT NULL DEFAULT 'active',
-  `created_by` int DEFAULT NULL
+  `jurusan` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `created_by` int DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `kelas`
 --
 
-INSERT INTO `kelas` (`id`, `nama_kelas`, `tahun_ajaran`, `semester`, `status`, `created_by`) VALUES
-(1, 'X AKUNTANSI 1', '2025/2026', 'Genap', 'active', NULL),
-(2, 'X AKUNTANSI 2', '2025/2026', 'Genap', 'active', NULL),
-(3, 'X MANAJEMEN PERKANTORAN 1', '2025/2026', 'Genap', 'active', NULL),
-(6, 'X MANAJEMEN PERKANTORAN 2', '2025/2026', 'Genap', 'active', NULL),
-(7, 'X BISNIS DIGITAL', '2025/2026', 'Genap', 'active', NULL),
-(8, 'X USAHA LAYANAN WISATA', '2025/2026', 'Genap', 'active', NULL),
-(9, 'X PRODUKSI FILM', '2025/2026', 'Genap', 'active', NULL),
-(10, 'X DESAIN KOMUNIKASI VISUAL', '2025/2026', 'Genap', 'active', NULL),
-(11, 'X DESAIN DAN PRODUKSI BUSANA', '2025/2026', 'Genap', 'active', NULL),
-(12, 'XI BISNIS DIGITAL', '2025/2026', 'Genap', 'active', NULL),
-(13, 'XI AKUNTANSI 1', '2025/2026', 'Genap', 'active', NULL),
-(14, 'XI AKUNTANSI 2', '2025/2026', 'Genap', 'active', NULL),
-(15, 'XI MANAJEMEN PERKANTORAN 1', '2025/2026', 'Genap', 'active', NULL),
-(16, 'XI MANAJEMEN PERKANTORAN 2', '2025/2026', 'Genap', 'active', NULL),
-(18, 'XI USAHA LAYANAN WISATA 1', '2025/2026', 'Genap', 'active', NULL),
-(19, 'XI USAHA LAYANAN WISATA 2', '2025/2026', 'Genap', 'active', NULL),
-(20, 'XI PRODUKSI FILM', '2025/2026', 'Genap', 'active', NULL),
-(21, 'XI DESAIN KOMUNIKASI VISUAL', '2025/2026', 'Genap', 'active', NULL),
-(22, 'XI DESAIN DAN PRODUKSI BUSANA', '2025/2026', 'Genap', 'active', NULL);
+INSERT INTO `kelas` (`id`, `nama_kelas`, `jurusan`, `created_by`) VALUES
+(1, 'X', 'AKUNTANSI 1', 1),
+(2, 'X', 'AKUNTANSI 2', 1),
+(3, 'X', 'BISNIS DIGITAL', 1),
+(4, 'X', 'DESAIN DAN PRODUKSI BUSANA', 1),
+(5, 'X', 'DESAIN KOMUNIKASI VISUAL', 1),
+(6, 'X', 'MANAJEMEN PERKANTORAN 1', 1),
+(7, 'X', 'MANAJEMEN PERKANTORAN 2', 1),
+(8, 'X', 'PRODUKSI FILM', 1),
+(9, 'X', 'USAHA LAYANAN WISATA', 1),
+(10, 'XI', 'AKUNTANSI 1', 1),
+(11, 'XI', 'AKUNTANSI 2', 1),
+(12, 'XI', 'BISNIS DIGITAL', 1),
+(13, 'XI', 'DESAIN DAN PRODUKSI BUSANA', 1),
+(14, 'XI', 'DESAIN KOMUNIKASI VISUAL', 1),
+(15, 'XI', 'MANAJEMEN PERKANTORAN 1', 1),
+(16, 'XI', 'MANAJEMEN PERKANTORAN 2', 1),
+(17, 'XI', 'PRODUKSI FILM', 1),
+(18, 'XI', 'USAHA LAYANAN WISATA 1', 1),
+(19, 'XI', 'USAHA LAYANAN WISATA 2', 1);
 
 -- --------------------------------------------------------
 
@@ -3926,59 +3924,46 @@ CREATE TABLE `lokasi_sekolah` (
 --
 
 INSERT INTO `lokasi_sekolah` (`id`, `nama_sekolah`, `latitude`, `longitude`, `radius_presensi`, `updated_by`) VALUES
-(1, 'SMK Negeri 7 Yogyakarta', -7.7956, 110.3695, 100, 1),
-(2, 'SMK Negeri 7 Yogyakarta', -7.64961, 110.413032, 100, 1),
-(3, 'SMK Negeri 7 Yogyakarta', -7.652036, 110.412129, 300, 1),
-(4, 'SMK Negeri 7 Yogyakarta', -7.652164, 110.41374, 400, 1),
-(5, 'SMK Negeri 7 Yogyakarta', -7.649973, 110.412988, 400, 1),
-(6, 'SMK Negeri 7 Yogyakarta', -7.649731, 110.416681, 400, 1),
-(7, 'SMK Negeri 7 Yogyakarta', -7.652781, 110.408629, 400, 1),
-(8, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
-(9, 'SMK Negeri 7 Yogyakarta', -7.648272, 110.41709, 400, 1),
-(10, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
-(11, 'SMK Negeri 7 Yogyakarta', -7.654622, 110.42154, 400, 1),
-(12, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
-(13, 'SMK Negeri 7 Yogyakarta', -7.651675, 110.419774, 400, 1),
-(14, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
-(15, 'SMK Negeri 7 Yogyakarta', -7.660007, 110.422757, 400, 1),
-(16, 'SMK Negeri 7 Yogyakarta', -7.660007, 110.422757, 1000, 1),
-(17, 'SMK Negeri 7 Yogyakarta', -7.65754, 110.42032, 1000, 1),
-(18, 'SMK Negeri 7 Yogyakarta', -7.655498, 110.418442, 1000, 1),
-(19, 'SMK Negeri 7 Yogyakarta', -7.656026, 110.419771, 1000, 1),
-(20, 'SMK Negeri 7 Yogyakarta', -7.650471, 110.415945, 500, 1),
-(21, 'SMK Negeri 7 Yogyakarta', -7.656349, 110.423524, 500, 1),
-(22, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 500, 1),
-(23, 'SMK Negeri 7 Yogyakarta', -7.650058, 110.414706, 500, 1),
-(24, 'SMK Negeri 7 Yogyakarta', -7.761999, 110.410064, 500, 1),
-(25, 'SMK Negeri 7 Yogyakarta', -7.652045, 110.416287, 200, 1),
-(26, 'SMK Negeri 7 Yogyakarta', -7.652045, 110.416287, 500, 1),
-(27, 'SMK Negeri 7 Yogyakarta', -7.652045, 110.416287, 500, 1),
-(28, 'SMK Negeri 7 Yogyakarta', -7.652045, 110.416287, 400, 1),
-(29, 'SMK Negeri 7 Yogyakarta', -7.650696, 110.413415, 400, 1),
-(30, 'SMK Negeri 7 Yogyakarta', -7.651483, 110.416638, 400, 1),
-(31, 'SMK Negeri 7 Yogyakarta', -7.650563, 110.415016, 400, 1),
-(32, 'SMK Negeri 7 Yogyakarta', -7.649518, 110.413088, 400, 1),
-(33, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
-(34, 'SMK Negeri 7 Yogyakarta', -7.649859, 110.413132, 400, 1),
-(35, 'SMK Negeri 7 Yogyakarta', -7.649612, 110.415243, 400, 1),
-(36, 'SMK Negeri 7 Yogyakarta', -7.782389, 110.415879, 400, 1),
-(37, 'SMK Negeri 7 Yogyakarta', -7.782389, 110.415879, 400, 1),
-(38, 'SMK Negeri 7 Yogyakarta', -7.781402, 110.418032, 400, 1),
-(39, 'SMK Negeri 7 Yogyakarta', -7.649497, 110.413696, 400, 1),
-(40, 'SMK Negeri 7 Yogyakarta', -7.653661, 110.42264, 400, 1),
-(41, 'SMK Negeri 7 Yogyakarta', -7.653661, 110.42264, 100, 1),
-(42, 'SMK Negeri 7 Yogyakarta', -7.653661, 110.42264, 400, 1),
-(43, 'SMK Negeri 7 Yogyakarta', -7.653718, 110.423107, 400, 1),
-(44, 'SMK Negeri 7 Yogyakarta', -7.649577, 110.412899, 400, 1),
-(45, 'SMK Negeri 7 Yogyakarta', -7.653661, 110.422546, 400, 1),
-(46, 'SMK Negeri 7 Yogyakarta', -7.653716, 110.418221, 400, 1),
-(47, 'SMK Negeri 7 Yogyakarta', -7.649567, 110.412895, 400, 1),
-(48, 'SMK Negeri 7 Yogyakarta', -7.649567, 110.412895, 100, 1),
-(49, 'SMK Negeri 7 Yogyakarta', -7.649931, 110.415737, 100, 1),
-(50, 'SMK Negeri 7 Yogyakarta', -7.649567, 110.412895, 100, 1),
-(51, 'SMK Negeri 7 Yogyakarta', -7.786556, 110.364929, 100, 1),
-(52, 'SMK Negeri 7 Yogyakarta', -7.649499, 110.412865, 100, 1),
 (53, 'SMK Negeri 7 Yogyakarta', -7.649684, 110.412426, 100, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `periode_kelas`
+--
+
+CREATE TABLE `periode_kelas` (
+  `id` int NOT NULL,
+  `kelas_id` int NOT NULL,
+  `tahun_ajaran` varchar(20) DEFAULT NULL,
+  `semester` varchar(8) DEFAULT NULL,
+  `status` enum('active','archived') NOT NULL DEFAULT 'active'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `periode_kelas`
+--
+
+INSERT INTO `periode_kelas` (`id`, `kelas_id`, `tahun_ajaran`, `semester`, `status`) VALUES
+(1, 1, '2025/2026', 'Genap', 'active'),
+(2, 2, '2025/2026', 'Genap', 'active'),
+(3, 6, '2025/2026', 'Genap', 'active'),
+(6, 7, '2025/2026', 'Genap', 'active'),
+(7, 3, '2025/2026', 'Genap', 'active'),
+(8, 9, '2025/2026', 'Genap', 'active'),
+(9, 8, '2025/2026', 'Genap', 'active'),
+(10, 5, '2025/2026', 'Genap', 'active'),
+(11, 4, '2025/2026', 'Genap', 'active'),
+(12, 12, '2025/2026', 'Genap', 'active'),
+(13, 10, '2025/2026', 'Genap', 'active'),
+(14, 11, '2025/2026', 'Genap', 'active'),
+(15, 15, '2025/2026', 'Genap', 'active'),
+(16, 16, '2025/2026', 'Genap', 'active'),
+(18, 18, '2025/2026', 'Genap', 'active'),
+(19, 19, '2025/2026', 'Genap', 'active'),
+(20, 17, '2025/2026', 'Genap', 'active'),
+(21, 14, '2025/2026', 'Genap', 'active'),
+(22, 13, '2025/2026', 'Genap', 'active');
 
 -- --------------------------------------------------------
 
@@ -4466,7 +4451,7 @@ INSERT INTO `presensi_mapel` (`id`, `presensi_sesi_id`, `user_id`, `jadwal_mata_
 (459, 46, 132, 654, -7.79578, 110.36944, 42.6, 'valid', '2026-05-20 00:13:00', 'hadir', NULL, NULL),
 (460, 46, 139, 654, -7.79573, 110.36952, 57.3, 'valid', '2026-05-20 00:34:00', 'hadir', NULL, NULL),
 (461, 46, 147, 654, -7.79545, 110.3695, 21.1, 'valid', '2026-05-20 00:10:00', 'hadir', NULL, NULL),
-(462, 47, 133, 655, -7.79554, 110.36935, 59.8, 'valid', '2026-05-20 00:17:00', 'hadir', NULL, NULL),
+(462, 47, 133, 655, 0, 0, 0, 'valid', '2026-05-20 00:17:00', 'hadir', '', ''),
 (463, 47, 134, 655, -7.7957, 110.36964, 8.9, 'valid', '2026-05-20 00:20:00', 'hadir', NULL, NULL),
 (464, 47, 137, 655, -7.79579, 110.36934, 42.2, 'valid', '2026-05-20 00:29:00', 'hadir', NULL, NULL),
 (465, 47, 145, 655, -7.79551, 110.36932, 6, 'valid', '2026-05-20 00:05:00', 'hadir', NULL, NULL),
@@ -6075,7 +6060,78 @@ INSERT INTO `presensi_mapel` (`id`, `presensi_sesi_id`, `user_id`, `jadwal_mata_
 (2064, 97, 100, 336, -7.79559, 110.36963, 23, 'valid', '2026-05-20 06:03:00', 'hadir', NULL, NULL),
 (2065, 97, 101, 336, -7.79558, 110.36964, 24, 'valid', '2026-05-20 06:04:00', 'hadir', NULL, NULL),
 (2066, 97, 102, 336, 0, 0, 0, 'valid', '2026-05-20 06:05:00', 'izin', 'Izin keperluan keluarga', NULL),
-(2067, 97, 103, 336, -7.79556, 110.36966, 26, 'valid', '2026-05-20 06:06:00', 'hadir', NULL, NULL);
+(2067, 97, 103, 336, -7.79556, 110.36966, 26, 'valid', '2026-05-20 06:06:00', 'hadir', NULL, NULL),
+(2068, 98, 69, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2069, 98, 70, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2070, 98, 71, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2071, 98, 72, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2072, 98, 73, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2073, 98, 74, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2074, 98, 75, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2075, 98, 76, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2076, 98, 77, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2077, 98, 78, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2078, 98, 79, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2079, 98, 80, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2080, 98, 81, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2081, 98, 82, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2082, 98, 83, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2083, 98, 84, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2084, 98, 85, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2085, 98, 86, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2086, 98, 87, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2087, 98, 88, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2088, 98, 89, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2089, 98, 90, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2090, 98, 91, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2091, 98, 92, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2092, 98, 93, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2093, 98, 94, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2094, 98, 95, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2095, 98, 96, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2096, 98, 97, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2097, 98, 98, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2098, 98, 99, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2099, 98, 100, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2100, 98, 101, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2101, 98, 102, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2102, 98, 103, 340, 0, 0, 0, 'valid', '2026-05-26 04:03:48', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2103, 110, 132, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2104, 110, 133, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2105, 110, 134, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2106, 110, 135, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2107, 110, 136, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2108, 110, 137, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2109, 110, 138, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2110, 110, 139, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2111, 110, 140, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2112, 110, 141, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2113, 110, 142, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2114, 110, 143, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2115, 110, 144, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2116, 110, 145, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2117, 110, 146, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2118, 110, 147, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2119, 110, 148, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2120, 110, 149, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2121, 110, 150, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2122, 110, 151, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2123, 110, 152, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2124, 110, 153, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2125, 110, 154, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2126, 110, 155, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2127, 110, 156, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2128, 110, 157, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2129, 110, 158, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2130, 110, 159, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2131, 110, 160, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2132, 110, 161, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2133, 110, 162, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2134, 110, 163, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2135, 110, 164, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2136, 110, 165, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2137, 110, 166, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2138, 110, 167, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL);
 
 -- --------------------------------------------------------
 
@@ -6173,7 +6229,11 @@ INSERT INTO `presensi_mapel_sesi` (`id`, `jadwal_mata_pelajaran_id`, `guru_id`, 
 (94, 624, 75, '2026-05-20 13:45:00', '2026-05-20 15:05:00', 'closed', 'Pembelajaran berjalan sesuai jadwal.'),
 (95, 338, 63, '2026-05-20 07:40:00', '2026-05-20 09:55:00', 'closed', 'Pembelajaran berjalan sesuai jadwal.'),
 (96, 337, 2, '2026-05-20 09:55:00', '2026-05-20 11:55:00', 'closed', 'Pembelajaran berjalan sesuai jadwal.'),
-(97, 336, 64, '2026-05-20 12:25:00', '2026-05-20 13:45:00', 'closed', 'Pembelajaran berjalan sesuai jadwal.');
+(97, 336, 64, '2026-05-20 12:25:00', '2026-05-20 13:45:00', 'closed', 'Pembelajaran berjalan sesuai jadwal.'),
+(98, 340, 2, '2026-05-26 07:40:00', '2026-05-26 09:55:00', 'closed', NULL),
+(99, 340, 2, '2026-06-02 07:40:00', '2026-06-02 09:55:00', 'open', NULL),
+(110, 166, 51, '2026-05-28 09:15:00', '2026-05-28 10:35:00', 'closed', NULL),
+(111, 166, 51, '2026-06-04 09:15:00', '2026-06-04 10:35:00', 'open', NULL);
 
 -- --------------------------------------------------------
 
@@ -7022,7 +7082,8 @@ INSERT INTO `users` (`id`, `nama`, `email`, `password`, `role`) VALUES
 ALTER TABLE `buku_induk`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_buku_induk_email` (`email`),
-  ADD KEY `idx_buku_induk_nipd` (`nipd`);
+  ADD KEY `idx_buku_induk_nipd` (`nipd`),
+  ADD KEY `idx_buku_induk_kelas_id` (`kelas_id`);
 
 --
 -- Indexes for table `jadwal_mata_pelajaran`
@@ -7046,7 +7107,7 @@ ALTER TABLE `jadwal_mata_pelajaran_siswa`
 --
 ALTER TABLE `kelas`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniq_kelas_jadwal` (`nama_kelas`,`tahun_ajaran`,`semester`),
+  ADD UNIQUE KEY `uniq_kelas_master` (`nama_kelas`,`jurusan`),
   ADD KEY `idx_kelas_created_by` (`created_by`);
 
 --
@@ -7055,6 +7116,14 @@ ALTER TABLE `kelas`
 ALTER TABLE `lokasi_sekolah`
   ADD PRIMARY KEY (`id`),
   ADD KEY `updated_by` (`updated_by`);
+
+--
+-- Indexes for table `periode_kelas`
+--
+ALTER TABLE `periode_kelas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_periode_kelas` (`kelas_id`,`tahun_ajaran`,`semester`),
+  ADD KEY `idx_periode_status` (`status`);
 
 --
 -- Indexes for table `presensi_mapel`
@@ -7104,13 +7173,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `buku_induk`
 --
 ALTER TABLE `buku_induk`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=322;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=323;
 
 --
 -- AUTO_INCREMENT for table `jadwal_mata_pelajaran`
 --
 ALTER TABLE `jadwal_mata_pelajaran`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=865;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=867;
 
 --
 -- AUTO_INCREMENT for table `jadwal_mata_pelajaran_siswa`
@@ -7122,7 +7191,7 @@ ALTER TABLE `jadwal_mata_pelajaran_siswa`
 -- AUTO_INCREMENT for table `kelas`
 --
 ALTER TABLE `kelas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `lokasi_sekolah`
@@ -7131,28 +7200,34 @@ ALTER TABLE `lokasi_sekolah`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
+-- AUTO_INCREMENT for table `periode_kelas`
+--
+ALTER TABLE `periode_kelas`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
+--
 -- AUTO_INCREMENT for table `presensi_mapel`
 --
 ALTER TABLE `presensi_mapel`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2068;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2139;
 
 --
 -- AUTO_INCREMENT for table `presensi_mapel_sesi`
 --
 ALTER TABLE `presensi_mapel_sesi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
 
 --
 -- AUTO_INCREMENT for table `presensi_sekolah`
 --
 ALTER TABLE `presensi_sekolah`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2379;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2905;
 
 --
 -- AUTO_INCREMENT for table `presensi_sekolah_sesi`
 --
 ALTER TABLE `presensi_sekolah_sesi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=179;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=185;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -7165,11 +7240,17 @@ ALTER TABLE `users`
 --
 
 --
+-- Constraints for table `buku_induk`
+--
+ALTER TABLE `buku_induk`
+  ADD CONSTRAINT `fk_buku_induk_kelas_master` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
 -- Constraints for table `jadwal_mata_pelajaran`
 --
 ALTER TABLE `jadwal_mata_pelajaran`
   ADD CONSTRAINT `fk_jadwal_guru` FOREIGN KEY (`guru_pengampu`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_jadwal_kelas_ref` FOREIGN KEY (`kelas_jadwal_id`) REFERENCES `kelas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_jadwal_periode_kelas_ref` FOREIGN KEY (`kelas_jadwal_id`) REFERENCES `periode_kelas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `jadwal_mata_pelajaran_siswa`
@@ -7189,6 +7270,12 @@ ALTER TABLE `kelas`
 --
 ALTER TABLE `lokasi_sekolah`
   ADD CONSTRAINT `lokasi_sekolah_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `periode_kelas`
+--
+ALTER TABLE `periode_kelas`
+  ADD CONSTRAINT `fk_periode_kelas_master` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 --
 -- Constraints for table `presensi_mapel`

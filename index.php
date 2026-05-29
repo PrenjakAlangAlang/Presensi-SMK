@@ -19,7 +19,9 @@ $protectedRoutes = [
     'admin_update_user', 'admin_delete_user', 'admin_export_excel', 'admin_export_pdf',
     'admin_presensi_sekolah', 'admin_create_presensi_sekolah', 'admin_extend_presensi_sekolah', 'admin_close_presensi_sekolah',
     'admin_delete_presensi_sekolah', 'admin_delete_multiple_presensi_sekolah',
+    'admin_ubah_status_presensi_sekolah', 'admin_ubah_status_presensi_mapel',
     'admin_create_kelas', 'admin_update_kelas', 'admin_delete_kelas', 'admin_toggle_kelas_status',
+    'admin_create_kelas_master', 'admin_update_kelas_master', 'admin_delete_kelas_master',
     'admin_mata_pelajaran', 'admin_create_mata_pelajaran', 'admin_update_mata_pelajaran', 'admin_delete_mata_pelajaran',
     'admin_get_siswa_mapel', 'admin_get_siswa_tersedia_mapel', 'admin_add_siswa_mapel', 'admin_add_multiple_siswa_mapel', 'admin_remove_siswa_mapel',
     'admin_get_mapel_kelas', 'admin_get_mapel_tersedia_kelas', 'admin_add_mapel_kelas', 'admin_remove_mapel_kelas',
@@ -28,6 +30,7 @@ $protectedRoutes = [
     'admin_kesiswaan_create_presensi_sekolah', 'admin_kesiswaan_extend_presensi_sekolah', 'admin_kesiswaan_close_presensi_sekolah',
     'admin_kesiswaan_delete_presensi_sekolah', 'admin_kesiswaan_delete_multiple_presensi_sekolah',
     'admin_kesiswaan_get_presensi_sekolah_status', 'admin_kesiswaan_save_buku_induk',
+    'admin_kesiswaan_ubah_status_presensi_sekolah', 'admin_kesiswaan_ubah_status_presensi_mapel',
     'admin_kesiswaan_laporan', 'admin_kesiswaan_export_excel', 'admin_kesiswaan_export_pdf',
     'guru_dashboard', 'guru_kelas', 'guru_presensi_mapel', 'guru_laporan', 'guru_export_pdf', 'guru_export_excel',
     'buka_presensi_mapel', 'tutup_presensi_mapel', 'hapus_presensi_mapel_sesi', 'simpan_laporan_kemajuan_mapel', 'get_presensi_mapel', 'guru_ubah_status_presensi',
@@ -47,10 +50,15 @@ $roleProtectedRoutes = [
     'admin_close_presensi_sekolah' => ['admin'],
     'admin_delete_presensi_sekolah' => ['admin'],
     'admin_delete_multiple_presensi_sekolah' => ['admin'],
+    'admin_ubah_status_presensi_sekolah' => ['admin'],
+    'admin_ubah_status_presensi_mapel' => ['admin'],
     'admin_create_kelas' => ['admin'],
     'admin_update_kelas' => ['admin'],
     'admin_delete_kelas' => ['admin'],
     'admin_toggle_kelas_status' => ['admin'],
+    'admin_create_kelas_master' => ['admin'],
+    'admin_update_kelas_master' => ['admin'],
+    'admin_delete_kelas_master' => ['admin'],
     'admin_kesiswaan_presensi_sekolah' => ['admin_kesiswaan'],
     'admin_kesiswaan_create_presensi_sekolah' => ['admin_kesiswaan'],
     'admin_kesiswaan_extend_presensi_sekolah' => ['admin_kesiswaan'],
@@ -58,6 +66,8 @@ $roleProtectedRoutes = [
     'admin_kesiswaan_delete_presensi_sekolah' => ['admin_kesiswaan'],
     'admin_kesiswaan_delete_multiple_presensi_sekolah' => ['admin_kesiswaan'],
     'admin_kesiswaan_get_presensi_sekolah_status' => ['admin_kesiswaan'],
+    'admin_kesiswaan_ubah_status_presensi_sekolah' => ['admin_kesiswaan'],
+    'admin_kesiswaan_ubah_status_presensi_mapel' => ['admin_kesiswaan'],
 ];
 
 if (isset($roleProtectedRoutes[$action])) {
@@ -228,6 +238,24 @@ switch($action) {
         require_once __DIR__ . '/app/controllers/AdminController.php';
         $admin = new AdminController();
         $admin->toggleKelasStatus();
+        break;
+
+    case 'admin_create_kelas_master':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->createKelasMaster();
+        break;
+
+    case 'admin_update_kelas_master':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->updateKelasMaster();
+        break;
+
+    case 'admin_delete_kelas_master':
+        require_once __DIR__ . '/app/controllers/AdminController.php';
+        $admin = new AdminController();
+        $admin->deleteKelasMaster();
         break;
 
     // NOTE: Siswa dikelola PER MATA PELAJARAN, bukan per kelas

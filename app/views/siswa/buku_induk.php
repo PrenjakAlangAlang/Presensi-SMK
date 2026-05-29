@@ -47,11 +47,38 @@ $dokumenFields = [
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
-                <input type="text" disabled class="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-600" value="<?php echo htmlspecialchars($record->kelas ?? '', ENT_QUOTES); ?>" />
+                <?php
+                    $kelasOptions = array_values(array_unique(array_filter(array_map(function($kelas) {
+                        return $kelas->nama_kelas ?? '';
+                    }, $kelasMasterList ?? []))));
+                    sort($kelasOptions);
+                    $jurusanOptions = array_values(array_unique(array_filter(array_map(function($kelas) {
+                        return $kelas->jurusan ?? '';
+                    }, $kelasMasterList ?? []))));
+                    sort($jurusanOptions);
+                ?>
+                <select name="kelas_value" id="kelas_value" class="w-full border rounded-lg px-4 py-2">
+                    <option value="">Pilih Kelas</option>
+                    <?php foreach ($kelasOptions as $kelas): ?>
+                        <option value="<?php echo htmlspecialchars($kelas, ENT_QUOTES); ?>" <?php echo (($record->kelas ?? '') === $kelas) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($kelas); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <input type="hidden" name="kelas_id" id="kelas_id" value="<?php echo htmlspecialchars($record->kelas_id ?? '', ENT_QUOTES); ?>" />
+                <input type="hidden" name="kelas_label" id="kelas_label" />
+                <input type="hidden" name="jurusan_label" id="jurusan_label" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>
-                <input type="text" disabled class="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-600" value="<?php echo htmlspecialchars($record->jurusan ?? '', ENT_QUOTES); ?>" />
+                <select name="jurusan_value" id="jurusan_value" class="w-full border rounded-lg px-4 py-2">
+                    <option value="">Pilih Jurusan</option>
+                    <?php foreach ($jurusanOptions as $jurusan): ?>
+                        <option value="<?php echo htmlspecialchars($jurusan, ENT_QUOTES); ?>" <?php echo (($record->jurusan ?? '') === $jurusan) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($jurusan); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Diterima di Sekolah</label>
@@ -59,7 +86,14 @@ $dokumenFields = [
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Agama</label>
-                <input type="text" disabled class="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-600" value="<?php echo htmlspecialchars($record->agama ?? '', ENT_QUOTES); ?>" />
+                <select name="agama" class="w-full border rounded-lg px-4 py-2">
+                    <option value="">Pilih Agama</option>
+                    <?php foreach (['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'] as $agama): ?>
+                        <option value="<?php echo $agama; ?>" <?php echo (($record->agama ?? '') === $agama) ? 'selected' : ''; ?>>
+                            <?php echo $agama; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tempat Lahir</label>
@@ -130,5 +164,51 @@ $dokumenFields = [
         </form>
     </div>
 </div>
+
+<script>
+const kelasMasterList = <?php echo json_encode($kelasMasterList ?? []); ?>;
+const kelasValueSelect = document.getElementById('kelas_value');
+const jurusanValueSelect = document.getElementById('jurusan_value');
+const kelasIdInput = document.getElementById('kelas_id');
+const kelasLabel = document.getElementById('kelas_label');
+const jurusanLabel = document.getElementById('jurusan_label');
+
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    }[char]));
+}
+
+function syncKelasLabels() {
+    const kelas = kelasValueSelect.value || '';
+    const jurusan = jurusanValueSelect.value || '';
+    const match = kelasMasterList.find(item => (item.nama_kelas || '') === kelas && (item.jurusan || '') === jurusan);
+    kelasIdInput.value = match ? match.id : '';
+    kelasLabel.value = kelas;
+    jurusanLabel.value = jurusan;
+}
+
+function renderJurusanOptions(selected = '') {
+    const kelas = kelasValueSelect.value || '';
+    const jurusanList = [...new Set(kelasMasterList
+        .filter(item => !kelas || (item.nama_kelas || '') === kelas)
+        .map(item => item.jurusan || '')
+        .filter(Boolean)
+    )].sort();
+
+    jurusanValueSelect.innerHTML = '<option value="">Pilih Jurusan</option>' + jurusanList.map(jurusan =>
+        `<option value="${escapeHtml(jurusan)}">${escapeHtml(jurusan)}</option>`
+    ).join('');
+    jurusanValueSelect.value = jurusanList.includes(selected) ? selected : '';
+}
+
+kelasValueSelect.addEventListener('change', () => {
+    renderJurusanOptions();
+    syncKelasLabels();
+});
+jurusanValueSelect.addEventListener('change', syncKelasLabels);
+renderJurusanOptions('<?php echo htmlspecialchars($record->jurusan ?? '', ENT_QUOTES); ?>');
+syncKelasLabels();
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

@@ -81,24 +81,6 @@ require_once __DIR__ . '/../layouts/header.php';
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
-
-    <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <h3 class="font-semibold text-gray-800 mb-4">Riwayat Terbaru</h3>
-        <div class="divide-y divide-gray-100">
-            <?php foreach ($riwayatMapel as $row): ?>
-                <div class="py-3 flex items-center justify-between gap-4">
-                    <div>
-                        <p class="font-medium text-gray-800"><?php echo htmlspecialchars($row->nama_mata_pelajaran); ?></p>
-                        <p class="text-sm text-gray-500"><?php echo date('d/m/Y H:i', strtotime($row->waktu)); ?></p>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700"><?php echo ucfirst($row->jenis); ?></span>
-                </div>
-            <?php endforeach; ?>
-            <?php if (empty($riwayatMapel)): ?>
-                <p class="text-sm text-gray-500">Belum ada presensi mata pelajaran.</p>
-            <?php endif; ?>
-        </div>
-    </section>
 </div>
 
 <script>

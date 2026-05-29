@@ -278,11 +278,12 @@ class GuruController {
                        pm.alasan,
                        s.id as sesi_id,
                        j.nama_mata_pelajaran,
-                       k.nama_kelas,
+                       CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
                        u.nama as guru_nama
                 FROM presensi_mapel_sesi s
                 INNER JOIN jadwal_mata_pelajaran j ON s.jadwal_mata_pelajaran_id = j.id
-                INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                 LEFT JOIN users u ON j.guru_pengampu = u.id
                 INNER JOIN jadwal_mata_pelajaran_siswa js ON js.jadwal_mata_pelajaran_id = j.id
                 INNER JOIN buku_induk bi ON js.siswa_id = bi.id
@@ -883,3 +884,5 @@ class GuruController {
     }
 }
 ?>
+
+

@@ -138,20 +138,29 @@ class PresensiSesiModel {
 
    
     public function getSessionById($id) {
-        $this->db->query('SELECT ps.*, j.nama_mata_pelajaran, k.nama_kelas
+        $this->db->query('SELECT ps.*, j.nama_mata_pelajaran,
+                         CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         k.nama_kelas as tingkat,
+                         k.jurusan
                          FROM presensi_mapel_sesi ps
                          INNER JOIN jadwal_mata_pelajaran j ON ps.jadwal_mata_pelajaran_id = j.id
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                          WHERE ps.id = :id');
         $this->db->bind(':id', (int) $id);
         return $this->db->single();
     }
 
     public function getSessionForGuru($sesi_id, $guru_id) {
-        $this->db->query('SELECT ps.*, j.nama_mata_pelajaran, k.nama_kelas, j.guru_pengampu
+        $this->db->query('SELECT ps.*, j.nama_mata_pelajaran,
+                         CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         k.nama_kelas as tingkat,
+                         k.jurusan,
+                         j.guru_pengampu
                          FROM presensi_mapel_sesi ps
                          INNER JOIN jadwal_mata_pelajaran j ON ps.jadwal_mata_pelajaran_id = j.id
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                          WHERE ps.id = :id AND j.guru_pengampu = :guru_id
                          LIMIT 1');
         $this->db->bind(':id', (int) $sesi_id);
@@ -207,16 +216,21 @@ class PresensiSesiModel {
     }
 
     public function getTodayForSiswa($siswa_id) {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.status as kelas_status, u.nama as guru_pengampu_nama,
+        $this->db->query('SELECT j.*,
+                         CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         k.nama_kelas as tingkat,
+                         k.jurusan,
+                         pkel.status as kelas_status, u.nama as guru_pengampu_nama,
                          s.id as sesi_id, s.status as sesi_status, s.waktu_buka, s.waktu_tutup,
                          pm.id as presensi_id, pm.jenis as presensi_jenis, pm.waktu as waktu_presensi
                          FROM jadwal_mata_pelajaran j
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                          INNER JOIN jadwal_mata_pelajaran_siswa js ON j.id = js.jadwal_mata_pelajaran_id
                          LEFT JOIN users u ON j.guru_pengampu = u.id
                          LEFT JOIN presensi_mapel_sesi s ON s.jadwal_mata_pelajaran_id = j.id AND DATE(s.waktu_buka) = CURDATE()
                          LEFT JOIN presensi_mapel pm ON pm.presensi_sesi_id = s.id AND pm.user_id = :siswa_id
-                         WHERE js.siswa_id = :siswa_id2 AND j.hari = :hari AND k.status = "active"
+                         WHERE js.siswa_id = :siswa_id2 AND j.hari = :hari AND pkel.status = "active"
                          ORDER BY j.jam_mulai, j.nama_mata_pelajaran');
         $this->db->bind(':siswa_id', (int) $siswa_id);
         $this->db->bind(':siswa_id2', (int) $siswa_id);
@@ -225,7 +239,11 @@ class PresensiSesiModel {
     }
 
     public function getTodayForGuru($guru_id) {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.status as kelas_status,
+        $this->db->query('SELECT j.*,
+                         CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         k.nama_kelas as tingkat,
+                         k.jurusan,
+                         pkel.status as kelas_status,
                          s.id as sesi_id, s.status as sesi_status, s.waktu_buka, s.waktu_tutup,
                          (SELECT COUNT(*) FROM jadwal_mata_pelajaran_siswa js WHERE js.jadwal_mata_pelajaran_id = j.id) as total_siswa,
                          (SELECT COUNT(*) FROM presensi_mapel pm WHERE pm.presensi_sesi_id = s.id AND pm.jenis = "hadir") as hadir,
@@ -233,9 +251,10 @@ class PresensiSesiModel {
                          (SELECT COUNT(*) FROM presensi_mapel pm WHERE pm.presensi_sesi_id = s.id AND pm.jenis = "sakit") as sakit,
                          (SELECT COUNT(*) FROM presensi_mapel pm WHERE pm.presensi_sesi_id = s.id AND pm.jenis = "alpha") as alpha
                          FROM jadwal_mata_pelajaran j
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                          LEFT JOIN presensi_mapel_sesi s ON s.jadwal_mata_pelajaran_id = j.id AND DATE(s.waktu_buka) = CURDATE()
-                         WHERE j.guru_pengampu = :guru_id AND j.hari = :hari AND k.status = "active"
+                         WHERE j.guru_pengampu = :guru_id AND j.hari = :hari AND pkel.status = "active"
                          ORDER BY j.jam_mulai, j.nama_mata_pelajaran');
         $this->db->bind(':guru_id', (int) $guru_id);
         $this->db->bind(':hari', $this->currentHari());
@@ -243,9 +262,12 @@ class PresensiSesiModel {
     }
 
     public function getManageForGuru($guru_id, $includeArchived = false) {
-        $statusFilter = $includeArchived ? '' : ' WHERE k.status = "active"';
-        $this->db->query('SELECT base.*, k.nama_kelas,
-                         k.status as kelas_status,
+        $statusFilter = $includeArchived ? '' : ' WHERE pkel.status = "active"';
+        $this->db->query('SELECT base.*,
+                         CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         k.nama_kelas as tingkat,
+                         k.jurusan,
+                         pkel.status as kelas_status,
                          grouped.jumlah_pertemuan,
                          grouped.jadwal_ringkas
                          FROM (
@@ -264,17 +286,19 @@ class PresensiSesiModel {
                             GROUP BY kelas_jadwal_id, nama_mata_pelajaran, guru_pengampu
                          ) grouped
                          INNER JOIN jadwal_mata_pelajaran base ON grouped.id = base.id
-                         INNER JOIN kelas k ON base.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pkel ON base.kelas_jadwal_id = pkel.id
+                         INNER JOIN kelas k ON pkel.kelas_id = k.id
                          ' . $statusFilter . '
-                         ORDER BY k.nama_kelas, base.nama_mata_pelajaran');
+                         ORDER BY k.nama_kelas, k.jurusan, base.nama_mata_pelajaran');
         $this->db->bind(':guru_id', (int) $guru_id);
         return $this->db->resultSet();
     }
 
     private function getJadwalForGuru($jadwal_id, $guru_id) {
-        $this->db->query('SELECT j.*, k.status as kelas_status
+        $this->db->query('SELECT j.*, pkel.status as kelas_status
                          FROM jadwal_mata_pelajaran j
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                          WHERE j.id = :id AND j.guru_pengampu = :guru_id
                          LIMIT 1');
         $this->db->bind(':id', (int) $jadwal_id);
@@ -286,9 +310,10 @@ class PresensiSesiModel {
         $jadwal = $this->getJadwalForGuru($jadwal_id, $guru_id);
         if (!$jadwal) return [];
 
-        $this->db->query('SELECT j.*, k.status as kelas_status
+        $this->db->query('SELECT j.*, pkel.status as kelas_status
                          FROM jadwal_mata_pelajaran j
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                          WHERE j.kelas_jadwal_id = :kelas_jadwal_id
                            AND j.nama_mata_pelajaran = :nama_mata_pelajaran
                            AND j.guru_pengampu = :guru_id
@@ -355,3 +380,5 @@ class PresensiSesiModel {
 }
 
 ?>
+
+

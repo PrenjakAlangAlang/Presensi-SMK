@@ -89,10 +89,15 @@ class PresensiModel {
     
     public function getPresensiKelasByUser($user_id, $limit = null, $filters = []) {
         $filters = is_array($filters) ? $filters : ['kelas_jadwal_id' => $filters];
-        $sql = 'SELECT pm.*, j.nama_mata_pelajaran, k.nama_kelas, j.kelas_jadwal_id, k.tahun_ajaran, k.semester, j.hari, j.jam_mulai, j.jam_selesai
+        $sql = 'SELECT pm.*, j.nama_mata_pelajaran,
+                CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                k.nama_kelas as tingkat,
+                k.jurusan,
+                j.kelas_jadwal_id, pkel.tahun_ajaran, pkel.semester, j.hari, j.jam_mulai, j.jam_selesai
                 FROM presensi_mapel pm
                 INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
-                INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                 WHERE pm.user_id = :user_id';
         $sql .= $this->buildMapelFilterSql($filters);
         $sql .= ' ORDER BY pm.waktu DESC';
@@ -106,10 +111,15 @@ class PresensiModel {
     public function getPresensiKelasByUserPeriode($user_id, $startDate, $endDate = null, $filters = []) {
         $filters = is_array($filters) ? $filters : ['kelas_jadwal_id' => $filters];
         if ($endDate) {
-            $sql = 'SELECT pm.*, j.nama_mata_pelajaran, k.nama_kelas, j.kelas_jadwal_id, k.tahun_ajaran, k.semester
+            $sql = 'SELECT pm.*, j.nama_mata_pelajaran,
+                    CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                    k.nama_kelas as tingkat,
+                    k.jurusan,
+                    j.kelas_jadwal_id, pkel.tahun_ajaran, pkel.semester
                     FROM presensi_mapel pm
                     INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
-                    INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                    INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                     WHERE pm.user_id = :user_id AND DATE(pm.waktu) BETWEEN :start_date AND :end_date';
             $sql .= $this->buildMapelFilterSql($filters);
             $sql .= ' ORDER BY pm.waktu DESC';
@@ -117,10 +127,15 @@ class PresensiModel {
             $this->db->bind(':start_date', $startDate);
             $this->db->bind(':end_date', $endDate);
         } else {
-            $sql = 'SELECT pm.*, j.nama_mata_pelajaran, k.nama_kelas, j.kelas_jadwal_id, k.tahun_ajaran, k.semester
+            $sql = 'SELECT pm.*, j.nama_mata_pelajaran,
+                    CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                    k.nama_kelas as tingkat,
+                    k.jurusan,
+                    j.kelas_jadwal_id, pkel.tahun_ajaran, pkel.semester
                     FROM presensi_mapel pm
                     INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
-                    INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                    INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                     WHERE pm.user_id = :user_id AND DATE(pm.waktu) = :tanggal';
             $sql .= $this->buildMapelFilterSql($filters);
             $sql .= ' ORDER BY pm.waktu DESC';
@@ -394,7 +409,8 @@ class PresensiModel {
                         SUM(CASE WHEN pk.jenis = "alpha" THEN 1 ELSE 0 END) as alpha
                         FROM presensi_mapel pk
                         INNER JOIN jadwal_mata_pelajaran j ON pk.jadwal_mata_pelajaran_id = j.id
-                        LEFT JOIN kelas k ON j.kelas_jadwal_id = k.id
+                        LEFT JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                        LEFT JOIN kelas k ON pkel.kelas_id = k.id
                         WHERE pk.user_id = :user_id AND DATE(pk.waktu) = :tanggal';
                 $sql .= $this->buildMapelFilterSql($filters);
                 $this->db->query($sql);
@@ -426,7 +442,8 @@ class PresensiModel {
                         SUM(CASE WHEN pk.jenis = "alpha" THEN 1 ELSE 0 END) as alpha
                         FROM presensi_mapel pk
                         INNER JOIN jadwal_mata_pelajaran j ON pk.jadwal_mata_pelajaran_id = j.id
-                        LEFT JOIN kelas k ON j.kelas_jadwal_id = k.id
+                        LEFT JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                        LEFT JOIN kelas k ON pkel.kelas_id = k.id
                         WHERE pk.user_id = :user_id AND MONTH(pk.waktu) = :bulan AND YEAR(pk.waktu) = :tahun';
                 $sql .= $this->buildMapelFilterSql($filters);
                 $this->db->query($sql);
@@ -460,7 +477,8 @@ class PresensiModel {
                         SUM(CASE WHEN pk.jenis = "alpha" THEN 1 ELSE 0 END) as alpha
                         FROM presensi_mapel pk
                         INNER JOIN jadwal_mata_pelajaran j ON pk.jadwal_mata_pelajaran_id = j.id
-                        LEFT JOIN kelas k ON j.kelas_jadwal_id = k.id
+                        LEFT JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                        LEFT JOIN kelas k ON pkel.kelas_id = k.id
                         WHERE pk.user_id = :user_id AND DATE(pk.waktu) = CURDATE()';
                 $sql .= $this->buildMapelFilterSql($filters);
                 $this->db->query($sql);
@@ -489,10 +507,10 @@ class PresensiModel {
             $sql .= ' AND j.nama_mata_pelajaran = :filter_mapel';
         }
         if (!empty($filters['semester'])) {
-            $sql .= ' AND k.semester = :filter_semester';
+            $sql .= ' AND pkel.semester = :filter_semester';
         }
         if (!empty($filters['tahun_ajaran'])) {
-            $sql .= ' AND k.tahun_ajaran = :filter_tahun_ajaran';
+            $sql .= ' AND pkel.tahun_ajaran = :filter_tahun_ajaran';
         }
         if (!empty($filters['kelas_jadwal_id'])) {
             $sql .= ' AND j.kelas_jadwal_id = :filter_kelas_jadwal_id';
@@ -1171,3 +1189,4 @@ class PresensiModel {
 
 }
 ?>
+

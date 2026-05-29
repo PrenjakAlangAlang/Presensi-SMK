@@ -364,6 +364,7 @@ class SiswaController {
     public function bukuInduk() {
         $user_id = $_SESSION['user_id'];
         $record  = $this->bukuIndukModel->getByUserId($user_id);
+        $kelasMasterList = $this->mataPelajaranModel->getAllKelasMaster();
         require_once __DIR__ . '/../views/siswa/buku_induk.php';
     }
 
@@ -378,10 +379,11 @@ class SiswaController {
             'nipd'           => trim($_POST['nipd'] ?? ''),
             'email'         => $existingRecord->email ?? $this->generateStudentEmail($_POST['nipd'] ?? ''),
             'nisn'          => isset($_POST['nisn']) && trim($_POST['nisn']) !== '' ? trim($_POST['nisn']) : null,
-            'kelas'         => $existingRecord->kelas ?? null,
-            'jurusan'       => $existingRecord->jurusan ?? null,
+            'kelas_id'      => !empty($_POST['kelas_id']) ? $_POST['kelas_id'] : ($existingRecord->kelas_id ?? null),
+            'kelas'         => isset($_POST['kelas_label']) ? trim($_POST['kelas_label']) : ($existingRecord->kelas ?? null),
+            'jurusan'       => isset($_POST['jurusan_label']) ? trim($_POST['jurusan_label']) : ($existingRecord->jurusan ?? null),
             'tanggal_diterima' => $existingRecord->tanggal_diterima ?? null,
-            'agama'         => $existingRecord->agama ?? null,
+            'agama'         => isset($_POST['agama']) ? trim($_POST['agama']) : ($existingRecord->agama ?? null),
             'tempat_lahir'  => isset($_POST['tempat_lahir']) && trim($_POST['tempat_lahir']) !== '' ? trim($_POST['tempat_lahir']) : null,
             'tanggal_lahir' => !empty($_POST['tanggal_lahir']) ? $_POST['tanggal_lahir'] : null,
             'alamat'        => isset($_POST['alamat']) && trim($_POST['alamat']) !== '' ? trim($_POST['alamat']) : null,
@@ -406,6 +408,17 @@ class SiswaController {
             $_SESSION['error'] = 'Kolom nama dan email maksimal 50 karakter.';
             header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
             exit();
+        }
+
+        if (!empty($data['kelas_id'])) {
+            $kelasMaster = $this->mataPelajaranModel->getKelasMasterById($data['kelas_id']);
+            if (!$kelasMaster) {
+                $_SESSION['error'] = 'Kelas yang dipilih tidak valid.';
+                header('Location: ' . BASE_URL . '/index.php?action=siswa_buku_induk');
+                exit();
+            }
+            $data['kelas'] = $kelasMaster->nama_kelas ?? null;
+            $data['jurusan'] = $kelasMaster->jurusan ?? null;
         }
 
         $documentUploads = [
@@ -663,7 +676,8 @@ class SiswaController {
             $db->query('SELECT HOUR(pm.waktu) as jam, COUNT(*) as jumlah 
                        FROM presensi_mapel pm
                        INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
-                       LEFT JOIN kelas k ON j.kelas_jadwal_id = k.id
+                       LEFT JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                       LEFT JOIN kelas k ON pkel.kelas_id = k.id
                        WHERE pm.user_id = :user_id AND DATE(pm.waktu) = :tanggal' . $filterSql . '
                        GROUP BY HOUR(pm.waktu)');
             $db->bind(':user_id', $user_id);
@@ -686,7 +700,8 @@ class SiswaController {
             $db->query('SELECT DAY(pm.waktu) as hari, COUNT(*) as jumlah 
                        FROM presensi_mapel pm
                        INNER JOIN jadwal_mata_pelajaran j ON pm.jadwal_mata_pelajaran_id = j.id
-                       LEFT JOIN kelas k ON j.kelas_jadwal_id = k.id
+                       LEFT JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                       LEFT JOIN kelas k ON pkel.kelas_id = k.id
                        WHERE pm.user_id = :user_id AND MONTH(pm.waktu) = :bulan AND YEAR(pm.waktu) = :tahun AND (pm.status = "valid" OR pm.jenis IN ("izin", "sakit"))' . $filterSql . '
                        GROUP BY DAY(pm.waktu)');
             $db->bind(':user_id', $user_id);
@@ -713,10 +728,10 @@ class SiswaController {
             $sql .= ' AND j.nama_mata_pelajaran = :filter_mapel';
         }
         if (!empty($filters['semester'])) {
-            $sql .= ' AND k.semester = :filter_semester';
+            $sql .= ' AND pkel.semester = :filter_semester';
         }
         if (!empty($filters['tahun_ajaran'])) {
-            $sql .= ' AND k.tahun_ajaran = :filter_tahun_ajaran';
+            $sql .= ' AND pkel.tahun_ajaran = :filter_tahun_ajaran';
         }
         return $sql;
     }
@@ -743,3 +758,5 @@ class SiswaController {
     }
 }
 ?>
+
+

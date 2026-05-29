@@ -10,7 +10,8 @@ class JadwalMataPelajaranModel {
     }
 
     public function getAllJadwal() {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, k.status as kelas_status, u.nama as guru_pengampu_nama,
+        $this->db->query('SELECT j.*, CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         k.nama_kelas as tingkat, k.jurusan, pk.tahun_ajaran, pk.semester, pk.status as kelas_status, u.nama as guru_pengampu_nama,
                          CONCAT(j.hari, ", ", TIME_FORMAT(j.jam_mulai, "%H:%i"), "-", TIME_FORMAT(j.jam_selesai, "%H:%i")) as jadwal,
                          (SELECT COUNT(DISTINCT js.siswa_id)
                           FROM jadwal_mata_pelajaran rel
@@ -19,15 +20,17 @@ class JadwalMataPelajaranModel {
                             AND rel.nama_mata_pelajaran = j.nama_mata_pelajaran
                             AND (rel.guru_pengampu <=> j.guru_pengampu)) as jumlah_siswa
                          FROM jadwal_mata_pelajaran j
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pk ON j.kelas_jadwal_id = pk.id
+                         INNER JOIN kelas k ON pk.kelas_id = k.id
                          LEFT JOIN users u ON j.guru_pengampu = u.id
                          ORDER BY FIELD(j.hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"),
-                                  j.jam_mulai, k.nama_kelas, j.nama_mata_pelajaran');
+                                  j.jam_mulai, k.nama_kelas, k.jurusan, j.nama_mata_pelajaran');
         return $this->db->resultSet();
     }
 
     public function getJadwalByKelas($kelas_jadwal_id) {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, k.status as kelas_status, u.nama as guru_pengampu_nama,
+        $this->db->query('SELECT j.*, CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         k.nama_kelas as tingkat, k.jurusan, pk.tahun_ajaran, pk.semester, pk.status as kelas_status, u.nama as guru_pengampu_nama,
                          CONCAT(j.hari, ", ", TIME_FORMAT(j.jam_mulai, "%H:%i"), "-", TIME_FORMAT(j.jam_selesai, "%H:%i")) as jadwal,
                          (SELECT COUNT(DISTINCT js.siswa_id)
                           FROM jadwal_mata_pelajaran rel
@@ -36,7 +39,8 @@ class JadwalMataPelajaranModel {
                             AND rel.nama_mata_pelajaran = j.nama_mata_pelajaran
                             AND (rel.guru_pengampu <=> j.guru_pengampu)) as jumlah_siswa
                          FROM jadwal_mata_pelajaran j
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pk ON j.kelas_jadwal_id = pk.id
+                         INNER JOIN kelas k ON pk.kelas_id = k.id
                          LEFT JOIN users u ON j.guru_pengampu = u.id
                          WHERE j.kelas_jadwal_id = :kelas_jadwal_id
                          ORDER BY FIELD(j.hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"),
@@ -46,24 +50,30 @@ class JadwalMataPelajaranModel {
     }
 
     public function getAllKelasJadwal() {
-        $this->db->query('SELECT k.*, u.nama as created_by_nama,
+        $this->db->query('SELECT pk.*, k.id as master_kelas_id, k.nama_kelas as tingkat, k.jurusan,
+                         CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         u.nama as created_by_nama,
                          (SELECT COUNT(*)
                           FROM jadwal_mata_pelajaran j
-                          WHERE j.kelas_jadwal_id = k.id) as jumlah_jadwal,
+                          WHERE j.kelas_jadwal_id = pk.id) as jumlah_jadwal,
                          (SELECT COUNT(DISTINCT j.nama_mata_pelajaran)
                           FROM jadwal_mata_pelajaran j
-                          WHERE j.kelas_jadwal_id = k.id) as jumlah_mapel
-                         FROM kelas k
+                          WHERE j.kelas_jadwal_id = pk.id) as jumlah_mapel
+                         FROM periode_kelas pk
+                         INNER JOIN kelas k ON pk.kelas_id = k.id
                          LEFT JOIN users u ON k.created_by = u.id
-                         ORDER BY k.tahun_ajaran DESC, k.nama_kelas ASC');
+                         ORDER BY pk.tahun_ajaran DESC, pk.semester ASC, k.nama_kelas ASC, k.jurusan ASC');
         return $this->db->resultSet();
     }
 
     public function getKelasJadwalById($id) {
-        $this->db->query('SELECT k.*, u.nama as created_by_nama
-                         FROM kelas k
+        $this->db->query('SELECT pk.*, k.id as master_kelas_id, k.nama_kelas as tingkat, k.jurusan,
+                         CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         u.nama as created_by_nama
+                         FROM periode_kelas pk
+                         INNER JOIN kelas k ON pk.kelas_id = k.id
                          LEFT JOIN users u ON k.created_by = u.id
-                         WHERE k.id = :id');
+                         WHERE pk.id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
     }
@@ -76,7 +86,7 @@ class JadwalMataPelajaranModel {
         $kelas = $this->getKelasJadwalById($id);
         if (!$kelas) return false;
 
-        $this->db->query('UPDATE kelas SET status = :status WHERE id = :id');
+        $this->db->query('UPDATE periode_kelas SET status = :status WHERE id = :id');
         $this->db->bind(':id', (int) $id);
         $this->db->bind(':status', $status);
         $ok = $this->db->execute();
@@ -94,30 +104,29 @@ class JadwalMataPelajaranModel {
         return $ok;
     }
 
-    public function createKelasJadwal($nama_kelas, $tahun_ajaran = null, $semester = null, $created_by = null) {
-        if ($this->kelasJadwalExists($nama_kelas, $tahun_ajaran, $semester)) {
+    public function createKelasJadwal($kelas_id, $tahun_ajaran = null, $semester = null) {
+        if ($this->kelasJadwalExists($kelas_id, $tahun_ajaran, $semester)) {
             return false;
         }
 
-        $this->db->query('INSERT INTO kelas (nama_kelas, tahun_ajaran, semester, created_by)
-                         VALUES (:nama_kelas, :tahun_ajaran, :semester, :created_by)');
-        $this->db->bind(':nama_kelas', $nama_kelas);
+        $this->db->query('INSERT INTO periode_kelas (kelas_id, tahun_ajaran, semester)
+                         VALUES (:kelas_id, :tahun_ajaran, :semester)');
+        $this->db->bind(':kelas_id', (int) $kelas_id);
         $this->db->bind(':tahun_ajaran', $tahun_ajaran);
         $this->db->bind(':semester', $semester);
-        $this->db->bind(':created_by', $created_by);
         return $this->db->execute();
     }
 
-    public function updateKelasJadwal($id, $nama_kelas, $tahun_ajaran = null, $semester = null) {
+    public function updateKelasJadwal($id, $kelas_id, $tahun_ajaran = null, $semester = null) {
         $kelas = $this->getKelasJadwalById($id);
         if (!$kelas) return false;
-        if ($this->kelasJadwalExists($nama_kelas, $tahun_ajaran, $semester, $id)) return false;
+        if ($this->kelasJadwalExists($kelas_id, $tahun_ajaran, $semester, $id)) return false;
 
-        $this->db->query('UPDATE kelas
-                         SET nama_kelas = :nama_kelas, tahun_ajaran = :tahun_ajaran, semester = :semester
+        $this->db->query('UPDATE periode_kelas
+                         SET kelas_id = :kelas_id, tahun_ajaran = :tahun_ajaran, semester = :semester
                          WHERE id = :id');
         $this->db->bind(':id', $id);
-        $this->db->bind(':nama_kelas', $nama_kelas);
+        $this->db->bind(':kelas_id', (int) $kelas_id);
         $this->db->bind(':tahun_ajaran', $tahun_ajaran);
         $this->db->bind(':semester', $semester);
         return $this->db->execute();
@@ -131,15 +140,15 @@ class JadwalMataPelajaranModel {
         $this->db->bind(':kelas_jadwal_id', (int) $id);
         $this->db->execute();
 
-        $this->db->query('DELETE FROM kelas WHERE id = :id');
+        $this->db->query('DELETE FROM periode_kelas WHERE id = :id');
         $this->db->bind(':id', $id);
         return $this->db->execute();
     }
 
-    private function kelasJadwalExists($nama_kelas, $tahun_ajaran = null, $semester = null, $excludeId = null) {
+    private function kelasJadwalExists($kelas_id, $tahun_ajaran = null, $semester = null, $excludeId = null) {
         $sql = 'SELECT id
-                FROM kelas
-                WHERE nama_kelas = :nama_kelas
+                FROM periode_kelas
+                WHERE kelas_id = :kelas_id
                   AND (tahun_ajaran <=> :tahun_ajaran)
                   AND (semester <=> :semester)';
         if ($excludeId) {
@@ -148,7 +157,7 @@ class JadwalMataPelajaranModel {
         $sql .= ' LIMIT 1';
 
         $this->db->query($sql);
-        $this->db->bind(':nama_kelas', $nama_kelas);
+        $this->db->bind(':kelas_id', (int) $kelas_id);
         $this->db->bind(':tahun_ajaran', $tahun_ajaran);
         $this->db->bind(':semester', $semester);
         if ($excludeId) {
@@ -158,10 +167,12 @@ class JadwalMataPelajaranModel {
     }
 
     public function getJadwalById($id) {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, k.status as kelas_status, u.nama as guru_pengampu_nama,
+        $this->db->query('SELECT j.*, CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         k.nama_kelas as tingkat, k.jurusan, pk.tahun_ajaran, pk.semester, pk.status as kelas_status, u.nama as guru_pengampu_nama,
                          CONCAT(j.hari, ", ", TIME_FORMAT(j.jam_mulai, "%H:%i"), "-", TIME_FORMAT(j.jam_selesai, "%H:%i")) as jadwal
                          FROM jadwal_mata_pelajaran j
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pk ON j.kelas_jadwal_id = pk.id
+                         INNER JOIN kelas k ON pk.kelas_id = k.id
                          LEFT JOIN users u ON j.guru_pengampu = u.id
                          WHERE j.id = :id');
         $this->db->bind(':id', $id);
@@ -254,27 +265,31 @@ class JadwalMataPelajaranModel {
     }
 
     public function getJadwalByGuru($guru_id) {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, k.status as kelas_status,
+        $this->db->query('SELECT j.*, CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         k.nama_kelas as tingkat, k.jurusan, pk.tahun_ajaran, pk.semester, pk.status as kelas_status,
                          j.id as mata_pelajaran_id,
                          CONCAT(j.hari, ", ", TIME_FORMAT(j.jam_mulai, "%H:%i"), "-", TIME_FORMAT(j.jam_selesai, "%H:%i")) as jadwal
                          FROM jadwal_mata_pelajaran j
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
-                         WHERE j.guru_pengampu = :guru_id AND k.status = "active"
+                         INNER JOIN periode_kelas pk ON j.kelas_jadwal_id = pk.id
+                         INNER JOIN kelas k ON pk.kelas_id = k.id
+                         WHERE j.guru_pengampu = :guru_id AND pk.status = "active"
                          ORDER BY FIELD(j.hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"),
-                                  j.jam_mulai, k.nama_kelas');
+                                  j.jam_mulai, k.nama_kelas, k.jurusan');
         $this->db->bind(':guru_id', $guru_id);
         return $this->db->resultSet();
     }
 
     public function getJadwalBySiswa($siswa_id) {
-        $this->db->query('SELECT j.*, k.nama_kelas, k.tahun_ajaran, k.semester, k.status as kelas_status, u.nama as guru_pengampu_nama,
+        $this->db->query('SELECT j.*, CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
+                         k.nama_kelas as tingkat, k.jurusan, pk.tahun_ajaran, pk.semester, pk.status as kelas_status, u.nama as guru_pengampu_nama,
                          j.id as mata_pelajaran_id,
                          CONCAT(j.hari, ", ", TIME_FORMAT(j.jam_mulai, "%H:%i"), "-", TIME_FORMAT(j.jam_selesai, "%H:%i")) as jadwal
                          FROM jadwal_mata_pelajaran j
-                         INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                         INNER JOIN periode_kelas pk ON j.kelas_jadwal_id = pk.id
+                         INNER JOIN kelas k ON pk.kelas_id = k.id
                          INNER JOIN jadwal_mata_pelajaran_siswa js ON j.id = js.jadwal_mata_pelajaran_id
                          LEFT JOIN users u ON j.guru_pengampu = u.id
-                         WHERE js.siswa_id = :siswa_id AND k.status = "active"
+                         WHERE js.siswa_id = :siswa_id AND pk.status = "active"
                          ORDER BY FIELD(j.hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"),
                                   j.jam_mulai, j.nama_mata_pelajaran');
         $this->db->bind(':siswa_id', $siswa_id);
@@ -285,9 +300,13 @@ class JadwalMataPelajaranModel {
         $jadwalIds = $this->getRelatedJadwalIds($jadwal_id);
         $placeholders = $this->buildInPlaceholders($jadwalIds, 'jadwal_id');
 
-        $this->db->query('SELECT DISTINCT bi.id, bi.nama, bi.nipd, bi.nisn, bi.kelas, bi.jurusan, bi.tanggal_diterima, bi.agama,
+        $this->db->query('SELECT DISTINCT bi.id, bi.nama, bi.nipd, bi.nisn,
+                         COALESCE(k.nama_kelas, bi.kelas) as kelas,
+                         COALESCE(k.jurusan, bi.jurusan) as jurusan,
+                         bi.tanggal_diterima, bi.agama,
                          COALESCE(bi.email, "") AS email, "siswa" AS role
                          FROM buku_induk bi
+                         LEFT JOIN kelas k ON bi.kelas_id = k.id
                          INNER JOIN jadwal_mata_pelajaran_siswa js ON bi.id = js.siswa_id
                          WHERE js.jadwal_mata_pelajaran_id IN (' . $placeholders . ')
                          ORDER BY bi.nama');
@@ -300,30 +319,40 @@ class JadwalMataPelajaranModel {
         if ($jadwal_id) {
             $jadwalIds = $this->getRelatedJadwalIds($jadwal_id);
             $placeholders = $this->buildInPlaceholders($jadwalIds, 'jadwal_id');
-            $conditions[] = 'id NOT IN (
+            $conditions[] = 'bi.id NOT IN (
                 SELECT siswa_id FROM jadwal_mata_pelajaran_siswa WHERE jadwal_mata_pelajaran_id IN (' . $placeholders . ')
             )';
         }
 
         if (!empty($filters['kelas'])) {
-            $conditions[] = 'kelas = :filter_kelas';
+            $conditions[] = 'COALESCE(k.nama_kelas, bi.kelas) = :filter_kelas';
         }
         if (!empty($filters['jurusan'])) {
-            $conditions[] = 'jurusan = :filter_jurusan';
+            $conditions[] = 'COALESCE(k.jurusan, bi.jurusan) = :filter_jurusan';
         }
         if (!empty($filters['agama'])) {
-            $conditions[] = 'agama = :filter_agama';
+            $conditions[] = 'bi.agama = :filter_agama';
         }
         if (!empty($filters['search'])) {
-            $conditions[] = '(nama LIKE :filter_search OR nipd LIKE :filter_search OR email LIKE :filter_search OR nisn LIKE :filter_search OR kelas LIKE :filter_search OR jurusan LIKE :filter_search OR agama LIKE :filter_search)';
+            $conditions[] = '(bi.nama LIKE :filter_search OR bi.nipd LIKE :filter_search OR bi.email LIKE :filter_search OR bi.nisn LIKE :filter_search OR COALESCE(k.nama_kelas, bi.kelas) LIKE :filter_search OR COALESCE(k.jurusan, bi.jurusan) LIKE :filter_search OR bi.agama LIKE :filter_search)';
         }
 
         $where = $conditions ? ' WHERE ' . implode(' AND ', $conditions) : '';
 
-        $this->db->query('SELECT id, nama, nipd, nisn, kelas, jurusan, tanggal_diterima, agama,
-                         COALESCE(email, "") AS email, "siswa" AS role
-                         FROM buku_induk' . $where . '
-                         ORDER BY kelas IS NULL, kelas, jurusan IS NULL, jurusan, agama IS NULL, agama, nama');
+        $this->db->query('SELECT bi.id, bi.nama, bi.nipd, bi.nisn,
+                         COALESCE(k.nama_kelas, bi.kelas) as kelas,
+                         COALESCE(k.jurusan, bi.jurusan) as jurusan,
+                         bi.tanggal_diterima, bi.agama,
+                         COALESCE(bi.email, "") AS email, "siswa" AS role
+                         FROM buku_induk bi
+                         LEFT JOIN kelas k ON bi.kelas_id = k.id' . $where . '
+                         ORDER BY COALESCE(k.nama_kelas, bi.kelas) IS NULL,
+                                  COALESCE(k.nama_kelas, bi.kelas),
+                                  COALESCE(k.jurusan, bi.jurusan) IS NULL,
+                                  COALESCE(k.jurusan, bi.jurusan),
+                                  bi.agama IS NULL,
+                                  bi.agama,
+                                  bi.nama');
 
         if ($jadwal_id) {
             $this->bindInValues($jadwalIds, 'jadwal_id');
@@ -377,6 +406,68 @@ class JadwalMataPelajaranModel {
         $this->bindInValues($jadwalIds, 'jadwal_id');
         $row = $this->db->single();
         return $row ? (int) $row->total : 0;
+    }
+
+    public function getAllKelasMaster() {
+        $this->db->query('SELECT k.*,
+                         CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as label,
+                         (SELECT COUNT(*) FROM periode_kelas pk WHERE pk.kelas_id = k.id) as jumlah_periode,
+                         (SELECT COUNT(*) FROM buku_induk bi WHERE bi.kelas_id = k.id) as jumlah_siswa
+                         FROM kelas k
+                         ORDER BY k.nama_kelas ASC, k.jurusan ASC');
+        return $this->db->resultSet();
+    }
+
+    public function getKelasMasterById($id) {
+        $this->db->query('SELECT * FROM kelas WHERE id = :id');
+        $this->db->bind(':id', (int) $id);
+        return $this->db->single();
+    }
+
+    public function createKelasMaster($nama_kelas, $jurusan = null, $created_by = null) {
+        if ($this->kelasMasterExists($nama_kelas, $jurusan)) return false;
+        $this->db->query('INSERT INTO kelas (nama_kelas, jurusan, created_by) VALUES (:nama_kelas, :jurusan, :created_by)');
+        $this->db->bind(':nama_kelas', $nama_kelas);
+        $this->db->bind(':jurusan', $jurusan ?: null);
+        $this->db->bind(':created_by', !empty($created_by) ? (int) $created_by : 1);
+        return $this->db->execute();
+    }
+
+    public function updateKelasMaster($id, $nama_kelas, $jurusan = null) {
+        if (!$this->getKelasMasterById($id)) return false;
+        if ($this->kelasMasterExists($nama_kelas, $jurusan, $id)) return false;
+        $this->db->query('UPDATE kelas SET nama_kelas = :nama_kelas, jurusan = :jurusan WHERE id = :id');
+        $this->db->bind(':id', (int) $id);
+        $this->db->bind(':nama_kelas', $nama_kelas);
+        $this->db->bind(':jurusan', $jurusan ?: null);
+        return $this->db->execute();
+    }
+
+    public function deleteKelasMaster($id) {
+        $this->db->query('SELECT COUNT(*) as total FROM periode_kelas WHERE kelas_id = :id');
+        $this->db->bind(':id', (int) $id);
+        $periode = $this->db->single();
+        if ($periode && (int) $periode->total > 0) return false;
+
+        $this->db->query('SELECT COUNT(*) as total FROM buku_induk WHERE kelas_id = :id');
+        $this->db->bind(':id', (int) $id);
+        $siswa = $this->db->single();
+        if ($siswa && (int) $siswa->total > 0) return false;
+
+        $this->db->query('DELETE FROM kelas WHERE id = :id');
+        $this->db->bind(':id', (int) $id);
+        return $this->db->execute();
+    }
+
+    private function kelasMasterExists($nama_kelas, $jurusan = null, $excludeId = null) {
+        $sql = 'SELECT id FROM kelas WHERE nama_kelas = :nama_kelas AND (jurusan <=> :jurusan)';
+        if ($excludeId) $sql .= ' AND id <> :exclude_id';
+        $sql .= ' LIMIT 1';
+        $this->db->query($sql);
+        $this->db->bind(':nama_kelas', $nama_kelas);
+        $this->db->bind(':jurusan', $jurusan ?: null);
+        if ($excludeId) $this->db->bind(':exclude_id', (int) $excludeId);
+        return (bool) $this->db->single();
     }
 
     private function getRelatedJadwalIds($jadwal_id) {

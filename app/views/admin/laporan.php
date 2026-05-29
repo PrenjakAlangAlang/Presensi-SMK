@@ -478,12 +478,13 @@ require_once __DIR__ . '/../layouts/header.php';
                         <?php elseif ($tipe_laporan === 'kelas'): ?>
                         <td class="px-6 py-4">
                             <?php 
-                            $jenis = isset($p->jenis) ? $p->jenis : 'hadir';
+                            $jenis = !empty($p->jenis) ? $p->jenis : 'alpha';
                             $alasan = isset($p->alasan) ? $p->alasan : '';
                             $foto_bukti = isset($p->foto_bukti) ? $p->foto_bukti : '';
-                            $kelas_id_val = isset($p->kelas_id) ? $p->kelas_id : ($kelas_id ?? '');
+                            $jadwal_id_val = isset($p->jadwal_mata_pelajaran_id) ? $p->jadwal_mata_pelajaran_id : (isset($p->kelas_id) ? $p->kelas_id : '');
+                            $sesi_id_val = isset($p->sesi_id) ? $p->sesi_id : '';
                             ?>
-                            <button onclick="editPresensiKelas('<?php echo $p->id; ?>', '<?php echo $p->user_id; ?>', '<?php echo $kelas_id_val; ?>', '<?php echo htmlspecialchars($p->nama ?? '', ENT_QUOTES); ?>', '<?php echo $jenis; ?>', '<?php echo htmlspecialchars($alasan, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($foto_bukti, ENT_QUOTES); ?>')" 
+                            <button onclick="editPresensiKelas('<?php echo $p->id; ?>', '<?php echo $p->user_id; ?>', '<?php echo $jadwal_id_val; ?>', '<?php echo $sesi_id_val; ?>', '<?php echo htmlspecialchars($p->nama ?? '', ENT_QUOTES); ?>', '<?php echo $jenis; ?>', '<?php echo htmlspecialchars($alasan, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($foto_bukti, ENT_QUOTES); ?>')" 
                                     class="text-green-600 hover:text-green-800 transition-colors">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -649,7 +650,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <form id="formEditPresensiKelas" onsubmit="return submitEditPresensiKelas(event)">
             <input type="hidden" id="edit_kelas_presensi_id" name="presensi_id">
             <input type="hidden" id="edit_kelas_user_id" name="user_id">
-            <input type="hidden" id="edit_kelas_kelas_id" name="kelas_id">
+            <input type="hidden" id="edit_kelas_jadwal_id" name="jadwal_mata_pelajaran_id">
             <input type="hidden" id="edit_kelas_sesi_id" name="sesi_id" value="">
             
             <div class="mb-4">
@@ -768,10 +769,11 @@ function closeModalEdit() {
     document.getElementById('modalEditPresensiSekolah').classList.add('hidden');
 }
 
-function editPresensiKelas(presensi_id, user_id, kelas_id, nama, jenis, alasan, foto_bukti) {
+function editPresensiKelas(presensi_id, user_id, jadwal_id, sesi_id, nama, jenis, alasan, foto_bukti) {
     document.getElementById('edit_kelas_presensi_id').value = presensi_id;
     document.getElementById('edit_kelas_user_id').value = user_id;
-    document.getElementById('edit_kelas_kelas_id').value = kelas_id;
+    document.getElementById('edit_kelas_jadwal_id').value = jadwal_id;
+    document.getElementById('edit_kelas_sesi_id').value = sesi_id;
     document.getElementById('edit_kelas_nama_siswa').textContent = nama;
     document.getElementById('edit_kelas_jenis').value = jenis || 'hadir';
     document.getElementById('edit_kelas_alasan').value = alasan || '';

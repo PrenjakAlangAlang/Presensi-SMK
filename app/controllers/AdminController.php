@@ -204,6 +204,7 @@ class AdminController {
     
     public function jadwalMataPelajaran() {
         $kelasList = $this->mataPelajaranModel->getAllKelasJadwal();
+        $kelasMasterList = $this->mataPelajaranModel->getAllKelasMaster();
         $selectedKelasId = $_GET['kelas_id'] ?? null;
         $selectedKelas = $selectedKelasId ? $this->mataPelajaranModel->getKelasJadwalById($selectedKelasId) : null;
         $mataPelajaran = $selectedKelas
@@ -221,21 +222,19 @@ class AdminController {
   
     public function createKelas() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $namaKelas = trim($_POST['nama_kelas'] ?? '');
+            $kelasId = $_POST['kelas_id'] ?? null;
             $tahunAjaran = trim($_POST['tahun_ajaran'] ?? '');
             $semester = trim($_POST['semester'] ?? '');
-            $createdBy = $_SESSION['user_id'] ?? null;
-
-            if (strlen($namaKelas) > 50) {
-                $_SESSION['error'] = 'Nama kelas maksimal 50 karakter.';
+            if (!$kelasId) {
+                $_SESSION['error'] = 'Pilih master kelas terlebih dahulu.';
                 header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
                 exit;
             }
 
-            if ($namaKelas && $this->mataPelajaranModel->createKelasJadwal($namaKelas, $tahunAjaran ?: null, $semester ?: null, $createdBy)) {
-                $_SESSION['success'] = 'Kelas berhasil dibuat!';
+            if ($this->mataPelajaranModel->createKelasJadwal($kelasId, $tahunAjaran ?: null, $semester ?: null)) {
+                $_SESSION['success'] = 'Kelas semester berhasil diaktifkan!';
             } else {
-                $_SESSION['error'] = 'Gagal membuat kelas!';
+                $_SESSION['error'] = 'Gagal mengaktifkan kelas semester. Pastikan kombinasi kelas, tahun ajaran, dan semester belum ada.';
             }
         }
         header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
@@ -245,20 +244,69 @@ class AdminController {
     public function updateKelas() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'] ?? null;
-            $namaKelas = trim($_POST['nama_kelas'] ?? '');
+            $kelasId = $_POST['kelas_id'] ?? null;
             $tahunAjaran = trim($_POST['tahun_ajaran'] ?? '');
             $semester = trim($_POST['semester'] ?? '');
 
-            if (strlen($namaKelas) > 50) {
-                $_SESSION['error'] = 'Nama kelas maksimal 50 karakter.';
+            if (!$kelasId) {
+                $_SESSION['error'] = 'Pilih master kelas terlebih dahulu.';
                 header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
                 exit;
             }
 
-            if ($id && $namaKelas && $this->mataPelajaranModel->updateKelasJadwal($id, $namaKelas, $tahunAjaran ?: null, $semester ?: null)) {
-                $_SESSION['success'] = 'Kelas berhasil diperbarui!';
+            if ($id && $this->mataPelajaranModel->updateKelasJadwal($id, $kelasId, $tahunAjaran ?: null, $semester ?: null)) {
+                $_SESSION['success'] = 'Kelas semester berhasil diperbarui!';
             } else {
-                $_SESSION['error'] = 'Gagal memperbarui kelas!';
+                $_SESSION['error'] = 'Gagal memperbarui kelas semester.';
+            }
+        }
+        header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
+        exit;
+    }
+
+    public function createKelasMaster() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $namaKelas = trim($_POST['nama_kelas'] ?? '');
+            $jurusan = trim($_POST['jurusan'] ?? '');
+            $createdBy = $_SESSION['user_id'] ?? null;
+
+            if ($namaKelas === '' || strlen($namaKelas) > 50 || strlen($jurusan) > 100) {
+                $_SESSION['error'] = 'Nama kelas wajib diisi. Nama kelas maksimal 50 karakter dan jurusan maksimal 100 karakter.';
+            } elseif ($this->mataPelajaranModel->createKelasMaster($namaKelas, $jurusan ?: null, $createdBy)) {
+                $_SESSION['success'] = 'Master kelas berhasil ditambahkan.';
+            } else {
+                $_SESSION['error'] = 'Gagal menambahkan master kelas. Data mungkin sudah ada.';
+            }
+        }
+        header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
+        exit;
+    }
+
+    public function updateKelasMaster() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            $namaKelas = trim($_POST['nama_kelas'] ?? '');
+            $jurusan = trim($_POST['jurusan'] ?? '');
+
+            if (!$id || $namaKelas === '' || strlen($namaKelas) > 50 || strlen($jurusan) > 100) {
+                $_SESSION['error'] = 'Data master kelas tidak valid.';
+            } elseif ($this->mataPelajaranModel->updateKelasMaster($id, $namaKelas, $jurusan ?: null)) {
+                $_SESSION['success'] = 'Master kelas berhasil diperbarui.';
+            } else {
+                $_SESSION['error'] = 'Gagal memperbarui master kelas.';
+            }
+        }
+        header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
+        exit;
+    }
+
+    public function deleteKelasMaster() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            if ($id && $this->mataPelajaranModel->deleteKelasMaster($id)) {
+                $_SESSION['success'] = 'Master kelas berhasil dihapus.';
+            } else {
+                $_SESSION['error'] = 'Master kelas tidak bisa dihapus karena sudah dipakai siswa atau periode kelas.';
             }
         }
         header('Location: ' . BASE_URL . '/index.php?action=admin_jadwal_mata_pelajaran');
@@ -658,7 +706,7 @@ class AdminController {
     private function getTahunAjaranFilterList() {
         $db = new Database();
         $db->query('SELECT DISTINCT tahun_ajaran
-                    FROM kelas
+                    FROM periode_kelas
                     WHERE tahun_ajaran IS NOT NULL AND tahun_ajaran <> ""
                     ORDER BY tahun_ajaran DESC');
         return $db->resultSet();
@@ -667,7 +715,7 @@ class AdminController {
     private function getSemesterFilterList() {
         $db = new Database();
         $db->query('SELECT DISTINCT semester
-                    FROM kelas
+                    FROM periode_kelas
                     WHERE semester IS NOT NULL AND semester <> ""
                     ORDER BY semester ASC');
         return $db->resultSet();
@@ -675,16 +723,17 @@ class AdminController {
 
     private function getKelasFilterList($tahun_ajaran_filter = '', $semester_filter = '') {
         $db = new Database();
-        $sql = 'SELECT id, nama_kelas, tahun_ajaran, semester
-                FROM kelas
+        $sql = 'SELECT pk.id, CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas, pk.tahun_ajaran, pk.semester
+                FROM periode_kelas pk
+                INNER JOIN kelas k ON pk.kelas_id = k.id
                 WHERE 1=1';
         if ($tahun_ajaran_filter) {
-            $sql .= ' AND tahun_ajaran = :tahun_ajaran_filter';
+            $sql .= ' AND pk.tahun_ajaran = :tahun_ajaran_filter';
         }
         if ($semester_filter) {
-            $sql .= ' AND semester = :semester_filter';
+            $sql .= ' AND pk.semester = :semester_filter';
         }
-        $sql .= ' ORDER BY tahun_ajaran DESC, semester ASC, nama_kelas ASC';
+        $sql .= ' ORDER BY pk.tahun_ajaran DESC, pk.semester ASC, k.nama_kelas ASC, k.jurusan ASC';
         $db->query($sql);
         if ($tahun_ajaran_filter) {
             $db->bind(':tahun_ajaran_filter', $tahun_ajaran_filter);
@@ -700,17 +749,18 @@ class AdminController {
         $sql = 'SELECT MIN(j.id) as id, j.kelas_jadwal_id, k.nama_kelas, j.nama_mata_pelajaran, u.nama as guru_nama,
                        COUNT(*) as jumlah_pertemuan
                 FROM jadwal_mata_pelajaran j
-                INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                 LEFT JOIN users u ON j.guru_pengampu = u.id
                 WHERE 1=1';
         if ($kelas_filter_id) {
             $sql .= ' AND j.kelas_jadwal_id = :kelas_filter_id';
         }
         if ($tahun_ajaran_filter) {
-            $sql .= ' AND k.tahun_ajaran = :tahun_ajaran_filter';
+            $sql .= ' AND pkel.tahun_ajaran = :tahun_ajaran_filter';
         }
         if ($semester_filter) {
-            $sql .= ' AND k.semester = :semester_filter';
+            $sql .= ' AND pkel.semester = :semester_filter';
         }
         $sql .= ' GROUP BY j.kelas_jadwal_id, k.nama_kelas, j.nama_mata_pelajaran, j.guru_pengampu, u.nama
                   ORDER BY k.nama_kelas ASC, j.nama_mata_pelajaran ASC';
@@ -764,7 +814,8 @@ class AdminController {
                        u.nama as guru_nama
                 FROM presensi_mapel_sesi s
                 INNER JOIN jadwal_mata_pelajaran j ON s.jadwal_mata_pelajaran_id = j.id
-                INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                 LEFT JOIN users u ON j.guru_pengampu = u.id
                 INNER JOIN jadwal_mata_pelajaran_siswa js ON js.jadwal_mata_pelajaran_id = j.id
                 INNER JOIN buku_induk bi ON js.siswa_id = bi.id
@@ -774,10 +825,10 @@ class AdminController {
             $sql .= ' AND j.kelas_jadwal_id = :kelas_filter_id';
         }
         if ($tahun_ajaran_filter) {
-            $sql .= ' AND k.tahun_ajaran = :tahun_ajaran_filter';
+            $sql .= ' AND pkel.tahun_ajaran = :tahun_ajaran_filter';
         }
         if ($semester_filter) {
-            $sql .= ' AND k.semester = :semester_filter';
+            $sql .= ' AND pkel.semester = :semester_filter';
         }
         if ($selectedMapel) {
             $sql .= ' AND j.kelas_jadwal_id = :mapel_kelas_id
@@ -971,7 +1022,8 @@ class AdminController {
                        u.nama as guru_nama, j.nama_mata_pelajaran, k.nama_kelas
                 FROM presensi_mapel_sesi s
                 INNER JOIN jadwal_mata_pelajaran j ON s.jadwal_mata_pelajaran_id = j.id
-                INNER JOIN kelas k ON j.kelas_jadwal_id = k.id
+                INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
+                INNER JOIN kelas k ON pkel.kelas_id = k.id
                 LEFT JOIN users u ON s.guru_id = u.id
                 WHERE DATE(s.waktu_buka) BETWEEN :start_date AND :end_date
                   AND s.laporan_kemajuan IS NOT NULL
@@ -980,10 +1032,10 @@ class AdminController {
             $sql .= ' AND j.kelas_jadwal_id = :kelas_filter_id';
         }
         if ($tahun_ajaran_filter) {
-            $sql .= ' AND k.tahun_ajaran = :tahun_ajaran_filter';
+            $sql .= ' AND pkel.tahun_ajaran = :tahun_ajaran_filter';
         }
         if ($semester_filter) {
-            $sql .= ' AND k.semester = :semester_filter';
+            $sql .= ' AND pkel.semester = :semester_filter';
         }
         if ($selectedMapel) {
             $sql .= ' AND j.kelas_jadwal_id = :mapel_kelas_id
@@ -1621,55 +1673,74 @@ class AdminController {
     }
 
     public function ubahStatusPresensiKelas() {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Presensi mata pelajaran telah dinonaktifkan.']);
-        exit;
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $presensi_id = $_POST['presensi_id'] ?? null;
             $user_id = $_POST['user_id'] ?? null;
-            $kelas_id = $_POST['kelas_id'] ?? null;
+            $sesi_id = $_POST['sesi_id'] ?? null;
+            $jadwal_id = $_POST['jadwal_mata_pelajaran_id'] ?? ($_POST['kelas_id'] ?? null);
             $jenis = $_POST['jenis'] ?? 'hadir';
             $alasan = $_POST['alasan'] ?? null;
             $foto_bukti = $_POST['foto_bukti'] ?? null;
-            $sesi_id = $_POST['sesi_id'] ?? null;
+            $allowedJenis = ['hadir', 'izin', 'sakit', 'alpha'];
             
-            // Validasi input
-            if (!$presensi_id || !$user_id || !$kelas_id) {
+            if (!in_array($jenis, $allowedJenis, true)) {
                 header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'ID presensi, user, atau kelas tidak valid']);
+                echo json_encode(['success' => false, 'message' => 'Status presensi tidak valid']);
                 exit;
             }
             
-            // Validasi alasan untuk izin/sakit
             if (($jenis === 'izin' || $jenis === 'sakit') && empty($alasan)) {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Alasan harus diisi untuk status izin/sakit']);
                 exit;
             }
             
-            // Update presensi kelas yang sudah ada berdasarkan ID
             $db = new Database();
-            $db->query('UPDATE presensi_mapel SET 
-                        jenis = :jenis,
-                        alasan = :alasan,
-                        foto_bukti = :foto_bukti
-                        WHERE id = :id AND user_id = :user_id AND kelas_id = :kelas_id');
+            if ((int) $presensi_id > 0) {
+                $db->query('UPDATE presensi_mapel SET 
+                            status = "valid",
+                            jenis = :jenis,
+                            alasan = :alasan,
+                            foto_bukti = :foto_bukti
+                            WHERE id = :id AND user_id = :user_id');
+                $db->bind(':id', (int) $presensi_id);
+                $db->bind(':user_id', (int) $user_id);
+            } else {
+                if (!$user_id || !$sesi_id || !$jadwal_id) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'ID siswa, sesi, atau jadwal tidak valid']);
+                    exit;
+                }
+
+                $db->query('INSERT INTO presensi_mapel
+                            (presensi_sesi_id, user_id, jadwal_mata_pelajaran_id, latitude, longitude, jarak, status, jenis, alasan, foto_bukti, waktu)
+                            VALUES (:sesi_id, :user_id, :jadwal_id, NULL, NULL, NULL, "valid", :jenis, :alasan, :foto_bukti, NOW())
+                            ON DUPLICATE KEY UPDATE
+                                status = "valid",
+                                jenis = VALUES(jenis),
+                                alasan = VALUES(alasan),
+                                foto_bukti = VALUES(foto_bukti),
+                                waktu = NOW()');
+                $db->bind(':sesi_id', (int) $sesi_id);
+                $db->bind(':user_id', (int) $user_id);
+                $db->bind(':jadwal_id', (int) $jadwal_id);
+            }
             $db->bind(':jenis', $jenis);
-            $db->bind(':alasan', $alasan);
-            $db->bind(':foto_bukti', $foto_bukti);
-            $db->bind(':id', $presensi_id);
-            $db->bind(':user_id', $user_id);
-            $db->bind(':kelas_id', $kelas_id);
+            $db->bind(':alasan', ($jenis === 'izin' || $jenis === 'sakit') ? $alasan : null);
+            $db->bind(':foto_bukti', $foto_bukti ?: null);
             
             if ($db->execute()) {
                 header('Content-Type: application/json');
-                echo json_encode(['success' => true, 'message' => 'Status presensi kelas berhasil diubah']);
+                echo json_encode(['success' => true, 'message' => 'Status presensi mata pelajaran berhasil diubah']);
             } else {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Gagal mengubah status presensi']);
             }
             exit;
         }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Metode request tidak valid']);
+        exit;
     }
 
     
@@ -1708,6 +1779,7 @@ class AdminController {
     public function bukuInduk() {
         $siswa = $this->userModel->getUsersByRole('siswa');
         $records = $this->bukuIndukModel->getAll();
+        $kelasMasterList = $this->mataPelajaranModel->getAllKelasMaster();
         
         require_once __DIR__ . '/../views/admin/buku_induk.php';
     }
@@ -1721,8 +1793,9 @@ class AdminController {
             'nipd' => trim($_POST['nipd'] ?? ''),
             'email' => isset($_POST['email']) && trim($_POST['email']) !== '' ? trim($_POST['email']) : null,
             'nisn' => isset($_POST['nisn']) && trim($_POST['nisn']) !== '' ? trim($_POST['nisn']) : null,
-            'kelas' => isset($_POST['kelas']) ? trim($_POST['kelas']) : null,
-            'jurusan' => isset($_POST['jurusan']) ? trim($_POST['jurusan']) : null,
+            'kelas_id' => !empty($_POST['kelas_id']) ? $_POST['kelas_id'] : null,
+            'kelas' => isset($_POST['kelas_label']) ? trim($_POST['kelas_label']) : null,
+            'jurusan' => isset($_POST['jurusan_label']) ? trim($_POST['jurusan_label']) : null,
             'tanggal_diterima' => !empty($_POST['tanggal_diterima']) ? $_POST['tanggal_diterima'] : null,
             'agama' => isset($_POST['agama']) ? trim($_POST['agama']) : null,
             'tempat_lahir' => isset($_POST['tempat_lahir']) && trim($_POST['tempat_lahir']) !== '' ? trim($_POST['tempat_lahir']) : null,
@@ -1757,6 +1830,17 @@ class AdminController {
             $_SESSION['error'] = 'Email siswa tidak valid.';
             header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
             exit();
+        }
+
+        if (!empty($data['kelas_id'])) {
+            $kelasMaster = $this->mataPelajaranModel->getKelasMasterById($data['kelas_id']);
+            if (!$kelasMaster) {
+                $_SESSION['error'] = 'Kelas yang dipilih tidak valid.';
+                header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
+                exit();
+            }
+            $data['kelas'] = $kelasMaster->nama_kelas ?? null;
+            $data['jurusan'] = $kelasMaster->jurusan ?? null;
         }
 
         $password = $_POST['password'] ?? '';
@@ -1844,3 +1928,5 @@ class AdminController {
 
 }
 ?>
+
+

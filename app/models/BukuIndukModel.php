@@ -10,20 +10,32 @@ class BukuIndukModel {
     }
 
     public function getAll() {
-        $this->db->query('SELECT bi.*, bi.nama as user_nama, COALESCE(bi.email, "") AS email
+        $this->db->query('SELECT bi.*, bi.nama as user_nama, COALESCE(bi.email, "") AS email,
+                          COALESCE(k.nama_kelas, bi.kelas) as kelas,
+                          COALESCE(k.jurusan, bi.jurusan) as jurusan,
+                          bi.kelas as kelas_lama, bi.jurusan as jurusan_lama
                           FROM buku_induk bi
+                          LEFT JOIN kelas k ON bi.kelas_id = k.id
                           ORDER BY bi.nama');
         return $this->db->resultSet();
     }
 
     public function getById($id) {
-        $this->db->query('SELECT * FROM buku_induk WHERE id = :id');
+        $this->db->query('SELECT bi.*, COALESCE(k.nama_kelas, bi.kelas) as kelas,
+                          COALESCE(k.jurusan, bi.jurusan) as jurusan
+                          FROM buku_induk bi
+                          LEFT JOIN kelas k ON bi.kelas_id = k.id
+                          WHERE bi.id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
     }
 
     public function getByUserId($userId) {
-        $this->db->query('SELECT * FROM buku_induk WHERE id = :uid ORDER BY id DESC LIMIT 1');
+        $this->db->query('SELECT bi.*, COALESCE(k.nama_kelas, bi.kelas) as kelas,
+                          COALESCE(k.jurusan, bi.jurusan) as jurusan
+                          FROM buku_induk bi
+                          LEFT JOIN kelas k ON bi.kelas_id = k.id
+                          WHERE bi.id = :uid ORDER BY bi.id DESC LIMIT 1');
         $this->db->bind(':uid', $userId);
         return $this->db->single();
     }
@@ -96,8 +108,8 @@ class BukuIndukModel {
     public function create($data) {
         $data['password_hash'] = $data['password_hash'] ?? $this->makePasswordHash($data['password'] ?? null);
         $data['email'] = $data['email'] ?? $this->generateStudentEmail($data['nipd'] ?? '');
-        $this->db->query('INSERT INTO buku_induk (nama, nipd, email, nisn, kelas, jurusan, tanggal_diterima, agama, tempat_lahir, tanggal_lahir, alamat, nama_ayah, nama_ibu, nama_wali, no_telp_ortu, email_ortu, dokumen_ijasah, dokumen_pas_foto, dokumen_akta_kelahiran, dokumen_kk, password)
-                          VALUES (:nama, :nipd, :email, :nisn, :kelas, :jurusan, :tanggal_diterima, :agama, :tempat_lahir, :tanggal_lahir, :alamat, :nama_ayah, :nama_ibu, :nama_wali, :no_telp_ortu, :email_ortu, :dokumen_ijasah, :dokumen_pas_foto, :dokumen_akta_kelahiran, :dokumen_kk, :password)');
+        $this->db->query('INSERT INTO buku_induk (nama, nipd, email, nisn, kelas_id, kelas, jurusan, tanggal_diterima, agama, tempat_lahir, tanggal_lahir, alamat, nama_ayah, nama_ibu, nama_wali, no_telp_ortu, email_ortu, dokumen_ijasah, dokumen_pas_foto, dokumen_akta_kelahiran, dokumen_kk, password)
+                          VALUES (:nama, :nipd, :email, :nisn, :kelas_id, :kelas, :jurusan, :tanggal_diterima, :agama, :tempat_lahir, :tanggal_lahir, :alamat, :nama_ayah, :nama_ibu, :nama_wali, :no_telp_ortu, :email_ortu, :dokumen_ijasah, :dokumen_pas_foto, :dokumen_akta_kelahiran, :dokumen_kk, :password)');
         $this->bindCommon($data);
         $this->db->bind(':password', $data['password_hash']);
         return $this->db->execute();
@@ -107,7 +119,7 @@ class BukuIndukModel {
         $passwordHash = $data['password_hash'] ?? $this->makePasswordHash($data['password'] ?? null);
         if ($passwordHash) {
             $this->db->query('UPDATE buku_induk SET nama = :nama, nipd = :nipd, email = :email, nisn = :nisn,
-                              kelas = :kelas, jurusan = :jurusan, tanggal_diterima = :tanggal_diterima, agama = :agama,
+                              kelas_id = :kelas_id, kelas = :kelas, jurusan = :jurusan, tanggal_diterima = :tanggal_diterima, agama = :agama,
                               tempat_lahir = :tempat_lahir,
                               tanggal_lahir = :tanggal_lahir, alamat = :alamat, nama_ayah = :nama_ayah, nama_ibu = :nama_ibu,
                               nama_wali = :nama_wali, no_telp_ortu = :no_telp_ortu, email_ortu = :email_ortu,
@@ -118,7 +130,7 @@ class BukuIndukModel {
             $this->db->bind(':password', $passwordHash);
         } else {
             $this->db->query('UPDATE buku_induk SET nama = :nama, nipd = :nipd, email = :email, nisn = :nisn,
-                              kelas = :kelas, jurusan = :jurusan, tanggal_diterima = :tanggal_diterima, agama = :agama,
+                              kelas_id = :kelas_id, kelas = :kelas, jurusan = :jurusan, tanggal_diterima = :tanggal_diterima, agama = :agama,
                               tempat_lahir = :tempat_lahir,
                               tanggal_lahir = :tanggal_lahir, alamat = :alamat, nama_ayah = :nama_ayah, nama_ibu = :nama_ibu,
                               nama_wali = :nama_wali, no_telp_ortu = :no_telp_ortu, email_ortu = :email_ortu,
@@ -153,6 +165,7 @@ class BukuIndukModel {
         $this->db->bind(':nipd', $data['nipd']);
         $this->db->bind(':email', $data['email'] ?? $this->generateStudentEmail($data['nipd'] ?? ''));
         $this->db->bind(':nisn', $data['nisn'] ?? null);
+        $this->db->bind(':kelas_id', !empty($data['kelas_id']) ? (int) $data['kelas_id'] : null);
         $this->db->bind(':kelas', $data['kelas'] ?? null);
         $this->db->bind(':jurusan', $data['jurusan'] ?? null);
         $this->db->bind(':tanggal_diterima', $data['tanggal_diterima'] ?? null);

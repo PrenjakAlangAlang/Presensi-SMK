@@ -50,11 +50,34 @@ $dokumenFields = [
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
-            <input type="text" name="kelas" class="w-full border rounded-lg px-4 py-2" placeholder="Contoh: XI RPL 1" />
+            <?php
+                $kelasOptions = array_values(array_unique(array_filter(array_map(function($kelas) {
+                    return $kelas->nama_kelas ?? '';
+                }, $kelasMasterList ?? []))));
+                sort($kelasOptions);
+                $jurusanOptions = array_values(array_unique(array_filter(array_map(function($kelas) {
+                    return $kelas->jurusan ?? '';
+                }, $kelasMasterList ?? []))));
+                sort($jurusanOptions);
+            ?>
+            <select name="kelas_value" id="kelas_value" class="w-full border rounded-lg px-4 py-2">
+                <option value="">Pilih Kelas</option>
+                <?php foreach ($kelasOptions as $kelas): ?>
+                    <option value="<?php echo htmlspecialchars($kelas, ENT_QUOTES); ?>"><?php echo htmlspecialchars($kelas); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <input type="hidden" name="kelas_id" id="kelas_id" />
+            <input type="hidden" name="kelas_label" id="kelas_label" />
+            <input type="hidden" name="jurusan_label" id="jurusan_label" />
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>
-            <input type="text" name="jurusan" class="w-full border rounded-lg px-4 py-2" placeholder="Contoh: Rekayasa Perangkat Lunak" />
+            <select name="jurusan_value" id="jurusan_value" class="w-full border rounded-lg px-4 py-2">
+                <option value="">Pilih Jurusan</option>
+                <?php foreach ($jurusanOptions as $jurusan): ?>
+                    <option value="<?php echo htmlspecialchars($jurusan, ENT_QUOTES); ?>"><?php echo htmlspecialchars($jurusan); ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Diterima di Sekolah</label>
@@ -222,6 +245,7 @@ $dokumenFields = [
                                     data-nipd="<?php echo htmlspecialchars($r->nipd ?? '', ENT_QUOTES); ?>"
                                     data-email="<?php echo htmlspecialchars($r->email ?? '', ENT_QUOTES); ?>"
                                     data-nisn="<?php echo htmlspecialchars($r->nisn ?? '', ENT_QUOTES); ?>"
+                                    data-kelas-id="<?php echo htmlspecialchars($r->kelas_id ?? '', ENT_QUOTES); ?>"
                                     data-kelas="<?php echo htmlspecialchars($r->kelas ?? '', ENT_QUOTES); ?>"
                                     data-jurusan="<?php echo htmlspecialchars($r->jurusan ?? '', ENT_QUOTES); ?>"
                                     data-tanggal-diterima="<?php echo htmlspecialchars($r->tanggal_diterima ?? '', ENT_QUOTES); ?>"
@@ -268,10 +292,16 @@ $dokumenFields = [
 <script>
 const dokumenFields = <?php echo json_encode($dokumenFields); ?>;
 const records = <?php echo json_encode($records); ?>;
+const kelasMasterList = <?php echo json_encode($kelasMasterList ?? []); ?>;
 const editPanel = document.getElementById('editPanel');
 const selectedStudentLabel = document.getElementById('selectedStudentLabel');
 const form = document.getElementById('editForm');
 const searchInput = document.getElementById('searchBukuInduk');
+const kelasValueSelect = document.getElementById('kelas_value');
+const jurusanValueSelect = document.getElementById('jurusan_value');
+const kelasIdInput = document.getElementById('kelas_id');
+const kelasLabel = document.getElementById('kelas_label');
+const jurusanLabel = document.getElementById('jurusan_label');
 const visibleCount = document.getElementById('visibleCount');
 const emptySearchRow = document.getElementById('emptySearchRow');
 const rows = Array.from(document.querySelectorAll('.buku-row'));
@@ -295,6 +325,41 @@ function closeEditPanel() {
     form.reset();
 }
 
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    }[char]));
+}
+
+function syncKelasLabels() {
+    const kelas = kelasValueSelect.value || '';
+    const jurusan = jurusanValueSelect.value || '';
+    const match = kelasMasterList.find(item => (item.nama_kelas || '') === kelas && (item.jurusan || '') === jurusan);
+    kelasIdInput.value = match ? match.id : '';
+    kelasLabel.value = kelas;
+    jurusanLabel.value = jurusan;
+}
+
+function renderJurusanOptions(selected = '') {
+    const kelas = kelasValueSelect.value || '';
+    const jurusanList = [...new Set(kelasMasterList
+        .filter(item => !kelas || (item.nama_kelas || '') === kelas)
+        .map(item => item.jurusan || '')
+        .filter(Boolean)
+    )].sort();
+
+    jurusanValueSelect.innerHTML = '<option value="">Pilih Jurusan</option>' + jurusanList.map(jurusan =>
+        `<option value="${escapeHtml(jurusan)}">${escapeHtml(jurusan)}</option>`
+    ).join('');
+    jurusanValueSelect.value = jurusanList.includes(selected) ? selected : '';
+}
+
+kelasValueSelect.addEventListener('change', () => {
+    renderJurusanOptions();
+    syncKelasLabels();
+});
+jurusanValueSelect.addEventListener('change', syncKelasLabels);
+
 document.querySelectorAll('.edit-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         form.reset();
@@ -303,8 +368,11 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
         form.nipd.value = btn.dataset.nipd;
         form.email.value = btn.dataset.email || '';
         form.nisn.value = btn.dataset.nisn;
-        form.kelas.value = btn.dataset.kelas || '';
-        form.jurusan.value = btn.dataset.jurusan || '';
+        kelasValueSelect.value = btn.dataset.kelas || '';
+        renderJurusanOptions(btn.dataset.jurusan || '');
+        jurusanValueSelect.value = btn.dataset.jurusan || '';
+        kelasIdInput.value = btn.dataset.kelasId || '';
+        syncKelasLabels();
         form.tanggal_diterima.value = btn.dataset.tanggalDiterima || '';
         form.agama.value = btn.dataset.agama || '';
         form.tempat_lahir.value = btn.dataset.tempat;
