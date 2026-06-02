@@ -7071,9 +7071,68 @@ INSERT INTO `users` (`id`, `nama`, `email`, `password`, `role`) VALUES
 (75, 'Asvi Dema Vieri, S.Pd.', 'asvidemavieri@smk7.sch.id', '$2y$10$s0k6FlwJLjBCA0veIbgCKeRm489m2aivSImho/daLWjpktbbBuwLq', 'guru'),
 (76, 'Rudan Gumanti, S.Pd.', 'rudangumanti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru');
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admin`
+--
+
+CREATE TABLE `admin` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `nama` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `admin`
+--
+
+INSERT INTO `admin` (`id`, `user_id`, `nama`)
+SELECT `id`, `id`, `nama`
+FROM `users`
+WHERE `role` IN ('admin','admin_kesiswaan');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `guru`
+--
+
+CREATE TABLE `guru` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `nama` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `guru`
+--
+
+INSERT INTO `guru` (`id`, `user_id`, `nama`)
+SELECT `id`, `id`, `nama`
+FROM `users`
+WHERE `role` = 'guru';
+
+ALTER TABLE `users`
+  DROP COLUMN `nama`;
+
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `admin`
+--
+ALTER TABLE `admin`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_admin_user` (`user_id`);
+
+--
+-- Indexes for table `guru`
+--
+ALTER TABLE `guru`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_guru_user` (`user_id`);
 
 --
 -- Indexes for table `buku_induk`
@@ -7168,6 +7227,18 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `admin`
+--
+ALTER TABLE `admin`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+
+--
+-- AUTO_INCREMENT for table `guru`
+--
+ALTER TABLE `guru`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+
+--
 -- AUTO_INCREMENT for table `buku_induk`
 --
 ALTER TABLE `buku_induk`
@@ -7238,6 +7309,18 @@ ALTER TABLE `users`
 --
 
 --
+-- Constraints for table `admin`
+--
+ALTER TABLE `admin`
+  ADD CONSTRAINT `fk_admin_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `guru`
+--
+ALTER TABLE `guru`
+  ADD CONSTRAINT `fk_guru_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `buku_induk`
 --
 ALTER TABLE `buku_induk`
@@ -7247,7 +7330,7 @@ ALTER TABLE `buku_induk`
 -- Constraints for table `jadwal_mata_pelajaran`
 --
 ALTER TABLE `jadwal_mata_pelajaran`
-  ADD CONSTRAINT `fk_jadwal_guru` FOREIGN KEY (`guru_pengampu`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_jadwal_guru` FOREIGN KEY (`guru_pengampu`) REFERENCES `guru` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_jadwal_periode_kelas_ref` FOREIGN KEY (`kelas_jadwal_id`) REFERENCES `periode_kelas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
@@ -7261,7 +7344,7 @@ ALTER TABLE `jadwal_mata_pelajaran_siswa`
 -- Constraints for table `lokasi_sekolah`
 --
 ALTER TABLE `lokasi_sekolah`
-  ADD CONSTRAINT `lokasi_sekolah_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `lokasi_sekolah_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `admin` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `periode_kelas`
@@ -7281,7 +7364,7 @@ ALTER TABLE `presensi_mapel`
 -- Constraints for table `presensi_mapel_sesi`
 --
 ALTER TABLE `presensi_mapel_sesi`
-  ADD CONSTRAINT `fk_presensi_mapel_sesi_guru` FOREIGN KEY (`guru_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_presensi_mapel_sesi_guru` FOREIGN KEY (`guru_id`) REFERENCES `guru` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_presensi_mapel_sesi_jadwal` FOREIGN KEY (`jadwal_mata_pelajaran_id`) REFERENCES `jadwal_mata_pelajaran` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
@@ -7295,7 +7378,7 @@ ALTER TABLE `presensi_sekolah`
 -- Constraints for table `presensi_sekolah_sesi`
 --
 ALTER TABLE `presensi_sekolah_sesi`
-  ADD CONSTRAINT `fk_presensi_sekolah_sesi_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_presensi_sekolah_sesi_created_by` FOREIGN KEY (`created_by`) REFERENCES `admin` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

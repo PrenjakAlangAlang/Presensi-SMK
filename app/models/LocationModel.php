@@ -29,9 +29,9 @@ class LocationModel {
     
     public function getLokasiSekolah() {
         // Ambil record lokasi sekolah aktif.
-        $this->db->query('SELECT ls.*, u.nama as updated_by_nama 
+        $this->db->query('SELECT ls.*, a.nama as updated_by_nama 
                          FROM lokasi_sekolah ls 
-                         LEFT JOIN users u ON ls.updated_by = u.id 
+                         LEFT JOIN admin a ON ls.updated_by = a.id 
                          ORDER BY ls.id DESC LIMIT 1');
         return $this->db->single();
     }

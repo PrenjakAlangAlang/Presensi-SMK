@@ -124,8 +124,7 @@
                         <input type="text" name="no_telp_ortu" inputmode="tel" autocomplete="off" placeholder="No. telp orang tua" data-parent-phone class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value="<?php echo htmlspecialchars($_POST['no_telp_ortu'] ?? '', ENT_QUOTES); ?>">
                         <input type="email" name="email_ortu" autocomplete="off" placeholder="Email orang tua" data-parent-email class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value="<?php echo htmlspecialchars($_POST['email_ortu'] ?? '', ENT_QUOTES); ?>">
                     </div>
-                    <p class="text-xs text-gray-500">Isi salah satu: no. telepon atau email orang tua.</p>
-                    <p class="text-xs text-gray-500">Password siswa disimpan aman sebagai hash di data buku induk.</p>
+                    
                     <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 shadow-lg">
                         <i class="fas fa-user-plus mr-2"></i>Daftar sebagai Siswa
                     </button>

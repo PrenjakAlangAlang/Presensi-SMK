@@ -483,7 +483,7 @@ class AdminKesiswaanController {
                 FROM jadwal_mata_pelajaran j
                 INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
                 INNER JOIN kelas k ON pkel.kelas_id = k.id
-                LEFT JOIN users u ON j.guru_pengampu = u.id
+                LEFT JOIN guru u ON j.guru_pengampu = u.id
                 WHERE 1=1';
         if ($kelas_filter_id) {
             $sql .= ' AND j.kelas_jadwal_id = :kelas_filter_id';
@@ -548,7 +548,7 @@ class AdminKesiswaanController {
                 INNER JOIN jadwal_mata_pelajaran j ON s.jadwal_mata_pelajaran_id = j.id
                 INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
                 INNER JOIN kelas k ON pkel.kelas_id = k.id
-                LEFT JOIN users u ON j.guru_pengampu = u.id
+                LEFT JOIN guru u ON j.guru_pengampu = u.id
                 INNER JOIN jadwal_mata_pelajaran_siswa js ON js.jadwal_mata_pelajaran_id = j.id
                 INNER JOIN buku_induk bi ON js.siswa_id = bi.id
                 LEFT JOIN presensi_mapel pm ON pm.presensi_sesi_id = s.id AND pm.user_id = bi.id
@@ -745,7 +745,7 @@ class AdminKesiswaanController {
                 INNER JOIN jadwal_mata_pelajaran j ON s.jadwal_mata_pelajaran_id = j.id
                 INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
                 INNER JOIN kelas k ON pkel.kelas_id = k.id
-                LEFT JOIN users u ON s.guru_id = u.id
+                LEFT JOIN guru u ON s.guru_id = u.id
                 WHERE DATE(s.waktu_buka) BETWEEN :start_date AND :end_date
                   AND s.laporan_kemajuan IS NOT NULL
                   AND s.laporan_kemajuan <> ""';

@@ -14,7 +14,12 @@ class UserModel {
         $isEmailLogin = (bool) filter_var($identifier, FILTER_VALIDATE_EMAIL);
 
         if ($isEmailLogin) {
-            $this->db->query('SELECT * FROM users WHERE email = :email LIMIT 1');
+            $this->db->query('SELECT u.*, COALESCE(g.nama, a.nama) AS nama
+                              FROM users u
+                              LEFT JOIN guru g ON u.id = g.user_id
+                              LEFT JOIN admin a ON u.id = a.user_id
+                              WHERE u.email = :email
+                              LIMIT 1');
             $this->db->bind(':email', $identifier);
         } else {
             $this->db->query('SELECT bi.id, bi.nama, bi.email, bi.password, "siswa" AS role
@@ -58,13 +63,21 @@ class UserModel {
     
     public function getAllUsers() {
         
-        $this->db->query('SELECT * FROM users ORDER BY role, nama');
+        $this->db->query('SELECT u.*, COALESCE(g.nama, a.nama) AS nama
+                         FROM users u
+                         LEFT JOIN guru g ON u.id = g.user_id
+                         LEFT JOIN admin a ON u.id = a.user_id
+                         ORDER BY u.role, nama');
         return $this->db->resultSet();
     }
     
     public function getUserById($id) {
         
-        $this->db->query('SELECT * FROM users WHERE id = :id');
+        $this->db->query('SELECT u.*, COALESCE(g.nama, a.nama) AS nama
+                         FROM users u
+                         LEFT JOIN guru g ON u.id = g.user_id
+                         LEFT JOIN admin a ON u.id = a.user_id
+                         WHERE u.id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
     }
@@ -77,13 +90,16 @@ class UserModel {
         // Tambah user baru dengan password ter-hash
         $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
         
-        $this->db->query('INSERT INTO users (nama, email, password, role) VALUES (:nama, :email, :password, :role)');
-        $this->db->bind(':nama', $data['nama']);
+        $this->db->query('INSERT INTO users (email, password, role) VALUES (:email, :password, :role)');
         $this->db->bind(':email', $data['email']);
         $this->db->bind(':password', $hashedPassword);
         $this->db->bind(':role', $data['role']);
         
-        return $this->db->execute();
+        if (!$this->db->execute()) {
+            return false;
+        }
+
+        return $this->syncUserProfile((int) $this->db->lastInsertId(), $data['role'], $data['nama']);
     }
     
     public function updateUser($data) {
@@ -95,22 +111,20 @@ class UserModel {
             // Update dengan password ter-hash
             $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
             
-            $this->db->query('UPDATE users SET nama = :nama, email = :email, role = :role, password = :password WHERE id = :id');
+            $this->db->query('UPDATE users SET email = :email, role = :role, password = :password WHERE id = :id');
             $this->db->bind(':id', $data['id']);
-            $this->db->bind(':nama', $data['nama']);
             $this->db->bind(':email', $data['email']);
             $this->db->bind(':role', $data['role']);
             $this->db->bind(':password', $hashedPassword);
         } else {
             // Update tanpa password
-            $this->db->query('UPDATE users SET nama = :nama, email = :email, role = :role WHERE id = :id');
+            $this->db->query('UPDATE users SET email = :email, role = :role WHERE id = :id');
             $this->db->bind(':id', $data['id']);
-            $this->db->bind(':nama', $data['nama']);
             $this->db->bind(':email', $data['email']);
             $this->db->bind(':role', $data['role']);
         }
         
-        return $this->db->execute();
+        return $this->db->execute() && $this->syncUserProfile((int) $data['id'], $data['role'], $data['nama']);
     }
     
     public function deleteUser($id) {
@@ -126,17 +140,31 @@ class UserModel {
             return $this->db->resultSet();
         }
 
-        // Ambil semua user dengan role tertentu (mis. siswa, guru, admin)
-        $this->db->query('SELECT * FROM users WHERE role = :role ORDER BY nama');
+        if ($role === 'guru') {
+            $this->db->query('SELECT u.*, g.nama
+                             FROM users u
+                             INNER JOIN guru g ON u.id = g.user_id
+                             WHERE u.role = :role
+                             ORDER BY g.nama');
+            $this->db->bind(':role', $role);
+            return $this->db->resultSet();
+        }
+
+        $this->db->query('SELECT u.*, a.nama
+                         FROM users u
+                         INNER JOIN admin a ON u.id = a.user_id
+                         WHERE u.role = :role
+                         ORDER BY a.nama');
         $this->db->bind(':role', $role);
         return $this->db->resultSet();
     }
     
     public function getGuruWithKelas() {
         // Ambil guru beserta info mata pelajaran jika ada (left join)
-        $this->db->query('SELECT u.*, k.nama_mata_pelajaran 
-                         FROM users u 
-                         LEFT JOIN jadwal_mata_pelajaran k ON u.id = k.guru_pengampu 
+        $this->db->query('SELECT u.*, g.id AS guru_id, g.nama, k.nama_mata_pelajaran
+                         FROM guru g
+                         INNER JOIN users u ON g.user_id = u.id
+                         LEFT JOIN jadwal_mata_pelajaran k ON g.id = k.guru_pengampu
                          WHERE u.role = "guru"');
         return $this->db->resultSet();
     }
@@ -174,6 +202,31 @@ class UserModel {
         $this->db->query('UPDATE buku_induk SET password = :password WHERE id = :id');
         $this->db->bind(':id', $id);
         $this->db->bind(':password', $passwordHash);
+        return $this->db->execute();
+    }
+
+    private function syncUserProfile($userId, $role, $nama) {
+        if ($role === 'guru') {
+            $this->db->query('DELETE FROM admin WHERE user_id = :user_id');
+            $this->db->bind(':user_id', $userId);
+            if (!$this->db->execute()) return false;
+
+            $this->db->query('INSERT INTO guru (id, user_id, nama)
+                             VALUES (:id, :user_id, :nama)
+                             ON DUPLICATE KEY UPDATE nama = VALUES(nama)');
+        } else {
+            $this->db->query('DELETE FROM guru WHERE user_id = :user_id');
+            $this->db->bind(':user_id', $userId);
+            if (!$this->db->execute()) return false;
+
+            $this->db->query('INSERT INTO admin (id, user_id, nama)
+                             VALUES (:id, :user_id, :nama)
+                             ON DUPLICATE KEY UPDATE nama = VALUES(nama)');
+        }
+
+        $this->db->bind(':id', $userId);
+        $this->db->bind(':user_id', $userId);
+        $this->db->bind(':nama', $nama);
         return $this->db->execute();
     }
 

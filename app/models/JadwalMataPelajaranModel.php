@@ -22,7 +22,7 @@ class JadwalMataPelajaranModel {
                          FROM jadwal_mata_pelajaran j
                          INNER JOIN periode_kelas pk ON j.kelas_jadwal_id = pk.id
                          INNER JOIN kelas k ON pk.kelas_id = k.id
-                         LEFT JOIN users u ON j.guru_pengampu = u.id
+                         LEFT JOIN guru u ON j.guru_pengampu = u.id
                          ORDER BY FIELD(j.hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"),
                                   j.jam_mulai, k.nama_kelas, k.jurusan, j.nama_mata_pelajaran');
         return $this->db->resultSet();
@@ -41,7 +41,7 @@ class JadwalMataPelajaranModel {
                          FROM jadwal_mata_pelajaran j
                          INNER JOIN periode_kelas pk ON j.kelas_jadwal_id = pk.id
                          INNER JOIN kelas k ON pk.kelas_id = k.id
-                         LEFT JOIN users u ON j.guru_pengampu = u.id
+                         LEFT JOIN guru u ON j.guru_pengampu = u.id
                          WHERE j.kelas_jadwal_id = :kelas_jadwal_id
                          ORDER BY FIELD(j.hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"),
                                   j.jam_mulai, j.nama_mata_pelajaran');
@@ -169,7 +169,7 @@ class JadwalMataPelajaranModel {
                          FROM jadwal_mata_pelajaran j
                          INNER JOIN periode_kelas pk ON j.kelas_jadwal_id = pk.id
                          INNER JOIN kelas k ON pk.kelas_id = k.id
-                         LEFT JOIN users u ON j.guru_pengampu = u.id
+                         LEFT JOIN guru u ON j.guru_pengampu = u.id
                          WHERE j.id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
@@ -284,7 +284,7 @@ class JadwalMataPelajaranModel {
                          INNER JOIN periode_kelas pk ON j.kelas_jadwal_id = pk.id
                          INNER JOIN kelas k ON pk.kelas_id = k.id
                          INNER JOIN jadwal_mata_pelajaran_siswa js ON j.id = js.jadwal_mata_pelajaran_id
-                         LEFT JOIN users u ON j.guru_pengampu = u.id
+                         LEFT JOIN guru u ON j.guru_pengampu = u.id
                          WHERE js.siswa_id = :siswa_id AND pk.status = "active"
                          ORDER BY FIELD(j.hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"),
                                   j.jam_mulai, j.nama_mata_pelajaran');

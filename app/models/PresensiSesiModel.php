@@ -227,7 +227,7 @@ class PresensiSesiModel {
                          INNER JOIN periode_kelas pkel ON j.kelas_jadwal_id = pkel.id
                 INNER JOIN kelas k ON pkel.kelas_id = k.id
                          INNER JOIN jadwal_mata_pelajaran_siswa js ON j.id = js.jadwal_mata_pelajaran_id
-                         LEFT JOIN users u ON j.guru_pengampu = u.id
+                         LEFT JOIN guru u ON j.guru_pengampu = u.id
                          LEFT JOIN presensi_mapel_sesi s ON s.jadwal_mata_pelajaran_id = j.id AND DATE(s.waktu_buka) = CURDATE()
                          LEFT JOIN presensi_mapel pm ON pm.presensi_sesi_id = s.id AND pm.user_id = :siswa_id
                          WHERE js.siswa_id = :siswa_id2 AND j.hari = :hari AND pkel.status = "active"
