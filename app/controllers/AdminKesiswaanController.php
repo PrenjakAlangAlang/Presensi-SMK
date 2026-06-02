@@ -73,8 +73,8 @@ class AdminKesiswaanController {
             'nama_ayah' => isset($_POST['nama_ayah']) ? trim($_POST['nama_ayah']) : null,
             'nama_ibu' => isset($_POST['nama_ibu']) ? trim($_POST['nama_ibu']) : null,
             'nama_wali' => isset($_POST['nama_wali']) ? trim($_POST['nama_wali']) : null,
-            'no_telp_ortu' => isset($_POST['no_telp_ortu']) ? trim($_POST['no_telp_ortu']) : null,
-            'email_ortu' => isset($_POST['email_ortu']) ? trim($_POST['email_ortu']) : null,
+            'no_telp_ortu' => isset($_POST['no_telp_ortu']) && trim($_POST['no_telp_ortu']) !== '' ? trim($_POST['no_telp_ortu']) : null,
+            'email_ortu' => isset($_POST['email_ortu']) && trim($_POST['email_ortu']) !== '' ? trim($_POST['email_ortu']) : null,
             'dokumen_ijasah' => $_POST['existing_ijasah'] ?? null,
             'dokumen_pas_foto' => $_POST['existing_pas_foto'] ?? null,
             'dokumen_akta_kelahiran' => $_POST['existing_akta_kelahiran'] ?? null,
@@ -83,6 +83,18 @@ class AdminKesiswaanController {
 
         if ($data['nama'] === '' || $data['nipd'] === '') {
             $_SESSION['error'] = 'Nama dan NIPD wajib diisi.';
+            header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
+            exit();
+        }
+
+        if (empty($data['no_telp_ortu']) && empty($data['email_ortu'])) {
+            $_SESSION['error'] = 'No. telepon atau email orang tua wajib diisi salah satu.';
+            header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
+            exit();
+        }
+
+        if (!empty($data['email_ortu']) && !filter_var($data['email_ortu'], FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['error'] = 'Email orang tua tidak valid.';
             header('Location: ' . BASE_URL . '/index.php?action=admin_kesiswaan_buku_induk');
             exit();
         }

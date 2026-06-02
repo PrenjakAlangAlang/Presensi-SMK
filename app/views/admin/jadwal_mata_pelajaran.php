@@ -81,9 +81,6 @@ $selectedKelasArchived = $selectedKelas && (($selectedKelas->status ?? 'active')
                             <span class="mx-1">-</span><?php echo htmlspecialchars($kelas->semester); ?>
                         <?php endif; ?>
                     </p>
-                    <p class="text-xs text-gray-500 mt-1">
-                        Dibuat oleh <?php echo htmlspecialchars($kelas->created_by_nama ?? '-'); ?>
-                    </p>
                 </div>
                 <div class="w-11 h-11 bg-blue-100 rounded-lg flex items-center justify-center">
                     <i class="fas fa-school text-blue-600"></i>

@@ -268,11 +268,10 @@ class AdminController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $namaKelas = trim($_POST['nama_kelas'] ?? '');
             $jurusan = trim($_POST['jurusan'] ?? '');
-            $createdBy = $_SESSION['user_id'] ?? null;
 
             if ($namaKelas === '' || strlen($namaKelas) > 50 || strlen($jurusan) > 100) {
                 $_SESSION['error'] = 'Nama kelas wajib diisi. Nama kelas maksimal 50 karakter dan jurusan maksimal 100 karakter.';
-            } elseif ($this->mataPelajaranModel->createKelasMaster($namaKelas, $jurusan ?: null, $createdBy)) {
+            } elseif ($this->mataPelajaranModel->createKelasMaster($namaKelas, $jurusan ?: null)) {
                 $_SESSION['success'] = 'Master kelas berhasil ditambahkan.';
             } else {
                 $_SESSION['error'] = 'Gagal menambahkan master kelas. Data mungkin sudah ada.';
@@ -1801,11 +1800,11 @@ class AdminController {
             'tempat_lahir' => isset($_POST['tempat_lahir']) && trim($_POST['tempat_lahir']) !== '' ? trim($_POST['tempat_lahir']) : null,
             'tanggal_lahir' => !empty($_POST['tanggal_lahir']) ? $_POST['tanggal_lahir'] : null,
             'alamat' => isset($_POST['alamat']) && trim($_POST['alamat']) !== '' ? trim($_POST['alamat']) : null,
-            'nama_ayah' => $_POST['nama_ayah'] ?? null,
-            'nama_ibu' => $_POST['nama_ibu'] ?? null,
-            'nama_wali' => $_POST['nama_wali'] ?? null,
-            'no_telp_ortu' => $_POST['no_telp_ortu'] ?? null,
-            'email_ortu' => $_POST['email_ortu'] ?? null,
+            'nama_ayah' => isset($_POST['nama_ayah']) ? trim($_POST['nama_ayah']) : null,
+            'nama_ibu' => isset($_POST['nama_ibu']) ? trim($_POST['nama_ibu']) : null,
+            'nama_wali' => isset($_POST['nama_wali']) ? trim($_POST['nama_wali']) : null,
+            'no_telp_ortu' => isset($_POST['no_telp_ortu']) && trim($_POST['no_telp_ortu']) !== '' ? trim($_POST['no_telp_ortu']) : null,
+            'email_ortu' => isset($_POST['email_ortu']) && trim($_POST['email_ortu']) !== '' ? trim($_POST['email_ortu']) : null,
             'dokumen_ijasah' => $_POST['existing_ijasah'] ?? null,
             'dokumen_pas_foto' => $_POST['existing_pas_foto'] ?? null,
             'dokumen_akta_kelahiran' => $_POST['existing_akta_kelahiran'] ?? null,
@@ -1814,6 +1813,18 @@ class AdminController {
 
         if ($data['nama'] === '' || $data['nipd'] === '') {
             $_SESSION['error'] = 'Nama dan NIPD wajib diisi.';
+            header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
+            exit();
+        }
+
+        if (empty($data['no_telp_ortu']) && empty($data['email_ortu'])) {
+            $_SESSION['error'] = 'No. telepon atau email orang tua wajib diisi salah satu.';
+            header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
+            exit();
+        }
+
+        if (!empty($data['email_ortu']) && !filter_var($data['email_ortu'], FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['error'] = 'Email orang tua tidak valid.';
             header('Location: ' . BASE_URL . '/index.php?action=admin_buku_induk');
             exit();
         }

@@ -3875,34 +3875,33 @@ INSERT INTO `jadwal_mata_pelajaran_siswa` (`id`, `jadwal_mata_pelajaran_id`, `si
 CREATE TABLE `kelas` (
   `id` int NOT NULL,
   `nama_kelas` varchar(50) NOT NULL,
-  `jurusan` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `created_by` int DEFAULT '1'
+  `jurusan` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `kelas`
 --
 
-INSERT INTO `kelas` (`id`, `nama_kelas`, `jurusan`, `created_by`) VALUES
-(1, 'X', 'AKUNTANSI 1', 1),
-(2, 'X', 'AKUNTANSI 2', 1),
-(3, 'X', 'BISNIS DIGITAL', 1),
-(4, 'X', 'DESAIN DAN PRODUKSI BUSANA', 1),
-(5, 'X', 'DESAIN KOMUNIKASI VISUAL', 1),
-(6, 'X', 'MANAJEMEN PERKANTORAN 1', 1),
-(7, 'X', 'MANAJEMEN PERKANTORAN 2', 1),
-(8, 'X', 'PRODUKSI FILM', 1),
-(9, 'X', 'USAHA LAYANAN WISATA', 1),
-(10, 'XI', 'AKUNTANSI 1', 1),
-(11, 'XI', 'AKUNTANSI 2', 1),
-(12, 'XI', 'BISNIS DIGITAL', 1),
-(13, 'XI', 'DESAIN DAN PRODUKSI BUSANA', 1),
-(14, 'XI', 'DESAIN KOMUNIKASI VISUAL', 1),
-(15, 'XI', 'MANAJEMEN PERKANTORAN 1', 1),
-(16, 'XI', 'MANAJEMEN PERKANTORAN 2', 1),
-(17, 'XI', 'PRODUKSI FILM', 1),
-(18, 'XI', 'USAHA LAYANAN WISATA 1', 1),
-(19, 'XI', 'USAHA LAYANAN WISATA 2', 1);
+INSERT INTO `kelas` (`id`, `nama_kelas`, `jurusan`) VALUES
+(1, 'X', 'AKUNTANSI 1'),
+(2, 'X', 'AKUNTANSI 2'),
+(3, 'X', 'BISNIS DIGITAL'),
+(4, 'X', 'DESAIN DAN PRODUKSI BUSANA'),
+(5, 'X', 'DESAIN KOMUNIKASI VISUAL'),
+(6, 'X', 'MANAJEMEN PERKANTORAN 1'),
+(7, 'X', 'MANAJEMEN PERKANTORAN 2'),
+(8, 'X', 'PRODUKSI FILM'),
+(9, 'X', 'USAHA LAYANAN WISATA'),
+(10, 'XI', 'AKUNTANSI 1'),
+(11, 'XI', 'AKUNTANSI 2'),
+(12, 'XI', 'BISNIS DIGITAL'),
+(13, 'XI', 'DESAIN DAN PRODUKSI BUSANA'),
+(14, 'XI', 'DESAIN KOMUNIKASI VISUAL'),
+(15, 'XI', 'MANAJEMEN PERKANTORAN 1'),
+(16, 'XI', 'MANAJEMEN PERKANTORAN 2'),
+(17, 'XI', 'PRODUKSI FILM'),
+(18, 'XI', 'USAHA LAYANAN WISATA 1'),
+(19, 'XI', 'USAHA LAYANAN WISATA 2');
 
 -- --------------------------------------------------------
 
@@ -7107,8 +7106,7 @@ ALTER TABLE `jadwal_mata_pelajaran_siswa`
 --
 ALTER TABLE `kelas`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniq_kelas_master` (`nama_kelas`,`jurusan`),
-  ADD KEY `idx_kelas_created_by` (`created_by`);
+  ADD UNIQUE KEY `uniq_kelas_master` (`nama_kelas`,`jurusan`);
 
 --
 -- Indexes for table `lokasi_sekolah`
@@ -7258,12 +7256,6 @@ ALTER TABLE `jadwal_mata_pelajaran`
 ALTER TABLE `jadwal_mata_pelajaran_siswa`
   ADD CONSTRAINT `fk_jadwal_siswa_buku_induk` FOREIGN KEY (`siswa_id`) REFERENCES `buku_induk` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_jadwal_siswa_jadwal` FOREIGN KEY (`jadwal_mata_pelajaran_id`) REFERENCES `jadwal_mata_pelajaran` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `kelas`
---
-ALTER TABLE `kelas`
-  ADD CONSTRAINT `fk_kelas_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `lokasi_sekolah`

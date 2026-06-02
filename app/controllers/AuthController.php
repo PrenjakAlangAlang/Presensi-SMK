@@ -50,8 +50,8 @@ class AuthController {
             'nama_ayah' => isset($_POST['nama_ayah']) ? trim($_POST['nama_ayah']) : null,
             'nama_ibu' => isset($_POST['nama_ibu']) ? trim($_POST['nama_ibu']) : null,
             'nama_wali' => isset($_POST['nama_wali']) ? trim($_POST['nama_wali']) : null,
-            'no_telp_ortu' => isset($_POST['no_telp_ortu']) ? trim($_POST['no_telp_ortu']) : null,
-            'email_ortu' => isset($_POST['email_ortu']) ? trim($_POST['email_ortu']) : null,
+            'no_telp_ortu' => isset($_POST['no_telp_ortu']) && trim($_POST['no_telp_ortu']) !== '' ? trim($_POST['no_telp_ortu']) : null,
+            'email_ortu' => isset($_POST['email_ortu']) && trim($_POST['email_ortu']) !== '' ? trim($_POST['email_ortu']) : null,
             'dokumen_ijasah' => null,
             'dokumen_pas_foto' => null,
             'dokumen_akta_kelahiran' => null,
@@ -62,6 +62,20 @@ class AuthController {
 
         if ($data['nama'] === '' || $data['nipd'] === '' || $data['nisn'] === '' || $data['tempat_lahir'] === '' || $data['tanggal_lahir'] === '' || $data['alamat'] === '') {
             $error = 'Lengkapi data wajib untuk daftar sebagai siswa.';
+            $showRegister = true;
+            require_once __DIR__ . '/../views/auth/login.php';
+            return;
+        }
+
+        if (empty($data['no_telp_ortu']) && empty($data['email_ortu'])) {
+            $error = 'No. telepon atau email orang tua wajib diisi salah satu.';
+            $showRegister = true;
+            require_once __DIR__ . '/../views/auth/login.php';
+            return;
+        }
+
+        if (!empty($data['email_ortu']) && !filter_var($data['email_ortu'], FILTER_VALIDATE_EMAIL)) {
+            $error = 'Email orang tua tidak valid.';
             $showRegister = true;
             require_once __DIR__ . '/../views/auth/login.php';
             return;

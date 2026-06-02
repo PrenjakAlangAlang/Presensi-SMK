@@ -121,11 +121,12 @@ $dokumenFields = [
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon Orang Tua</label>
-                <input type="text" name="no_telp_ortu" class="w-full border rounded-lg px-4 py-2" placeholder="08xxxxxxxxxx" value="<?php echo htmlspecialchars($record->no_telp_ortu ?? '', ENT_QUOTES); ?>" />
+                <input type="text" name="no_telp_ortu" data-parent-phone class="w-full border rounded-lg px-4 py-2" placeholder="08xxxxxxxxxx" value="<?php echo htmlspecialchars($record->no_telp_ortu ?? '', ENT_QUOTES); ?>" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email Orang Tua</label>
-                <input type="email" name="email_ortu" maxlength="50" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" value="<?php echo htmlspecialchars($record->email_ortu ?? '', ENT_QUOTES); ?>" />
+                <input type="email" name="email_ortu" data-parent-email maxlength="50" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" value="<?php echo htmlspecialchars($record->email_ortu ?? '', ENT_QUOTES); ?>" />
+                <p class="text-xs text-gray-500 mt-1">Isi salah satu: nomor telepon atau email.</p>
             </div>
             <div></div>
 
@@ -201,6 +202,23 @@ function renderJurusanOptions(selected = '') {
     ).join('');
     jurusanValueSelect.value = jurusanList.includes(selected) ? selected : '';
 }
+
+document.querySelectorAll('form').forEach(form => {
+    const phone = form.querySelector('[data-parent-phone]');
+    const email = form.querySelector('[data-parent-email]');
+    if (!phone || !email) return;
+
+    function syncParentContactRequired() {
+        const hasPhone = phone.value.trim() !== '';
+        const hasEmail = email.value.trim() !== '';
+        phone.required = !hasEmail;
+        email.required = !hasPhone;
+    }
+
+    phone.addEventListener('input', syncParentContactRequired);
+    email.addEventListener('input', syncParentContactRequired);
+    syncParentContactRequired();
+});
 
 kelasValueSelect.addEventListener('change', () => {
     renderJurusanOptions();

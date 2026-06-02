@@ -52,7 +52,6 @@ class JadwalMataPelajaranModel {
     public function getAllKelasJadwal() {
         $this->db->query('SELECT pk.*, k.id as master_kelas_id, k.nama_kelas as tingkat, k.jurusan,
                          CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
-                         u.nama as created_by_nama,
                          (SELECT COUNT(*)
                           FROM jadwal_mata_pelajaran j
                           WHERE j.kelas_jadwal_id = pk.id) as jumlah_jadwal,
@@ -61,18 +60,15 @@ class JadwalMataPelajaranModel {
                           WHERE j.kelas_jadwal_id = pk.id) as jumlah_mapel
                          FROM periode_kelas pk
                          INNER JOIN kelas k ON pk.kelas_id = k.id
-                         LEFT JOIN users u ON k.created_by = u.id
                          ORDER BY pk.tahun_ajaran DESC, pk.semester ASC, k.nama_kelas ASC, k.jurusan ASC');
         return $this->db->resultSet();
     }
 
     public function getKelasJadwalById($id) {
         $this->db->query('SELECT pk.*, k.id as master_kelas_id, k.nama_kelas as tingkat, k.jurusan,
-                         CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas,
-                         u.nama as created_by_nama
+                         CONCAT(k.nama_kelas, IF(k.jurusan IS NULL OR k.jurusan = "", "", CONCAT(" ", k.jurusan))) as nama_kelas
                          FROM periode_kelas pk
                          INNER JOIN kelas k ON pk.kelas_id = k.id
-                         LEFT JOIN users u ON k.created_by = u.id
                          WHERE pk.id = :id');
         $this->db->bind(':id', $id);
         return $this->db->single();
@@ -424,12 +420,11 @@ class JadwalMataPelajaranModel {
         return $this->db->single();
     }
 
-    public function createKelasMaster($nama_kelas, $jurusan = null, $created_by = null) {
+    public function createKelasMaster($nama_kelas, $jurusan = null) {
         if ($this->kelasMasterExists($nama_kelas, $jurusan)) return false;
-        $this->db->query('INSERT INTO kelas (nama_kelas, jurusan, created_by) VALUES (:nama_kelas, :jurusan, :created_by)');
+        $this->db->query('INSERT INTO kelas (nama_kelas, jurusan) VALUES (:nama_kelas, :jurusan)');
         $this->db->bind(':nama_kelas', $nama_kelas);
         $this->db->bind(':jurusan', $jurusan ?: null);
-        $this->db->bind(':created_by', !empty($created_by) ? (int) $created_by : 1);
         return $this->db->execute();
     }
 

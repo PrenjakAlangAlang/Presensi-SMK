@@ -121,11 +121,12 @@ $dokumenFields = [
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon Orang Tua/Wali</label>
-            <input type="text" name="no_telp_ortu" class="w-full border rounded-lg px-4 py-2" placeholder="08xxxxxxxxxx" />
+            <input type="text" name="no_telp_ortu" data-parent-phone class="w-full border rounded-lg px-4 py-2" placeholder="08xxxxxxxxxx" />
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email Orang Tua/Wali</label>
-            <input type="email" name="email_ortu" maxlength="50" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" />
+            <input type="email" name="email_ortu" data-parent-email maxlength="50" class="w-full border rounded-lg px-4 py-2" placeholder="email@example.com" />
+            <p class="text-xs text-gray-500 mt-1">Isi salah satu: nomor telepon atau email.</p>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Password Siswa</label>
@@ -306,6 +307,17 @@ const visibleCount = document.getElementById('visibleCount');
 const emptySearchRow = document.getElementById('emptySearchRow');
 const rows = Array.from(document.querySelectorAll('.buku-row'));
 
+function syncParentContactRequired(formElement) {
+    const phone = formElement.querySelector('[data-parent-phone]');
+    const email = formElement.querySelector('[data-parent-email]');
+    if (!phone || !email) return;
+
+    const hasPhone = phone.value.trim() !== '';
+    const hasEmail = email.value.trim() !== '';
+    phone.required = !hasEmail;
+    email.required = !hasPhone;
+}
+
 function setCurrentDocument(key, value, label) {
     const existingInput = document.getElementById(`existing_${key}`);
     const currentInfo = document.getElementById(`current_${key}`);
@@ -383,6 +395,7 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
         form.nama_wali.value = btn.dataset.namaWali || '';
         form.no_telp_ortu.value = btn.dataset.noTelp || '';
         form.email_ortu.value = btn.dataset.emailOrtu || '';
+        syncParentContactRequired(form);
 
         setCurrentDocument('ijasah', btn.dataset.ijasah, dokumenFields.dokumen_ijasah);
         setCurrentDocument('pas_foto', btn.dataset.pasFoto, dokumenFields.dokumen_pas_foto);
@@ -447,6 +460,16 @@ document.querySelectorAll('.view-docs-btn').forEach(btn => {
 closeModal.addEventListener('click', () => modal.classList.add('hidden'));
 modal.addEventListener('click', e => {
     if (e.target === modal) modal.classList.add('hidden');
+});
+
+document.querySelectorAll('form').forEach(form => {
+    const phone = form.querySelector('[data-parent-phone]');
+    const email = form.querySelector('[data-parent-email]');
+    if (!phone || !email) return;
+
+    phone.addEventListener('input', () => syncParentContactRequired(form));
+    email.addEventListener('input', () => syncParentContactRequired(form));
+    syncParentContactRequired(form);
 });
 </script>
 
