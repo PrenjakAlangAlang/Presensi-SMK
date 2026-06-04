@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: May 29, 2026 at 10:25 AM
+-- Generation Time: Jun 04, 2026 at 03:20 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -20,6 +20,27 @@ SET time_zone = "+00:00";
 --
 -- Database: `presensi_smk`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admin`
+--
+
+CREATE TABLE `admin` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `nama` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `admin`
+--
+
+INSERT INTO `admin` (`id`, `user_id`, `nama`) VALUES
+(1, 1, 'Setyo Budi Sungkowo, S.Pd., M.Pd.'),
+(9, 9, 'Bambang Bagus Cahyono, S.Pd.'),
+(13, 13, 'Agus Prihatin, A.Md.');
 
 -- --------------------------------------------------------
 
@@ -233,6 +254,87 @@ INSERT INTO `buku_induk` (`id`, `nama`, `nipd`, `email`, `nisn`, `kelas_id`, `ke
 (287, 'TOBIAS LEON WICAKSONO', '2511338', '2511338@smk7.sch.id', '5814065729', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Kristen', NULL, '2009-06-30', NULL, '', '', '', '', '', '', '', '', '', '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
 (288, 'VALENCIA ALMAIRA KIRANI', '2511339', '2511339@smk7.sch.id', '7273729673', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2009-04-14', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm'),
 (289, 'WILIANSYAH PAMUNGKAS', '2511340', '2511340@smk7.sch.id', '2026251134', 8, 'X', 'PRODUKSI FILM', '2025-07-14', 'Islam', '', '2010-01-26', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$qwwFBtaT8m.kfsDG2pQOi.54tiaw7eJe2wxg.h4UGvBff0P..EvJm');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `guru`
+--
+
+CREATE TABLE `guru` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `nama` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `guru`
+--
+
+INSERT INTO `guru` (`id`, `user_id`, `nama`) VALUES
+(2, 2, 'Adik Kristien, S.Pd.'),
+(15, 15, 'Charis Jauhari, S.Pd.'),
+(16, 16, 'Widya Kusumawati, S.Pd.'),
+(17, 17, 'Rina Elistiana, S.Pd.'),
+(18, 18, 'Yulia Tri Utari, S.Pd.'),
+(19, 19, 'Nurdianasasi Limbong, S.Pd'),
+(20, 20, 'Wahyu Wulandari, S.Pd. H'),
+(21, 21, 'Harmini, S.Pd.'),
+(22, 22, 'Antonius Arlin Nurseta, S.S, M.Pd.'),
+(23, 23, 'Rini Yuni Astuti, S.Pd.'),
+(24, 24, 'Desi Kurniawati, S.Pd'),
+(25, 25, 'Muhammad Rifqi Aljabar, S.Pd'),
+(26, 26, 'Jaya Adi Praptama, S.Pd.'),
+(27, 27, 'Sri Sulastri, S.Pd.'),
+(28, 28, 'Mutiara Sabela, S.Pd.'),
+(29, 29, 'Retno Setyomurti, S.Sn.'),
+(30, 30, 'Ima Yuniarti, S.Pd.'),
+(31, 31, 'Erni Yunita, S.Pd.'),
+(32, 32, 'Lina Widiyantari, S.Pd.'),
+(33, 33, 'Sri Puji Astuti, S.Pd.'),
+(34, 34, 'Rr. Diana Sukartiningsih, S.Pd.'),
+(35, 35, 'Dewi Novitasari, S.Pd.'),
+(36, 36, 'Kurniati Utami, S.Pd.'),
+(37, 37, 'Imelda Fani Swastika, S.Pd.'),
+(38, 38, 'Maryati, S.Pd.'),
+(39, 39, 'Aulia Windi Natriansyah'),
+(40, 40, 'Sri Pardyanah, ST.M.Pd.'),
+(41, 41, 'Lembah Srigati, S.Pd.'),
+(42, 42, 'Susilowati S.Pd.'),
+(43, 43, 'Mustofa Saifulloh, S.Pd.'),
+(44, 44, 'Eko Harjito, S.Pd.'),
+(45, 45, 'Indah Syanti Dewi, S.Pd.'),
+(46, 46, 'Ernawati, S.Pd.'),
+(47, 47, 'Amaliatul Firdaus. S.Pd.'),
+(48, 48, 'Yeni Widiastuti, S.Pd.'),
+(49, 49, 'Dra. Suci Nugroho'),
+(50, 50, 'Asih Marwati'),
+(51, 51, 'Ratna Junarti, S.Pd.'),
+(52, 52, 'Norna Istri Temawati, S.Pd.'),
+(53, 53, 'Nur Fitriana, S.Pd.'),
+(54, 54, 'Titik Retno Ningsih, S.Pd.'),
+(55, 55, 'Dita Sari Kusuma, S.Pd.'),
+(56, 56, 'Rifa Sausan Ariqah, S.Pd.'),
+(57, 57, 'Edi Sutriyono, S.E.'),
+(58, 58, 'Darniati, S.St.Par.'),
+(59, 59, 'Sri Lestari, S.Pd., M.Pd.'),
+(60, 60, 'Ana Hadi Prasetyawati, S.E.'),
+(61, 61, 'Kingkin Kawuryan S.Pdt'),
+(62, 62, 'Rianitha Kusuma Dewi, S.ST. Par.'),
+(63, 63, 'Wuryadi Basuki, S.Pd.'),
+(64, 64, 'Sahid Anwar, S.Tr.Anim.'),
+(65, 65, 'Ardani Pramono, S.Pd.'),
+(66, 66, 'Khasna Nur Fauziah, S.Pd.'),
+(67, 67, 'Yosef Endi Sonatha, S.Si.'),
+(68, 68, 'Wulan Afriani, S.Pd'),
+(69, 69, 'Kartika Dwi Hidayati, S.Pd'),
+(70, 70, 'Retno Murtiningrum, S.Pd.'),
+(71, 71, 'Tri Murdiati, S.Pd.'),
+(72, 72, 'Drs. Aris Taryana'),
+(73, 73, 'Ignatius Murdono Sigit Saputro, S.Pd.'),
+(74, 74, 'Yessi Estifalia, S.Pd.'),
+(75, 75, 'Asvi Dema Vieri, S.Pd.'),
+(76, 76, 'Rudan Gumanti, S.Pd.');
 
 -- --------------------------------------------------------
 
@@ -6130,7 +6232,42 @@ INSERT INTO `presensi_mapel` (`id`, `presensi_sesi_id`, `user_id`, `jadwal_mata_
 (2135, 110, 164, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
 (2136, 110, 165, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
 (2137, 110, 166, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
-(2138, 110, 167, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL);
+(2138, 110, 167, 166, 0, 0, 0, 'valid', '2026-05-28 07:13:58', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2139, 99, 69, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2140, 99, 70, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2141, 99, 71, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2142, 99, 72, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2143, 99, 73, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2144, 99, 74, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2145, 99, 75, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2146, 99, 76, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2147, 99, 77, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2148, 99, 78, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2149, 99, 79, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2150, 99, 80, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2151, 99, 81, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2152, 99, 82, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2153, 99, 83, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2154, 99, 84, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2155, 99, 85, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2156, 99, 86, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2157, 99, 87, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2158, 99, 88, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2159, 99, 89, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2160, 99, 90, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2161, 99, 91, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2162, 99, 92, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2163, 99, 93, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2164, 99, 94, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2165, 99, 95, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2166, 99, 96, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2167, 99, 97, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2168, 99, 98, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2169, 99, 99, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2170, 99, 100, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2171, 99, 101, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2172, 99, 102, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL),
+(2173, 99, 103, 340, 0, 0, 0, 'valid', '2026-06-02 15:24:26', 'alpha', 'Tidak hadir saat sesi ditutup', NULL);
 
 -- --------------------------------------------------------
 
@@ -6230,7 +6367,7 @@ INSERT INTO `presensi_mapel_sesi` (`id`, `jadwal_mata_pelajaran_id`, `guru_id`, 
 (96, 337, 2, '2026-05-20 09:55:00', '2026-05-20 11:55:00', 'closed', 'Pembelajaran berjalan sesuai jadwal.'),
 (97, 336, 64, '2026-05-20 12:25:00', '2026-05-20 13:45:00', 'closed', 'Pembelajaran berjalan sesuai jadwal.'),
 (98, 340, 2, '2026-05-26 07:40:00', '2026-05-26 09:55:00', 'closed', NULL),
-(99, 340, 2, '2026-06-02 07:40:00', '2026-06-02 09:55:00', 'open', NULL),
+(99, 340, 2, '2026-06-02 07:40:00', '2026-06-02 09:55:00', 'closed', NULL),
 (110, 166, 51, '2026-05-28 09:15:00', '2026-05-28 10:35:00', 'closed', NULL),
 (111, 166, 51, '2026-06-04 09:15:00', '2026-06-04 10:35:00', 'open', NULL);
 
@@ -6993,7 +7130,6 @@ INSERT INTO `presensi_sekolah_sesi` (`id`, `waktu_buka`, `waktu_tutup`, `status`
 
 CREATE TABLE `users` (
   `id` int NOT NULL,
-  `nama` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `role` enum('admin','admin_kesiswaan','guru') NOT NULL
@@ -7003,118 +7139,73 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `nama`, `email`, `password`, `role`) VALUES
-(1, 'Setyo Budi Sungkowo, S.Pd., M.Pd.', 'admin@smk7.sch.id', '$2y$10$3Q6gG59W7Ewksl2IW68gPehtOCTh.aMOvMtJHn32Yq7svLwMmOqL.', 'admin'),
-(2, 'Adik Kristien, S.Pd.', 'guru@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(9, 'Bambang Bagus Cahyono, S.Pd.', 'yoga@gmail.com', '$2y$10$Fui8F6dEBMJpXAzoPfiQtOzvX9C0zyTjljBfMYeJfCg/2yjmTKFE.', 'admin_kesiswaan'),
-(13, 'Agus Prihatin, A.Md.', 'admin1@smk7.sch.id', '$2y$10$22Fnakkmf9HznSEdrDV31OWnyfjOAZRMB4uqKYNLU69kfdpOXgk0a', 'admin'),
-(15, 'Charis Jauhari, S.Pd.', 'charisjauhari@smk7.sch.id', '$2y$10$lrm5jn6c.FUYBBQ6ruyQMuA/QuqWlWd9cIBVbMxBx561U1DJILZ3K', 'guru'),
-(16, 'Widya Kusumawati, S.Pd.', 'widyakusumawati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(17, 'Rina Elistiana, S.Pd.', 'rinaelistiana@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(18, 'Yulia Tri Utari, S.Pd.', 'yuliatriutari@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(19, 'Nurdianasasi Limbong, S.Pd', 'nurdianasasilimbong@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(20, 'Wahyu Wulandari, S.Pd. H', 'wahyuwulandari@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(21, 'Harmini, S.Pd.', 'harmini@smk7.sch.id', '$2y$10$X8fEOtXCV4w4s2VdgvosXO9HYkfmpaaVr.pA2caJyQ8/kAK4kcMRK', 'guru'),
-(22, 'Antonius Arlin Nurseta, S.S, M.Pd.', 'antoniusarlinnurseta@smk7.sch.id', '$2y$10$2Hf4ttQM.TFBqj6fCKOAbul7hcDQgOs9/gE8yh/WSLgL7NhDJNr32', 'guru'),
-(23, 'Rini Yuni Astuti, S.Pd.', 'riniyuniastuti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(24, 'Desi Kurniawati, S.Pd', 'desikurniawati@smk7.sch.id', '$2y$10$fGoHOGJiUU49HdI4zGnJ2eicXGkQcJMnbrEZg2wbsLOK.m8YHhBA6', 'guru'),
-(25, 'Muhammad Rifqi Aljabar, S.Pd', 'muhammadrifqialjabar@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(26, 'Jaya Adi Praptama, S.Pd.', 'jayaadipraptama@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(27, 'Sri Sulastri, S.Pd.', 'srisulastri@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(28, 'Mutiara Sabela, S.Pd.', 'mutiarasabela@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(29, 'Retno Setyomurti, S.Sn.', 'retnosetyomurti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(30, 'Ima Yuniarti, S.Pd.', 'imayuniarti@smk7.sch.id', '$2y$10$FsQt1FJYmwLFkGfF4IMD0eNP6SX.9U9Lq3Iela2XTZgZt99JMiKWq', 'guru'),
-(31, 'Erni Yunita, S.Pd.', 'erniyunita@smk7.sch.id', '$2y$10$8zVHAZtAhnWY60vCrimQ.uYRlTSIPswtqGONUH3H5qmpYpGpkECYa', 'guru'),
-(32, 'Lina Widiyantari, S.Pd.', 'linawidiyantari@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(33, 'Sri Puji Astuti, S.Pd.', 'sripujiastuti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(34, 'Rr. Diana Sukartiningsih, S.Pd.', 'rrdianasukartiningsih@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(35, 'Dewi Novitasari, S.Pd.', 'dewinovitasari@smk7.sch.id', '$2y$10$TGcusl5bNMnjWNNwPQvszemYeQqjhz2Mi4iwiXiuCwdj1k2SKfIdm', 'guru'),
-(36, 'Kurniati Utami, S.Pd.', 'kurniatiutami@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(37, 'Imelda Fani Swastika, S.Pd.', 'imeldafaniswastika@smk7.sch.id', '$2y$10$V.jOKYcz7NfI6uYuDm8WIuw7mT9o9xe8D3hGHmbtkJJv/9LqrwXA6', 'guru'),
-(38, 'Maryati, S.Pd.', 'maryati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(39, 'Aulia Windi Natriansyah', 'auliawindinatriansyah@smk7.sch.id', '$2y$10$cpdw33cyZSc.Ug9JT6mYdOfK30jEUCNXG6OcG6xrQEPbhQ9sroGa6', 'guru'),
-(40, 'Sri Pardyanah, ST.M.Pd.', 'sripardyanah@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(41, 'Lembah Srigati, S.Pd.', 'lembahsrigati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(42, 'Susilowati S.Pd.', 'susilowati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(43, 'Mustofa Saifulloh, S.Pd.', 'mustofasaifulloh@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(44, 'Eko Harjito, S.Pd.', 'ekoharjito@smk7.sch.id', '$2y$10$QmNUKb6XHUP1VylIHjevKuJThsptKI5ff/ZbDxaG7gc1DRhVaoGyy', 'guru'),
-(45, 'Indah Syanti Dewi, S.Pd.', 'indahsyantidewi@smk7.sch.id', '$2y$10$7tHHL4WHQ0BL5H5OtFNmueE90rp3AMNly.dLnYMBYHmaAea2ukgwm', 'guru'),
-(46, 'Ernawati, S.Pd.', 'ernawati@smk7.sch.id', '$2y$10$xzL5kBGw6TcLD3/hH7PaZub/aQCXKIuwOJwqWB8fJNswfyESsqSwC', 'guru'),
-(47, 'Amaliatul Firdaus. S.Pd.', 'amaliatulfirdaus@smk7.sch.id', '$2y$10$5rJ//5ax/WVXwFD5Gm7JDOIRTh.awJCfQauZcXCetGyE.mUQnsN.y', 'guru'),
-(48, 'Yeni Widiastuti, S.Pd.', 'yeniwidiastuti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(49, 'Dra. Suci Nugroho', 'sucinugroho@smk7.sch.id', '$2y$10$mNed91UgZ4MQ4.oQQIqpmeXmhhtjxerr09WWl3pIkZtKEz6scRBP2', 'guru'),
-(50, 'Asih Marwati', 'asihmarwati@smk7.sch.id', '$2y$10$grLkEJzBKM/u6N.mec9LZu7kN4XTbSWq5XGyR1mt1Jvbs/2630vC.', 'guru'),
-(51, 'Ratna Junarti, S.Pd.', 'ratnajunarti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(52, 'Norna Istri Temawati, S.Pd.', 'nornaistritemawati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(53, 'Nur Fitriana, S.Pd.', 'nurfitriana@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(54, 'Titik Retno Ningsih, S.Pd.', 'titikretnoningsih@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(55, 'Dita Sari Kusuma, S.Pd.', 'ditasarikusuma@smk7.sch.id', '$2y$10$Xiv1o49lnrqKz14pr0BGDOeihKCeBT8JAqYK8PPohfSsTILuDRfzK', 'guru'),
-(56, 'Rifa Sausan Ariqah, S.Pd.', 'rifasausanariqah@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(57, 'Edi Sutriyono, S.E.', 'edisutriyono@smk7.sch.id', '$2y$10$Sz3OQ6CC.kEYTxqmVWKKBu8cdX/qj.g86BZeLlGkqvlIRFako5bGK', 'guru'),
-(58, 'Darniati, S.St.Par.', 'darniati@smk7.sch.id', '$2y$10$AdBM8KRFmTZc9CsoVXkH3OfbwddUh557USr46w85vNCy3BmN7yCl6', 'guru'),
-(59, 'Sri Lestari, S.Pd., M.Pd.', 'srilestari@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(60, 'Ana Hadi Prasetyawati, S.E.', 'anahadiprasetyawati@smk7.sch.id', '$2y$10$hIAJyYPxZuKh/5arz4hn0.by9HGH5okYBvkjMJ5rMs9OT/UtYvb4i', 'guru'),
-(61, 'Kingkin Kawuryan S.Pdt', 'kingkinkawuryan@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(62, 'Rianitha Kusuma Dewi, S.ST. Par.', 'rianithakusumadewi@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(63, 'Wuryadi Basuki, S.Pd.', 'wuryadibasuki@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(64, 'Sahid Anwar, S.Tr.Anim.', 'sahidanwar@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(65, 'Ardani Pramono, S.Pd.', 'ardanipramono@smk7.sch.id', '$2y$10$USKn76C2UX33HL0MgKjRBuFtoSAnnoNx5DGD8uI0ckP8G5hcBSuYy', 'guru'),
-(66, 'Khasna Nur Fauziah, S.Pd.', 'khasnanurfauziah@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(67, 'Yosef Endi Sonatha, S.Si.', 'yosefendisonatha@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(68, 'Wulan Afriani, S.Pd', 'wulanafriani@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(69, 'Kartika Dwi Hidayati, S.Pd', 'kartikadwihidayati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(70, 'Retno Murtiningrum, S.Pd.', 'retnomurtiningrum@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(71, 'Tri Murdiati, S.Pd.', 'trimurdiati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(72, 'Drs. Aris Taryana', 'aristaryana@smk7.sch.id', '$2y$10$edExJ08U0O1zSRMtXbmtOeD5IsNRKfp57E5ArgCVrURlwUa0RwCcO', 'guru'),
-(73, 'Ignatius Murdono Sigit Saputro, S.Pd.', 'ignatiusmurdonosigitsaputro@smk7.sch.id', '$2y$10$WuvU89WTrovDh9Wi2C.mKuzp5p5HXkPSExQ4/YT15.HSIhxRqX0CK', 'guru'),
-(74, 'Yessi Estifalia, S.Pd.', 'yessiestifalia@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
-(75, 'Asvi Dema Vieri, S.Pd.', 'asvidemavieri@smk7.sch.id', '$2y$10$s0k6FlwJLjBCA0veIbgCKeRm489m2aivSImho/daLWjpktbbBuwLq', 'guru'),
-(76, 'Rudan Gumanti, S.Pd.', 'rudangumanti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `admin`
---
-
-CREATE TABLE `admin` (
-  `id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `nama` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `admin`
---
-
-INSERT INTO `admin` (`id`, `user_id`, `nama`)
-SELECT `id`, `id`, `nama`
-FROM `users`
-WHERE `role` IN ('admin','admin_kesiswaan');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `guru`
---
-
-CREATE TABLE `guru` (
-  `id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `nama` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `guru`
---
-
-INSERT INTO `guru` (`id`, `user_id`, `nama`)
-SELECT `id`, `id`, `nama`
-FROM `users`
-WHERE `role` = 'guru';
-
-ALTER TABLE `users`
-  DROP COLUMN `nama`;
+INSERT INTO `users` (`id`, `email`, `password`, `role`) VALUES
+(1, 'admin@smk7.sch.id', '$2y$10$3Q6gG59W7Ewksl2IW68gPehtOCTh.aMOvMtJHn32Yq7svLwMmOqL.', 'admin'),
+(2, 'guru@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(9, 'yoga@gmail.com', '$2y$10$Fui8F6dEBMJpXAzoPfiQtOzvX9C0zyTjljBfMYeJfCg/2yjmTKFE.', 'admin_kesiswaan'),
+(13, 'admin1@smk7.sch.id', '$2y$10$22Fnakkmf9HznSEdrDV31OWnyfjOAZRMB4uqKYNLU69kfdpOXgk0a', 'admin'),
+(15, 'charisjauhari@smk7.sch.id', '$2y$10$lrm5jn6c.FUYBBQ6ruyQMuA/QuqWlWd9cIBVbMxBx561U1DJILZ3K', 'guru'),
+(16, 'widyakusumawati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(17, 'rinaelistiana@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(18, 'yuliatriutari@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(19, 'nurdianasasilimbong@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(20, 'wahyuwulandari@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(21, 'harmini@smk7.sch.id', '$2y$10$X8fEOtXCV4w4s2VdgvosXO9HYkfmpaaVr.pA2caJyQ8/kAK4kcMRK', 'guru'),
+(22, 'antoniusarlinnurseta@smk7.sch.id', '$2y$10$2Hf4ttQM.TFBqj6fCKOAbul7hcDQgOs9/gE8yh/WSLgL7NhDJNr32', 'guru'),
+(23, 'riniyuniastuti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(24, 'desikurniawati@smk7.sch.id', '$2y$10$fGoHOGJiUU49HdI4zGnJ2eicXGkQcJMnbrEZg2wbsLOK.m8YHhBA6', 'guru'),
+(25, 'muhammadrifqialjabar@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(26, 'jayaadipraptama@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(27, 'srisulastri@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(28, 'mutiarasabela@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(29, 'retnosetyomurti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(30, 'imayuniarti@smk7.sch.id', '$2y$10$FsQt1FJYmwLFkGfF4IMD0eNP6SX.9U9Lq3Iela2XTZgZt99JMiKWq', 'guru'),
+(31, 'erniyunita@smk7.sch.id', '$2y$10$8zVHAZtAhnWY60vCrimQ.uYRlTSIPswtqGONUH3H5qmpYpGpkECYa', 'guru'),
+(32, 'linawidiyantari@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(33, 'sripujiastuti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(34, 'rrdianasukartiningsih@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(35, 'dewinovitasari@smk7.sch.id', '$2y$10$TGcusl5bNMnjWNNwPQvszemYeQqjhz2Mi4iwiXiuCwdj1k2SKfIdm', 'guru'),
+(36, 'kurniatiutami@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(37, 'imeldafaniswastika@smk7.sch.id', '$2y$10$V.jOKYcz7NfI6uYuDm8WIuw7mT9o9xe8D3hGHmbtkJJv/9LqrwXA6', 'guru'),
+(38, 'maryati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(39, 'auliawindinatriansyah@smk7.sch.id', '$2y$10$cpdw33cyZSc.Ug9JT6mYdOfK30jEUCNXG6OcG6xrQEPbhQ9sroGa6', 'guru'),
+(40, 'sripardyanah@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(41, 'lembahsrigati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(42, 'susilowati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(43, 'mustofasaifulloh@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(44, 'ekoharjito@smk7.sch.id', '$2y$10$QmNUKb6XHUP1VylIHjevKuJThsptKI5ff/ZbDxaG7gc1DRhVaoGyy', 'guru'),
+(45, 'indahsyantidewi@smk7.sch.id', '$2y$10$7tHHL4WHQ0BL5H5OtFNmueE90rp3AMNly.dLnYMBYHmaAea2ukgwm', 'guru'),
+(46, 'ernawati@smk7.sch.id', '$2y$10$xzL5kBGw6TcLD3/hH7PaZub/aQCXKIuwOJwqWB8fJNswfyESsqSwC', 'guru'),
+(47, 'amaliatulfirdaus@smk7.sch.id', '$2y$10$5rJ//5ax/WVXwFD5Gm7JDOIRTh.awJCfQauZcXCetGyE.mUQnsN.y', 'guru'),
+(48, 'yeniwidiastuti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(49, 'sucinugroho@smk7.sch.id', '$2y$10$mNed91UgZ4MQ4.oQQIqpmeXmhhtjxerr09WWl3pIkZtKEz6scRBP2', 'guru'),
+(50, 'asihmarwati@smk7.sch.id', '$2y$10$grLkEJzBKM/u6N.mec9LZu7kN4XTbSWq5XGyR1mt1Jvbs/2630vC.', 'guru'),
+(51, 'ratnajunarti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(52, 'nornaistritemawati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(53, 'nurfitriana@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(54, 'titikretnoningsih@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(55, 'ditasarikusuma@smk7.sch.id', '$2y$10$Xiv1o49lnrqKz14pr0BGDOeihKCeBT8JAqYK8PPohfSsTILuDRfzK', 'guru'),
+(56, 'rifasausanariqah@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(57, 'edisutriyono@smk7.sch.id', '$2y$10$Sz3OQ6CC.kEYTxqmVWKKBu8cdX/qj.g86BZeLlGkqvlIRFako5bGK', 'guru'),
+(58, 'darniati@smk7.sch.id', '$2y$10$AdBM8KRFmTZc9CsoVXkH3OfbwddUh557USr46w85vNCy3BmN7yCl6', 'guru'),
+(59, 'srilestari@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(60, 'anahadiprasetyawati@smk7.sch.id', '$2y$10$hIAJyYPxZuKh/5arz4hn0.by9HGH5okYBvkjMJ5rMs9OT/UtYvb4i', 'guru'),
+(61, 'kingkinkawuryan@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(62, 'rianithakusumadewi@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(63, 'wuryadibasuki@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(64, 'sahidanwar@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(65, 'ardanipramono@smk7.sch.id', '$2y$10$USKn76C2UX33HL0MgKjRBuFtoSAnnoNx5DGD8uI0ckP8G5hcBSuYy', 'guru'),
+(66, 'khasnanurfauziah@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(67, 'yosefendisonatha@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(68, 'wulanafriani@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(69, 'kartikadwihidayati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(70, 'retnomurtiningrum@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(71, 'trimurdiati@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(72, 'aristaryana@smk7.sch.id', '$2y$10$edExJ08U0O1zSRMtXbmtOeD5IsNRKfp57E5ArgCVrURlwUa0RwCcO', 'guru'),
+(73, 'ignatiusmurdonosigitsaputro@smk7.sch.id', '$2y$10$WuvU89WTrovDh9Wi2C.mKuzp5p5HXkPSExQ4/YT15.HSIhxRqX0CK', 'guru'),
+(74, 'yessiestifalia@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru'),
+(75, 'asvidemavieri@smk7.sch.id', '$2y$10$s0k6FlwJLjBCA0veIbgCKeRm489m2aivSImho/daLWjpktbbBuwLq', 'guru'),
+(76, 'rudangumanti@smk7.sch.id', '$2y$10$6cT9rCw8UfrAHbQ89bPFHe4Gyiru4mV0buME81qpo0bwdWLmoxswy', 'guru');
 
 --
 -- Indexes for dumped tables
@@ -7128,13 +7219,6 @@ ALTER TABLE `admin`
   ADD UNIQUE KEY `uniq_admin_user` (`user_id`);
 
 --
--- Indexes for table `guru`
---
-ALTER TABLE `guru`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniq_guru_user` (`user_id`);
-
---
 -- Indexes for table `buku_induk`
 --
 ALTER TABLE `buku_induk`
@@ -7142,6 +7226,13 @@ ALTER TABLE `buku_induk`
   ADD KEY `idx_buku_induk_email` (`email`),
   ADD KEY `idx_buku_induk_nipd` (`nipd`),
   ADD KEY `idx_buku_induk_kelas_id` (`kelas_id`);
+
+--
+-- Indexes for table `guru`
+--
+ALTER TABLE `guru`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_guru_user` (`user_id`);
 
 --
 -- Indexes for table `jadwal_mata_pelajaran`
@@ -7227,18 +7318,6 @@ ALTER TABLE `users`
 --
 
 --
--- AUTO_INCREMENT for table `admin`
---
-ALTER TABLE `admin`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
-
---
--- AUTO_INCREMENT for table `guru`
---
-ALTER TABLE `guru`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
-
---
 -- AUTO_INCREMENT for table `buku_induk`
 --
 ALTER TABLE `buku_induk`
@@ -7278,7 +7357,7 @@ ALTER TABLE `periode_kelas`
 -- AUTO_INCREMENT for table `presensi_mapel`
 --
 ALTER TABLE `presensi_mapel`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2139;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2174;
 
 --
 -- AUTO_INCREMENT for table `presensi_mapel_sesi`
@@ -7302,7 +7381,7 @@ ALTER TABLE `presensi_sekolah_sesi`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- Constraints for dumped tables
@@ -7315,16 +7394,16 @@ ALTER TABLE `admin`
   ADD CONSTRAINT `fk_admin_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `guru`
---
-ALTER TABLE `guru`
-  ADD CONSTRAINT `fk_guru_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
 -- Constraints for table `buku_induk`
 --
 ALTER TABLE `buku_induk`
   ADD CONSTRAINT `fk_buku_induk_kelas_master` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `guru`
+--
+ALTER TABLE `guru`
+  ADD CONSTRAINT `fk_guru_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `jadwal_mata_pelajaran`
@@ -7344,7 +7423,7 @@ ALTER TABLE `jadwal_mata_pelajaran_siswa`
 -- Constraints for table `lokasi_sekolah`
 --
 ALTER TABLE `lokasi_sekolah`
-  ADD CONSTRAINT `lokasi_sekolah_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `admin` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `lokasi_sekolah_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `admin` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `periode_kelas`
